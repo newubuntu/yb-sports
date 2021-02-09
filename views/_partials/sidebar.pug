@@ -1,11 +1,17 @@
 .c-sidebar.c-sidebar-dark.c-sidebar-fixed#sidebar
   .c-sidebar-brand.d-lg-down-none
-    img(height="210" src="/assets/img/logo1.png")
-    //-svg.c-sidebar-brand-full(width="118" height="46" alt="CoreUI Logo")
-      use(xlink:href="assets/brand/coreui.svg#full")
+    //- img(height="210" src="/assets/img/logo1.png")
+    //- svg.c-sidebar-brand-full(width="118" height="46" alt="CoreUI Logo")
+      use(xlink:href="/assets/brand/coreui.svg#full")
     //-svg.c-sidebar-brand-minimized(width="46" height="46" alt="CoreUI Logo")
       use(xlink:href="assets/brand/coreui.svg#signet")
-  //-ul.c-sidebar-nav
+  ul.c-sidebar-nav#sidebarNav
+    li.c-sidebar-nav-item(v-for="page in pages")
+      a.c-sidebar-nav-link(:href="page.link==link?'#':page.link" :class="page.link==link?'text-info':page.master?'text-success':page.admin?'text-warning':''" v-on:click="reset(page.link)")
+        | {{page.name}}
+        span.badge.badge-pill.badge-danger.nav-badge(v-if="page.new||page.badge") {{page.badge||'New'}}
+  
+  //- ul.c-sidebar-nav#sidebarNav
     li.c-sidebar-nav-item
       a.c-sidebar-nav-link(href=ajax ? 'main.html' : 'index.html')
         svg.c-sidebar-nav-icon

@@ -1,4 +1,6 @@
 console.log("socket.js");
+
+
 var socket;
 // var setSocket;
 // async function socketReady(){
@@ -31,10 +33,25 @@ function emitPromise(com, data){
   })
 }
 
-window.addEventListener('load', async ()=>{
+// window.addEventListener('load', async ()=>{
+$(document).ready(async ()=>{
+
+  document.body.addEventListener('click', function() {
+    let context = new AudioContext();
+    context.resume().then(() => {
+      console.log('Playback resumed successfully');
+    });
+  },{once:true});
+
+  // let d = $('<div>').appendTo(document.body);
+  // d.html('<iframe style="width:1px; height:1px;" src="/sounds/reqWithdraw.mp3" allow="autoplay">');
+  // // Sound.init();
+  // await delay(1000);
+  // Sound.play("reqWithdraw");
 
   console.log("wait appReady");
   await appReady;
+
   console.log("set socket");
   console.log(link, user);
   // var socket = io('/'+user.email);
@@ -48,6 +65,17 @@ window.addEventListener('load', async ()=>{
     window.location.reload();
     return;
   }
+
+  socket.on("sound", data=>{
+    console.error("receive sound message", data);
+    let {name, loop} = data;
+    Sound.play(name, loop);
+  })
+
+  socket.on("profitSound", profit=>{
+    console.error("profitSound", profit);
+    profitSoundEffect(profit);
+  })
 
   socket.on("resolve", (data, uuid)=>{
     if(socketResolveList[uuid]){
@@ -70,6 +98,8 @@ window.addEventListener('load', async ()=>{
       socket.on("requestUserRegist", ()=>{
         console.error("requestUserRegist");
         Vmenu.setNew('/admin/memberManager');
+        VsideMenu.setNew('/admin/memberManager');
+        Sound.play("recReqRegist");
       })
     }
   }
@@ -79,9 +109,11 @@ window.addEventListener('load', async ()=>{
     if(Array.isArray(data)){
       data.forEach(d=>{
         Vmenu.setBadge(d.link, d.text);
+        VsideMenu.setBadge(d.link, d.text);
       })
     }else{
       Vmenu.setBadge(data.link, data.text);
+      VsideMenu.setBadge(data.link, data.text);
     }
   })
 
@@ -110,7 +142,9 @@ window.addEventListener('load', async ()=>{
     // console.error("app accounts", accounts);
 
     if(Array.isArray(accounts)){
-      let account = accounts.find(ac=>ac._id==data.account._id);
+      let account = accounts.find(ac=>{
+        return ac && ac._id==data.account._id;
+      });
       if(account){
         // console.error("bet365 money refresh", data.account.money);
         account.money = data.account.money;
@@ -138,108 +172,7 @@ window.addEventListener('load', async ()=>{
     if(money.bet365Money !== undefined){
       Vmoney.money.bet365 = money.bet365Money;
     }
-    // Vmoney.money = {
-    //   site: money.money,
-    //   wallet: money.wallet,
-    //   bet365: money.bet365Money
-    // }
   })
-
-
-  // function setupSocket(){
-    ///// socket handler /////
-    // socket.on("setBrowserTitle", (data, pid, bid)=>{
-    //   let browser = Vapp.getBrowserObj(pid, bid);
-    //   if(browser){
-    //     browser.ip = data;
-    //   }
-    // })
-    //
-    // socket.on("log", (data, pid, bid)=>{
-    //   console.log("log", data);
-    //   Vapp.updateLog(pid, bid, data);
-    // })
-    //
-    // socket.on("connectedProgram", pid=>{
-    //   console.log("connected program", pid);
-    //   let program = Vapp.getProgramObj(pid);
-    //   if(program){
-    //     program.connected = true;
-    //     Vapp.$forceUpdate();
-    //   }
-    // })
-    //
-    // socket.on("disconnectProgram", pid=>{
-    //   console.log("disconnectProgram");
-    //   let program = Vapp.getProgramObj(pid);
-    //   if(program){
-    //     program.connected = false;
-    //     Vapp.$forceUpdate();
-    //   }
-    // })
-    //
-    // socket.on("addProgram", program=>{
-    //   console.log("receive addProgram", program);
-    //   Vapp.addProgram(program);
-    // })
-    //
-    //
-    // socket.on("removeProgram", pid=>{
-    //   console.log("receive removeProgram", pid);
-    //   Vapp.removeProgram(pid);
-    // })
-    //
-    // socket.on("addBrowser", (pid, browser)=>{
-    //   console.log("receive addBrowser", pid, browser);
-    //   Vapp.addBrowser(pid, browser);
-    // })
-    //
-    // socket.on("removeBrowser", (pid, _bid)=>{
-    //   console.log("receive removeBrowser", pid, _bid);
-    //   Vapp.removeBrowser(pid, _bid);
-    // })
-    //
-    // socket.on("closedBrowser", (data, pid, bid)=>{
-    //   console.log("receive closedBrowser", pid, bid);
-    //   Vapp.setBrowserState(pid, bid, false);
-    // })
-    //
-    // socket.on("openedBrowser", (data, pid, bid)=>{
-    //   console.log("receive openedBrowser", pid, bid);
-    //   Vapp.setBrowserState(pid, bid, true);
-    // })
-    //
-    // socket.on("receiveIP", (data, pid, bid)=>{
-    //   console.log("receiveIP", data, pid, bid);
-    //   Vapp.setBrowserIP(pid, bid, data);
-    // })
-    //
-    // socket.on("receiveLivingBrowsers", data=>{
-    //   console.error("receiveLivingBrowsers", data);
-    //   let program = Vapp.programs.find(program=>program._id == data.pid);
-    //   // console.log(Vapp.programs.length, program);
-    //   if(program){
-    //     program.connected = !data.exit;
-    //     // console.log("program", program);
-    //     program.browsers.forEach(browser=>{
-    //       // console.log("browser", browser);
-    //       if(data.bids.indexOf(browser._id) > -1){
-    //         browser.isOn = true;
-    //       }else{
-    //         browser.isOn = false;
-    //         browser.ip = "";
-    //       }
-    //     })
-    //     Vapp.$forceUpdate();
-    //   }
-    // })
-  // }
-
-  // switch(link){
-  //   case "/dashboard":
-  //   break;
-  // }
-
 
 })
 

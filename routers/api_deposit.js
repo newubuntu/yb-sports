@@ -95,7 +95,8 @@ module.exports = MD=>{
     .sort({createdAt:-1})
     .limit(limit)
     .skip(offset)
-    .populate(populateObjList);
+    .populate(populateObjList)
+    .lean();
 
     // console.log("????", query, list);
 
@@ -188,6 +189,11 @@ module.exports = MD=>{
     emitToAdmin('menuBadge', {
       link: '/admin/accountManager',
       text: 'New'
+    });
+
+    emitToAdmin('sound', {
+      name: "recReqWithdraw",
+      to: "admin"
     });
 
     emitToAdmin('refreshTab', {
@@ -344,7 +350,7 @@ module.exports = MD=>{
     if(account.depositStatus == null){
       res.json({
         status: "fail",
-        message: `출금요청이 반려된 건입니다..`
+        message: `출금요청이 반려된 건입니다.`
       })
       return;
     }
@@ -378,9 +384,14 @@ module.exports = MD=>{
 
       await account.requestApprovalDeposit(money, req.user);
 
-      emitToAdmin('menuBadge', {
+      emitToMaster('menuBadge', {
         link: '/admin/approvalManager',
         text: 'New'
+      });
+
+      emitToMaster('sound', {
+        name: "recReqOkApproval",
+        to: "master"
       });
     }
 

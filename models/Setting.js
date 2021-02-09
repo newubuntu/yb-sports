@@ -18,10 +18,10 @@ settingSchema.plugin(autoIncrement.plugin, {
   increment : 1 // 증가
 });
 
-settingSchema.statics.create = function(payload){
-  const p = new this(payload);
-  return p.save();
-}
+// settingSchema.statics.create = function(payload){
+//   const p = new this(payload);
+//   return p.save();
+// }
 
 // optionSchema.statics.find = function(_id){
 //   return this.find(_id?{_id}:undefined);

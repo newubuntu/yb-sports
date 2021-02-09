@@ -96,7 +96,8 @@ module.exports = MD=>{
     .sort({createdAt:-1})
     .limit(limit)
     .skip(offset)
-    .populate(populateObjList);
+    .populate(populateObjList)
+    .lean();
 
     // console.log("????", query, list);
 
@@ -199,6 +200,8 @@ module.exports = MD=>{
 
     // approval.tasks.length = 0;
     // await approval.save();
+
+
 
     emitToAdmin('refreshTab', {
       link: "/admin/accountManager"

@@ -46,11 +46,11 @@ module.exports = io=>{
       let setting = await getSetting();
       user = new User({
         // name: req.body.name,
-        ip: req.clientIp,//req.connection.remoteAddress,
+        ip: req.clientIp.replace('::ffff:', ''),//req.connection.remoteAddress,
         email: req.body.email,
         password: await hash(req.body.password, salt), // dont remove the await
-        programCount: setting.programLimit,
-        browserCount: setting.browserLimit
+        programCount: setting?setting.programLimit:2,
+        browserCount: setting?setting.browserLimit:6
       })
       let response = await user.save();
       io.to('admin').emit('requestUserRegist');

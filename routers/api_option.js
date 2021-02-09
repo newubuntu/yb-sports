@@ -38,10 +38,10 @@ module.exports = MD=>{
 
   router.get("/get_option_list", task(async (req, res)=>{
     let filter;
-    if(!req.admin){
+    if(!req.admin && !req.user.master){
       filter = {permission:'all'};
     }
-    let options = await Option.find(filter).select(['name', 'permission']);
+    let options = await Option.find(filter).select(['name', 'permission']).lean();
 
     // console.log("/get_option_list", options);
     res.json({
@@ -52,7 +52,7 @@ module.exports = MD=>{
 
   router.post("/get_options", task(async (req, res)=>{
     let ids = req.body.ids;
-    let options = await Option.find({_id:ids});
+    let options = await Option.find({_id:ids}).lean();
     // console.log(options);
     res.json({
       status: "success",

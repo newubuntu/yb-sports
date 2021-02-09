@@ -103,10 +103,10 @@ let Vapp;
     }
   })
 
-  let defaultData = settingFormFormat.reduce((r, form)=>{
-    r[form.key] = form.value;
-    return r;
-  }, {})
+  // let defaultData = settingFormFormat.reduce((r, form)=>{
+  //   r[form.key] = form.value;
+  //   return r;
+  // }, {})
 
   // console.log("defaultData", defaultData);
 

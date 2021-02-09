@@ -46,11 +46,11 @@ userSchema.plugin(autoIncrement.plugin, {
 //   }
 // });
 
-userSchema.statics.create = async function(payload){
-  const p = new this(payload);
-  await p.save();
-  return p;
-}
+// userSchema.statics.create = async function(payload){
+//   const p = new this(payload);
+//   await p.save();
+//   return p;
+// }
 
 userSchema.methods.addProgram = async function(p){
   // console.log('add program');
@@ -65,10 +65,11 @@ userSchema.methods.addProgram = async function(p){
 userSchema.methods.removeProgram = async function(pid){
   this.programs.pull({_id:pid});
   try{
-    let program = await Program.findOne({_id:pid});
-    if(program){
-      program.remove();
-    }
+    await Program.deleteOne({_id:pid});
+    // let program = await Program.findOne({_id:pid});
+    // if(program){
+    //   program.remove();
+    // }
   }catch(e){
     console.error(e);
   }

@@ -3,8 +3,31 @@ console.log("betHistory.js");
 let Vapp;
 (async ()=>{
 
+  startLoading();
+
   function setupSocket(){
 
+  }
+
+  let days = "일,월,화,수,목,금,토".split(',');
+  let startPicker, endPicker;
+  function setupDatePicker(){
+    let option = {
+      id: 1,
+      customDays: ['일', '월', '화', '수', '목', '금', '토'],
+      customMonths: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'],
+      customOverlayMonths: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'],
+      overlayButton: "확인",
+      overlayPlaceholder: "년도",
+      dateSelected: new Date(),
+      formatter: (input, date, instance) => {
+        const value = date.toLocaleDateString() + " (" + days[date.getDay()] + ")";
+        input.value = value;
+      },
+      position : 'tl'
+    }
+    startPicker = datepicker('.start-date', option);
+    endPicker = datepicker('.end-date', option)
   }
 
   Vapp = new Vue({
@@ -18,16 +41,16 @@ let Vapp;
       pages: [],
       tab: 0,
       list: [],
-      statusMap:{
-        open: "요청중",
-        approval: "승인됨",
-        reject: "반려됨"
-      },
-      statusClassMap:{
-        open: "badge-primary",
-        approval: "badge-success",
-        reject: "badge-danger"
-      }
+      betId: null,
+      accountId: null,
+      status: null,
+      result: {},
+      accounts: []
+      // statusClassMap:{
+      //   open: "badge-primary",
+      //   approval: "badge-success",
+      //   reject: "badge-danger"
+      // }
     },
     async created(){
       console.log("wait socketReady");
@@ -37,22 +60,34 @@ let Vapp;
       let tab, linkPart = window.location.href.split('#')[1];
       tab = parseInt(linkPart);
 
-      switch(tab){
-        case 0: await this.loadList(0, 0); break;
-        case 1: await this.loadList(0, 1); break;
+      setupDatePicker();
 
-        default:
-          await this.loadList();
-      }
+      await this.loadList(0, tab||0);
+
+      // switch(tab){
+      //   case 0: await this.loadList(0, 0); break;
+      //   case 1: await this.loadList(0, 1); break;
+      //
+      //   default:
+      //     await this.loadList();
+      // }
+
+      window.addEventListener("keydown", e=>{
+        if(e.key == "F5"){
+          this.reload();
+          api.refreshMoney();
+          e.preventDefault();
+        }
+      })
 
 
       this.$nextTick(function() {
         $(this.$el).removeClass("pre-hide");
-        $(".money-input").each((i,el)=>{
-          setupMoneyInput(el);
-        }).on("input", e=>{
-          $(e.target).addClass('text-warning');
-        })
+        // $(".money-input").each((i,el)=>{
+        //   setupMoneyInput(el);
+        // }).on("input", e=>{
+        //   $(e.target).addClass('text-warning');
+        // })
         appMountedResolve();
       })
     },
@@ -62,17 +97,59 @@ let Vapp;
 
     methods: {
       comma(n){
-        return comma(n);
+        return comma(Math.floor(n));
+      },
+
+      round(n,p=0){
+        return Math.round(n * Math.pow(10,p))/Math.pow(10,p);
+      },
+
+      printPercent(n){
+        return this.round(n*100,2) + '%';
+      },
+
+      printProfit(item){
+        return '$' + this.round(calc.profit(item.siteOdds, item.bookmakerOdds, item.siteStake, item.bookmakerStake), 2);
+      },
+
+      printProfitP(item){
+        return this.printPercent(calc.profitP(item.siteOdds, item.bookmakerOdds));
+      },
+
+      getStatusColor(item, reverse){
+        if(reverse){
+          if(item.betStatus=='LOSE') return 'text-success';
+          if(item.betStatus=='WON') return 'text-danger';
+        }else{
+          if(item.betStatus=='WON') return 'text-success';
+          if(item.betStatus=='LOSE') return 'text-danger';
+        }
+        if(item.betStatus=='REFUNDED' || item.betStatus=='CANCELLED') return 'text-warning';
+        return '';
+      },
+
+      changeSearchId(){
+        this.accountId = $('.search-id').val();
+      },
+
+      changeSearchStatus(){
+        this.status = $('.search-status').val().trim();
+      },
+
+      changeSearchBetId(){
+        this.betId = $('.search-betid').val().trim();
       },
 
       setData(data){
-        // console.log(data);
+        console.log(data);
         this.list = data.list;
         this.curPage = data.curPage;
         this.startPage = data.startPage;
         this.endPage = data.endPage;
         this.maxPage = data.maxPage;
         this.count = data.count;
+        this.accounts = data.accounts;
+        this.result = data.result || {};
         let pages = [];
         for(let i=this.startPage; i<=this.endPage; i++){
           pages.push(i);
@@ -80,21 +157,54 @@ let Vapp;
         this.pages = pages;
       },
 
-      async loadList(curPage=0, tab=0){
+      reload(){
+        this.loadList(this.curPage, this.tab, {accountId:this.accountId, status:this.status, betId:this.betId});
+      },
+
+      resetReload(){
+        this.loadList(this.curPage, this.tab);
+      },
+
+      async loadList(curPage=0, tab=0, opt={}){
+        // accountId = accountId||this.accountId;
+        let {accountId, status, betId} = opt;
+        this.accountId = accountId;
+        this.status = status;
+        this.betId = betId;
+        let range = startPicker.getRange();
+        range.end = new Date(range.end.getTime() + (1000*60*60*24 - 1000));
+        // this.accountId = accountId;
         // console.log("loadList page", curPage);
-        let query = {level:0, populateChild:true};
+        let query = {curPage, accountId, status, range, betId};
         switch(tab){
-          case 0: // 출금목록(deposit-벳삼은출금이지만, 유저한텐 입금이다)
-            query.deposit = true;
-            query.curPage = curPage;
+          case 0: // 전체
           break;
 
-          case 1: // 입금목록
-            query.deposit = false;
-            query.curPage = curPage;
+          case 1: // 축구
+            query.sportName = "Soccer";
+          break;
+
+          case 2: // 테니스
+            query.sportName = "Tennis";
+          break;
+
+          case 3: // 하키
+            query.sportName = "Hockey";
+          break;
+
+          case 4: // 농구
+            query.sportName = "Basketball";
+          break;
+
+          case 5: // 야구
+            query.sportName = "Baseball";
+          break;
+
+          case 6: // 아메리칸 풋볼
+            query.sportName = "Football";
           break;
         }
-        let res = await api.getDepositHistory(query);
+        let res = await api.getBets(query);
         // let res = await api.getApprovals(query);
         this.tab = tab;
         if(res.status == "success"){

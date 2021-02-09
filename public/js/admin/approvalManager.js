@@ -49,14 +49,21 @@ let Vapp;
           await this.loadList();
       }
 
+      window.addEventListener("keydown", e=>{
+        if(e.key == "F5"){
+          this.reload();
+          api.refreshMoney();
+          e.preventDefault();
+        }
+      })
 
       this.$nextTick(function() {
         $(this.$el).removeClass("pre-hide");
-        $(".money-input").each((i,el)=>{
-          setupMoneyInput(el);
-        }).on("input", e=>{
-          $(e.target).addClass('text-warning');
-        })
+        // $(".money-input").each((i,el)=>{
+        //   setupMoneyInput(el);
+        // }).on("input", e=>{
+        //   $(e.target).addClass('text-warning');
+        // })
         appMountedResolve();
       })
     },
@@ -66,7 +73,7 @@ let Vapp;
 
     methods: {
       comma(n){
-        return comma(n);
+        return comma(Math.floor(n));
       },
 
       setData(data){
@@ -82,6 +89,10 @@ let Vapp;
           pages.push(i);
         }
         this.pages = pages;
+      },
+
+      reload(){
+        this.loadList(this.curPage, this.tab);
       },
 
       async loadList(curPage=0, tab=0){

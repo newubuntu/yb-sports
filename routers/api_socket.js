@@ -22,8 +22,8 @@ module.exports = MD=>{
     Account,
     Option,
     Approval,
-    BetData,
     Event,
+    DepositLog,
     authAdmin,
     authMaster,
     task,
@@ -31,7 +31,8 @@ module.exports = MD=>{
     approvalTask,
     refreshMoney,
     updateBet365Money,
-    updateBet365TotalMoney
+    updateBet365TotalMoney,
+    MoneyManager
   } = MD;
 
   let chekerSocket;
@@ -72,7 +73,9 @@ module.exports = MD=>{
         // let user = await User.findOne({email:email});//.select(["email", "allowed", "authority", "master"]);
         session = {
           user: user,
-          admin: !!user.authority || user.master
+          admin: !!user.authority || user.master,
+          onlyadmin: !!user.authority && !user.master,
+          master: user.master
         }
       }
 
@@ -86,9 +89,20 @@ module.exports = MD=>{
         if(session.admin && data.link !== "__program__"){
           // console.log("@@ join socket admin group");
           socket.join('admin');
+          if(session.onlyadmin){
+            socket.join('onlyadmin');
+          }
+          if(session.master){
+            socket.join('master');
+          }
         }else if(data.link == "__program__"){
           socket.join("__program__");
           socket.emit("email", email);
+          if(Array.isArray(data.groups)){
+            data.groups.forEach(group=>{
+              socket.join(group);
+            })
+          }
         }
         // socket.join([email, data.pageCode]);
       }
@@ -159,7 +173,9 @@ module.exports = MD=>{
         // programSockets[data.pid] = socket;
         socket.join(data.pid);
 
-        emitToDashboard("connectedProgram", data.pid);
+        setTimeout(()=>{
+          emitToDashboard("connectedProgram", data.pid);
+        }, 10)
 
         socket.on("joinChecker", (bid)=>{
           // console.log("@@@has chekerSocket", !!chekerSocket)
@@ -219,11 +235,23 @@ module.exports = MD=>{
             console.error("log기록중, browser를 못찾음", bid);
             return;
           }
-          let c_log = await Log.create({
-            browser: bid,
-            bet365Id: browser.account?browser.account.id:"unknown",
-            data: data
-          });
+
+          let c_log;
+          if(data.isSame){
+            c_log = await Log.findOne({browser: bid}).sort({$natural:-1});//{'created_at' : -1 });
+            // c_log = await Log.find({browser: bid, bet365Id: browser.account?browser.account.id:"unknown"}).limit(1).sort({$natural:-1});
+            // c_log = c_log[0];
+            c_log.data = data;
+            await c_log.save();
+          }
+
+          if(!c_log){
+            c_log = await Log.create({
+              browser: bid,
+              bet365Id: browser.account?browser.account.id:"unknown",
+              data: data
+            });
+          }
 
           // if(browser.logs.length >= config.MAX_LOG_LENGTH){
           //   // browser.logs.shift();
@@ -237,8 +265,12 @@ module.exports = MD=>{
 
           // 각 브라우져의 log를 모두 가지고 있는일은 위험하다. max log수만큼만
           // 유지하고 나머지는 지우자
-          // console.log("Delete log", "$lte", c_log.number-config.MAX_LOG_LENGTH);
-          Log.deleteMany({number:{$lte:c_log.number-config.MAX_LOG_LENGTH}});
+          // console.log("Delete log", "$lte", c_log.number, c_log.number-config.MAX_LOG_LENGTH);
+          // if(!data.isSame){
+            //이게 각 브라우저당 제한수 밑으로 제거해야 맞는거다..
+            // log 처리할때마다 지우지말고, 주기적으로 특정기간이 지난 것들을 지우자.
+            // await Log.deleteMany({number:{$lte:c_log.number-config.MAX_LOG_LENGTH}});
+          // }
         })
 
         socket.on("delivery", async (obj, bid, uuid)=>{
@@ -264,12 +296,49 @@ module.exports = MD=>{
         //정재된 매칭 게임데이터
         socket.on("inputGameData", obj=>{
           console.log("inputGameData", obj);
-          io.to("__data_receiver2__").emit("gamedata2", obj);
-          // emitToAllPrograms("gamedata2", obj);
+          // let event;
+          // try{
+          //   event = await Event.create(obj);
+          // }catch(e){
+          //   console.error("이벤트 저장 오류");
+          //   console.error(e);
+          // }
+          //
+          // if(event){
+          //   io.to("__data_receiver2__").emit("gamedata2", event);
+          // }
 
-          Event.create({
-            data: obj
-          });
+          if(typeof obj.pitcher1MustStart === "string"){
+            obj.pitcher1MustStart = obj.pitcher1MustStart.toLowerCase() == "true";
+          }
+          if(typeof obj.pitcher2MustStart === "string"){
+            obj.pitcher2MustStart = obj.pitcher2MustStart.toLowerCase() == "true";
+          }
+          if(typeof obj.isLive === "string"){
+            obj.isLive = obj.isLive.toLowerCase() == "true";
+          }
+
+          let room = "__data_receiver2__";
+          // console.log(io.sockets.clients(room));
+          io.to(room).emit("gamedata2", obj);
+          Event.create(obj).catch(e=>{
+            console.error("이벤트 저장 오류");
+            console.error(e);
+          })
+
+          // emitToAllPrograms("gamedata2", obj);
+          // try{
+            // Event.create({
+            //   peId: obj.pinnacle.id,
+            //   beId: obj.bet365.id,
+            //   matchId: obj.pinnacle.id + ':' + obj.bet365.id,
+            //   data: obj
+            // })
+
+          // }catch(e){
+          //   console.error("이벤트 저장 오류");
+          //   console.error(e);
+          // }
         })
 
         socket.on("disconnect", ()=>{
@@ -331,7 +400,12 @@ module.exports = MD=>{
         //   console.log("bet365InitData", data);
         // })
 
-
+        socket.on("updateBet365MoneyFromSite", async ({money, aid, uid})=>{
+          // let account = await Account.findOne({_id:aid}).select(["user"]);
+          console.log("updateBet365MoneyFromSite", money);
+          await updateBet365Money(aid, money, true);
+          await updateBet365TotalMoney(uid, true);
+        })
 
         socket.on("setProgramName", ({pid, name})=>{
           Program.findOne({_id:pid}).then(program=>{
@@ -449,8 +523,20 @@ module.exports = MD=>{
           emitToProgram(pid, "closeBrowser", bid);
         }
 
-        socket.on("openBrowser", async (pid, _bid)=>{//, isChecker)=>{
-          let browser = await Browser.findOne({_id:_bid, account:{$ne:null}, option:{$ne:null}}).populate([
+        socket.on("openBrowser", async (pid, _bid, index)=>{//, isChecker)=>{
+          let browser = await Browser.findOneAndUpdate(
+            {
+              _id:_bid,
+              account:{$ne:null},
+              option:{$ne:null}
+            },
+            {
+              used: true
+            },
+            {
+              new: true
+            }
+          ).populate([
             {
               path: "option",
               model: Option
@@ -462,7 +548,7 @@ module.exports = MD=>{
                 select: "id pw limited died country money"
               }
             }
-          ]);
+          ]).lean();
           // let exists = await Browser.exists({_id:_bid, account:{$ne:null}, option:{$ne:null}});
           if(!browser){
             socket.emit("modal", {
@@ -472,8 +558,15 @@ module.exports = MD=>{
           }else{
             // console.error(session);
             // emitToProgram(pid, "openBrowser", _bid, isChecker&&session.admin);
-            emitToProgram(pid, "openBrowser", _bid, browser);
+            emitToProgram(pid, "openBrowser", _bid, browser, index);
           }
+        })
+
+        socket.on("openBrowserFail", msg=>{
+          socket.emit("modal", {
+            title: "알림",
+            body: `브라우져의 계정연결, 옵션연결을 확인해주세요`
+          });
         })
 
         socket.on("closeBrowser", (pid, _bid)=>{

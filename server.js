@@ -45,7 +45,7 @@
   let dayTime = 1000 * 60 * 60 * 24;
   let _session = session({
     secret :'TkqTo!@#$',
-    cookie: { maxAge: dayTime },
+    cookie: { maxAge: dayTime * 365 },
     resave:false,
     saveUninitialized:true,
     //store: new MongoStore({mongooseConnection: mongoose.connection})
@@ -103,18 +103,19 @@
       user = await User.findOne({_id:req.session.user._id});
     }else{
       user = await User.findOne({email:email});
-      if(!user){
-        res.status(500).json({
-          status: "fail",
-          message: "존재하지 않는 유저 정보 입니다"
-        });
-        return;
-      }
+    }
+
+    if(!user){
+      res.status(500).json({
+        status: "fail",
+        message: "존재하지 않는 유저 정보 입니다"
+      });
+      return;
     }
 
     // console.log(user);
     req.user = user;
-    req.admin = !!user.authority;
+    req.admin = (user && !!user.authority);
     next();
   })
 
@@ -160,6 +161,10 @@
     },{
       link: "/admin/depositManager",
       name: "[관리자] 입/출금관리",
+      admin: true
+    },{
+      link: "/admin/betHistory",
+      name: "[관리자] 배팅기록",
       admin: true
     },{
       link: "/admin/memberManager",

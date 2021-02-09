@@ -45,6 +45,14 @@ let Vapp;
           await this.loadList();
       }
 
+      window.addEventListener("keydown", e=>{
+        if(e.key == "F5"){
+          this.reload();
+          api.refreshMoney();
+          e.preventDefault();
+        }
+      })
+
 
       this.$nextTick(function() {
         $(this.$el).removeClass("pre-hide");
@@ -78,6 +86,10 @@ let Vapp;
           pages.push(i);
         }
         this.pages = pages;
+      },
+
+      reload(){
+        this.loadList(this.curPage, this.tab);
       },
 
       async loadList(curPage=0, tab=0){

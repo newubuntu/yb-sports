@@ -77,11 +77,15 @@ block view
                     span.b-ip {{browser.ip?'['+browser.ip+']':''}}
                     svg.icon-svg(v-if="browser.account" style="margin-top: 9px; width: 30px;height: 17px;")
                       use(:xlink:href="'/vendors/@coreui/icons/sprites/flag.svg#cif-'+browser.account.country.toLowerCase()")
-                    button.btn.btn-square.btn-ghost-success(type="button" v-on:click="openAccountModal(program._id, browser._id)")
+                    button.btn.btn-square.btn-ghost-success(type="button" v-on:click="openAccountModal(program._id, browser._id)" :disabled="browser.used")
                       | {{browser.account ? browser.account.id : "계정연결"}}
                     button.btn.btn.btn-square(:class="(browser.option && browser.option.permission=='admin') ? 'btn-ghost-info' : 'btn-ghost-warning'" type="button" v-on:click="openOptionModal(program._id, browser._id)")
                       | {{browser.option ? browser.option.name : "옵션선택"}}
                     span.b-money ${{browser.account ? Math.floor(browser.account.money) : 0}}
+                    span
+                      button.btn.btn-sm.btn-primary.btn-refresh-money(type="button" :data-bid="browser._id" v-on:click="refreshMoney(program, browser)")
+                        svg.c-icon.c-icon-lg
+                          use(xlink:href="/vendors/@coreui/icons/sprites/solid.svg#cis-reload")                      
                   .btn-group(role="group")
                     button.btn.btn-square.btn-warning(type="button" v-if="browser.isMatching" v-on:click="stopMatch(program, browser)")
                       | 매칭중지

@@ -66,7 +66,7 @@ let Vapp;
       prepend: "$"
     },
     {
-      name: "양빵 betmax 제한",
+      name: "betmax 제한",
       key: "maxBetmax",
       value: 20,
       type: "number",
@@ -74,19 +74,48 @@ let Vapp;
       prepend: "$"
     },
     {
+      name: "betmax 적용%",
+      key: "betmaxRatio",
+      value: 80,
+      type: "number",
+      help: "체크기 옵션",
+      append: "%"
+    },
+    {
       name: "최소 수익률",
-      key: "profitP",
+      key: "minProfitP",
       value: 1,
       type: "number",
       append: "%"
     },
     {
+      name: "최대 수익률",
+      key: "maxProfitP",
+      value: 15,
+      type: "number",
+      append: "%"
+    },
+    {
       name: "최소 수익달러",
-      key: "profit",
+      key: "minProfit",
       value: 1,
       type: "number",
       prepend: "$"
     },
+    {
+      name: "최대 수익달러",
+      key: "maxProfit",
+      value: 10,
+      type: "number",
+      prepend: "$"
+    },
+    {
+      name: "최소 벳365 배당",
+      key: "minOddsForBet365",
+      value: 1.2,
+      append: "이하 패스",
+      type: "number"
+    }
     // {
     //   name: "최소 수익달러",
     //   key: "profit",
@@ -343,7 +372,7 @@ let Vapp;
         let res = await api.removeOption(id);
         if(res.status == "success"){
           this.options.splice(index, 1);
-          modal("알림", `옵션 '${option.name}' 을 제거했습니다`);
+          // modal("알림", `옵션 '${option.name}' 을 제거했습니다`);
         }else{
           modal("알림", `옵션제거 실패.<br>${res.message}`);
         }
@@ -362,7 +391,7 @@ let Vapp;
         }
         this.setOptionData(option);
         let result = await modal("옵션수정", this.getOptionForm(), {
-          buttons:['취소', '저장'],
+          buttons:['취소', '저장', '새 이름으로 저장'],
           lock:true,
           size:'lg',
           validation: this.optionNameValidation
@@ -370,14 +399,24 @@ let Vapp;
 
         if(result){
           option = this.getOptionData();
-          res = await api.updateOption(option._id, option);
+          if(result == 2){
+            option.name = prompt(`'${option.name}'의 새 이름을 입력하세요`);
+            res = await api.registOption(option);
+          }else{
+            res = await api.updateOption(option._id, option);
+          }
           if(res.status == "success"){
-            let originOption = this.options.find(opt=>opt._id==option._id);
-            if(originOption){
-              originOption.name = option.name;
-              modal("알림", `옵션 '${option.name}'이 저장됐습니다.`)
+            if(result == 2){
+              option._id = res.data;
+              this.options.push(option);
             }else{
-              modal("알림", `옵션저장 실패<br>${option._id} 옵션을 찾을 수 없습니다. `);
+              let originOption = this.options.find(opt=>opt._id==option._id);
+              if(originOption){
+                originOption.name = option.name;
+                // modal("알림", `옵션 '${option.name}'이 저장됐습니다.`)
+              }else{
+                modal("알림", `옵션저장 실패<br>${option._id} 옵션을 찾을 수 없습니다. `);
+              }
             }
           }else{
             modal("알림", `옵션저장 실패<br>${res.message}`);

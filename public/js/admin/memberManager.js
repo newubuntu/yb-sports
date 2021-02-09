@@ -68,7 +68,13 @@ let Vapp;
         }
       // }
 
-
+      window.addEventListener("keydown", e=>{
+        if(e.key == "F5"){
+          this.reload();
+          api.refreshMoney();
+          e.preventDefault();
+        }
+      })
 
       this.$nextTick(function() {
         $(this.$el).removeClass("pre-hide");
@@ -92,7 +98,11 @@ let Vapp;
 
     methods: {
       comma(n){
-        return comma(n);
+        return comma(Math.floor(n));
+      },
+
+      reload(){
+        this.loadList(this.curPage, this.tab);
       },
 
       async updateMoney($input, user, target){
@@ -114,7 +124,8 @@ let Vapp;
         if(r){
           let data = {};
           data[target] = money;
-          let res = await api.updateUser(user._id, data);
+          // let res = await api.updateUser(user._id, data);
+          let res = await api.updateMoney(user._id, data);
           $input.removeClass('text-warning');
           if(res.status == "success"){
             user[target] = money;
@@ -122,12 +133,13 @@ let Vapp;
             sendDataToMember(user.email, "updateMoney", data);
             modal("확인", `${displayName} 설정 완료`);
           }else{
-            $input.val(comma(user[target]));
+            $input.val(this.comma(user[target]));
             modal("오류", `${displayName} 설정 실패<br>${res.message}`)
           }
         }else{
+          // console.error(user[target]);
           $input.removeClass('text-warning');
-          $input.val(comma(user[target]));
+          $input.val(this.comma(user[target]));
         }
       },
 
@@ -160,6 +172,29 @@ let Vapp;
           }else{
             $input.val(user.programCount);
             modal("오류", `프로그램 제한 수 설정 실패<br>${res.message}`)
+          }
+        }
+      },
+
+      async updateBrowserCount(user){
+        let $input = $(`.browser-count[data-id="${user._id}"]`);
+        let count = $input.val();
+        let r = await modal("확인", `${user.email}의 브라우져 제한 수를 ${count} 로 설정하시겠습니까?`, {
+          lock: true,
+          buttons: ["취소", "설정"]
+        });
+
+        if(r){
+          let res = await api.updateUser(user._id, {
+            browserCount: count
+          })
+
+          if(res.status == "success"){
+            user.browserCount = count;
+            modal("확인", "브라우져 제한 수 설정 완료");
+          }else{
+            $input.val(user.browserCount);
+            modal("오류", `브라우져 제한 수 설정 실패<br>${res.message}`)
           }
         }
       },

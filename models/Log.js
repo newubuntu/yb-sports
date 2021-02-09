@@ -1,10 +1,10 @@
 const mongoose = require("mongoose");
 const deepPopulate = require('mongoose-deep-populate')(mongoose);
-const autoIncrement = require('mongoose-auto-increment');
+// const autoIncrement = require('mongoose-auto-increment');
 const Schema = mongoose.Schema;
 //mongoose.Schema.Types.Mixed
 const logSchema = new mongoose.Schema({
-  number: {type: Number},
+  // number: {type: Number},
   browser: {type: Schema.Types.ObjectId, ref:'Browser'},
   bet365Id: {type: String},
   data: {type: mongoose.Schema.Types.Mixed, required:true}
@@ -14,19 +14,19 @@ const logSchema = new mongoose.Schema({
 
 logSchema.plugin(deepPopulate);
 
-autoIncrement.initialize(mongoose.connection);
-logSchema.plugin(autoIncrement.plugin, {
-  model : 'Log',
-  field : 'number',
-  startAt : 0, //시작
-  increment : 1 // 증가
-});
+// autoIncrement.initialize(mongoose.connection);
+// logSchema.plugin(autoIncrement.plugin, {
+//   model : 'Log',
+//   field : 'number',
+//   startAt : 0, //시작
+//   increment : 1 // 증가
+// });
 
-logSchema.statics.create = async function(payload){
-  const p = new this(payload);
-  await p.save();
-  return p;
-}
+// logSchema.statics.create = async function(payload){
+//   const p = new this(payload);
+//   await p.save();
+//   return p;
+// }
 
 // logSchema.methods.
 

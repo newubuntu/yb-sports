@@ -7,15 +7,25 @@ let api = (()=>{
     // }
   })
 
-  function ax(url, data, method='GET', headers){
+  let itv;
+  function rvStopLoading(){
+    itv = setTimeout(stopLoading, 100);
+  }
+
+  function rmStartLoding(){
+    clearTimeout(itv);
     startLoading();
+  }
+
+  function ax(url, data, method='GET', headers){
+    rmStartLoding();
     return net({method, url, data, headers})
     .then(res=>{
-      stopLoading();
+      rvStopLoading();
       return success(res)
     })
     .catch(e=>{
-      stopLoading();
+      rvStopLoading();
       return err(e)
     });
   }
@@ -225,6 +235,14 @@ let api = (()=>{
       return ax("/get_users", opt, "POST");
     },
 
+    updateMoney(id, data){
+      return ax("/update_money/" + id, data, "POST");
+    },
+
+    refreshMoney(){
+      return ax("/refreshMoney");
+    },
+
     updateUser(id, user){
       return ax("/update_user/" + id, user, "POST");
     },
@@ -255,6 +273,43 @@ let api = (()=>{
 
     updateBrowser(bid, browser){
       return ax("/update_browser/" + bid, {browser}, "POST");
+    },
+
+    getBets(opt){
+      opt = Object.assign({
+        ids: undefined,
+        offset: undefined,
+        limit: undefined,
+        curPage: undefined,
+        sportName: undefined,
+        accountId: undefined,
+        email: undefined,
+        status: undefined,
+        range: undefined,
+        betId: undefined
+      }, opt||{})
+      return ax("/get_bets", opt, "POST");
+    },
+
+    loadLogs(bid){
+      return ax("/load_logs/" + bid);
+    },
+
+    getDeposits(opt){
+      opt = Object.assign({
+        ids: undefined,
+        offset: undefined,
+        limit: undefined,
+        curPage: undefined,
+        type: undefined,
+        email: undefined,
+        moneyName: undefined
+      }, opt||{})
+      return ax("/get_money_log", opt, "POST");
+    },
+
+    updateBetdata(data){
+      return ax("/update_betdata", data, "POST");
     }
   };
 })()

@@ -57,11 +57,11 @@ accountSchema.plugin(autoIncrement.plugin, {
 });
 
 
-accountSchema.statics.create = async function(payload){
-  const p = new this(payload);
-  await p.save();
-  return p;
-}
+// accountSchema.statics.create = async function(payload){
+//   const p = new this(payload);
+//   await p.save();
+//   return p;
+// }
 
 accountSchema.methods.disconnectBrowser = async function(){
   if(this.browser){

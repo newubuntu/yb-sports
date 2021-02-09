@@ -35,11 +35,11 @@ approvalSchema.plugin(autoIncrement.plugin, {
   increment : 1 // 증가
 });
 
-approvalSchema.statics.create = async function(payload){
-  const p = new this(payload);
-  await p.save();
-  return p;
-}
+// approvalSchema.statics.create = async function(payload){
+//   const p = new this(payload);
+//   await p.save();
+//   return p;
+// }
 
 approvalSchema.statics.open = function(params){
   //name, detail, type, user

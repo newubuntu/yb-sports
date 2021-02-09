@@ -57,7 +57,7 @@ module.exports = MD=>{
     //     }
     //   }
     // ])
-    .deepPopulate(['programs.browsers']);
+    .deepPopulate(['programs.browsers']).lean();
 
     let program = user.programs.find(p=>p._id==pid);
     // console.log("?", user);
@@ -73,7 +73,7 @@ module.exports = MD=>{
     console.log("update_browser", bid);
     let originBrowser = await Browser.findOne({_id:bid});
 
-    if(browser.account){
+    if(browser.account !== undefined){
       if(originBrowser.account){
         await Account.updateOne({_id:originBrowser.account}, {browser:null});
       }
@@ -105,8 +105,12 @@ module.exports = MD=>{
     // console.log('body', req.body);
     // console.log('query', req.query);
     console.log("load_browser", bid);
-    let browser = await Browser.findOne({_id:bid, account:{$ne:null}, option:{$ne:null}})
-    .select(["account", "option"])
+    let browser = await Browser.findOne({
+      _id:bid,
+      // account:{$ne:null},
+      // option:{$ne:null}
+    })
+    //.select(["account", "option"])
     .populate([
       {
         path: "account",
@@ -119,7 +123,7 @@ module.exports = MD=>{
         path: "option",
         model: Option
       }
-    ])
+    ]).lean();
     // .deepPopulate(['account', 'option']);
 
     // console.log('browser', browser)
@@ -131,9 +135,22 @@ module.exports = MD=>{
     }else{
       res.json({
         status: "fail",
-        message: `Browser컬렉션에서 account,option을 가진 ${bid}를 찾을 수 없습니다.`
+        message: `browser ${bid}를 찾을 수 없습니다.`
+        // message: `Browser컬렉션에서 account,option을 가진 ${bid}를 찾을 수 없습니다.`
       });
     }
+  }))
+
+  router.get("/load_logs/:bid", task(async (req, res)=>{
+    let logs = await Log.find({browser: req.params.bid})
+    .sort('-updatedAt')
+    .limit(config.MAX_LOG_LENGTH)
+    .lean();
+
+    res.json({
+      status: "success",
+      data: logs
+    });
   }))
 
   router.get("/check_pid/:pid", async (req, res)=>{
@@ -156,7 +173,7 @@ module.exports = MD=>{
   })
 
   router.get("/get_pids", async (req, res)=>{
-    let user = req.user;//await User.findOne({email:req.session.user.email});
+    let user = await User.findOne({email:req.user._id}).lean();
     // console.log(user.programs);
     if(user){
       res.json({

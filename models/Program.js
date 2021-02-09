@@ -15,12 +15,12 @@ const programSchema = new mongoose.Schema({
 
 programSchema.plugin(deepPopulate);
 
-programSchema.statics.create = async function(payload){
-  // console.log('create program');
-  const p = new this(payload);
-  await p.save();
-  return p;
-}
+// programSchema.statics.create = async function(payload){
+//   // console.log('create program');
+//   const p = new this(payload);
+//   await p.save();
+//   return p;
+// }
 
 programSchema.methods.addBrowser = async function(){//(bid){
   try {

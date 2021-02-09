@@ -3,6 +3,8 @@ console.log("dashboard.js")
 let Vapp;
 (async ()=>{
 
+  let refreshMoneyFlag = {};
+
   function setupSocket(){
     // socket.on("setBrowserTitle", (data, pid, bid)=>{
     //   console.log("setBrowserTitle", data, pid, bid);
@@ -23,7 +25,7 @@ let Vapp;
       console.log("receiveMatchFlag", data, pid, bid);
       let browser = Vapp.getBrowserObj(pid, bid);
       if(browser){
-        browser.isMatching = data.isMatching;
+        browser.isMatching = data;
         Vapp.$forceUpdate();
       }
     })
@@ -31,10 +33,14 @@ let Vapp;
     //from main tab
     socket.on("receiveState", (data, pid, bid)=>{
       console.log("receiveState", data, pid, bid);
+      // let program = Vapp.getProgramObj(pid);
+      // if(program){
+      //   program.connected = true;
+      // }
       let browser = Vapp.getBrowserObj(pid, bid);
       if(browser){
         browser.isOn = true;
-        browser.ip = data.ip;
+        // browser.ip = data.ip;
         browser.isMatching = data.isMatching;
         Vapp.$forceUpdate();
       }
@@ -106,13 +112,15 @@ let Vapp;
           program.browsers.forEach(browser=>{
             // console.log("browser", browser);
             let b = data.browsers[browser._id];
-            if(data.browsers[browser._id]){
+            if(b){
               browser.isOn = true;
-              browser.ip = b.ip;
-              browser.isMatching = b.isMatching;
+              if(typeof b === "object"){
+                // browser.ip = b.ip;
+                browser.isMatching = b.isMatching;
+              }
             }else{
               browser.isOn = false;
-              browser.ip = "";
+              // browser.ip = "";
               browser.isMatching = false;
             }
           })
@@ -141,41 +149,141 @@ let Vapp;
       accounts: [],
     },
     async mounted(){
-      $(this.$el).removeClass("pre-hide");
+
       console.log("wait socketReady");
       await socketReady;
       setupSocket();
 
-      console.log("update ip");
-      let res = await api.getUser();
-      if(res.status == "success"){
-        res.data.programs.forEach(program=>{
-          program.browsers.forEach(browser=>{
-            // console.error("???", program._id, browser._id, "getIP")
-            // sendDataToBg(program._id, browser._id, "getIP");
-            delay(100).then(()=>{
-              // sendDataToBg(program._id, browser._id, "getIP");
-              sendDataToBg(program._id, browser._id, "getState");
-            })
-            this.updateLogScroll(browser._id);
-            this.accounts.push(browser.account);
-          })
-        })
+      // // console.log("update ip");
+      // let res = await api.getUser();
+      // if(res.status == "success"){
+      //   res.data.programs.forEach(program=>{
+      //     // connectedProgram
+      //     // receiveLivingBrowsers
+      //
+      //     program.browsers.forEach(browser=>{
+      //       // console.error("???", program._id, browser._id, "getIP")
+      //       // sendDataToBg(program._id, browser._id, "getIP");
+      //       // delay(100).then(()=>{
+      //       //   // sendDataToBg(program._id, browser._id, "getIP");
+      //       //   sendDataToBg(program._id, browser._id, "getState");
+      //       // })
+      //       // this.updateLogScroll(browser._id);
+      //       if(browser.account){
+      //         this.accounts.push(browser.account);
+      //       }
+      //     })
+      //   })
+      //
+      //   this.programs = res.data.programs;
+      // }
 
-        this.programs = res.data.programs;
-      }
+      this.load();
+
+      window.addEventListener("keydown", e=>{
+        if(e.key == "F5"){
+          this.reload();
+          api.refreshMoney();
+          e.preventDefault();
+        }
+      })
 
       this.$nextTick(()=>{
+        $(this.$el).removeClass("pre-hide");
+        // this.programs.forEach(program=>{
+        //   delay(100).then(()=>{
+        //     sendDataToProgram(program._id, "getLivingBrowsers");
+        //   })
+        // })
         appMountedResolve();
       })
+
+      // this.$nextTick(async ()=>{
+      //   for(let j=0; j<this.programs.length; j++){
+      //     let program = this.programs[j];
+      //     for(let i=0; i<program.browsers.length; i+=2){
+      //       let browsers = program.browsers.slice(i, i+2);
+      //       for(let k=0; k<browsers.length; k++){
+      //         let browser = browsers[k];
+      //         loadingLock();
+      //         let res = await api.loadLogs(browser._id);
+      //         loadingUnlock();
+      //         // await delay(1000);
+      //         if(res.status == "success"){
+      //           // console.log(browser, res.data);
+      //           browser.logs = res.data;
+      //           this.updateLogScroll(browser._id);
+      //         }
+      //       }
+      //     }
+      //   }
+        // this.programs.forEach(program=>{
+        //   delay(100).then(()=>{
+        //     sendDataToProgram(program._id, "getLivingBrowsers");
+        //   })
+        // })
+      // })
     },
+
     methods: {
+      reload(){
+        this.load();
+      },
+
+      async load(){
+        let res = await api.getUser();
+        if(res.status == "success"){
+          res.data.programs.forEach(program=>{
+            program.browsers.forEach(browser=>{
+              if(browser.account){
+                this.accounts.push(browser.account);
+              }
+            })
+          })
+
+          this.programs = res.data.programs;
+          this.$nextTick(()=>{
+            this.programs.forEach(program=>{
+              delay(100).then(()=>{
+                sendDataToProgram(program._id, "getLivingBrowsers");
+              })
+            })
+          })
+
+          this.$nextTick(async ()=>{
+            startLoading();
+            loadingLock();
+            for(let j=0; j<this.programs.length; j++){
+              let program = this.programs[j];
+              for(let i=0; i<program.browsers.length; i+=2){
+                let browsers = program.browsers.slice(i, i+2);
+                for(let k=0; k<browsers.length; k++){
+                  let browser = browsers[k];
+                  // loadingLock();
+                  let res = await api.loadLogs(browser._id);
+                  // loadingUnlock();
+                  // await delay(1000);
+                  if(res.status == "success"){
+                    // console.log(browser, res.data);
+                    browser.logs = res.data.reverse();
+                    this.updateLogScroll(browser._id);
+                  }
+                }
+              }
+            }
+            loadingUnlock();
+            stopLoading();
+          })
+        }
+      },
+
       logToHtml(log){
         let d = new Date(log.createdAt);
         let ds = (d.getMonth()+1)+'/'+d.getDate() + ' ' + d.toTimeString().split(' ')[0];
         let dateStr = '<span class="text-white-50">['+ds+']</span>';
         return dateStr + ' ' + '<span>' + log.data.msg + '</span>';
       },
+
       getProgramObj(pid){
         return this.programs.find(v=>v._id==pid);
       },
@@ -184,6 +292,78 @@ let Vapp;
         if(program){
           return program.browsers.find(browser=>browser._id == _bid);
         }
+      },
+      getBrowserIndex(pid, _bid){
+        let program = this.getProgramObj(pid);
+        if(program){
+          let i;
+          program.browsers.find((browser, j)=>{
+            if(browser._id == _bid){
+              i = j;
+              return true;
+            }else{
+              return false;
+            }
+          });
+          return i;
+        }
+      },
+      setBrowserObj(pid, _bid, obj){
+        let program = this.getProgramObj(pid);
+        if(program){
+          let i;
+          program.browsers.find((browser,j)=>{
+            if(browser._id == _bid){
+              i=j;
+              return true;
+            }
+          });
+          if(i !== undefined){
+            program.browsers[i] = obj;
+          }
+        }
+      },
+      async refreshMoney(program, browser){
+        // if(refreshTime[browser._id] === undefined) refreshTime[browser._id] = 0;
+        //
+        // if(Date.now() - refreshTime[browser._id] < 1000){
+        //   return;
+        // }
+        // refreshTime[browser._id] = Date.now();
+
+        if(!program.connected || !browser.isOn){
+          return;
+        }
+
+        if(refreshMoneyFlag[browser._id] == true){
+          return;
+        }
+
+        refreshMoneyFlag[browser._id] = true;
+        $(`.btn-refresh-money[data-bid="${browser._id}"]`).prop("disabled", true);
+        // setTimeout(()=>{
+        //   refreshMoneyFlag[browser._id] = false;
+        //   $(`.btn-refresh-money[data-bid="${browser._id}"]`).prop("disabled", null);
+        // }, 1000);
+
+
+
+        let money = await sendDataToMainPromise(program._id, browser._id, "loadMoney");
+        if(money == null){
+          console.error("브라우져가 통신가능한 상태가 아닙니다.");
+        }else if(typeof money === "string"){
+          console.error(money);
+        }else{
+          if(browser.account.money != money){
+            console.log("refreshMoney", money);
+            browser.account.money = money;
+            sendDataToServer("updateBet365MoneyFromSite", {money, aid:browser.account._id, uid:browser.user});
+          }
+        }
+
+        refreshMoneyFlag[browser._id] = false;
+        $(`.btn-refresh-money[data-bid="${browser._id}"]`).prop("disabled", null);
+        // this.$forceUpdate();
       },
       async startMatch(program, browser){
         // sendDataToMain(program._id, browser._id, "startMatch");
@@ -249,6 +429,7 @@ let Vapp;
       },
       async sk_openBrowser(pid, _bid){//, isChecker){
         let browser = this.getBrowserObj(pid, _bid);
+        let index = this.getBrowserIndex(pid, _bid);
         if(browser){
           // console.log(browser)
           if(!browser.account){
@@ -262,7 +443,7 @@ let Vapp;
             //     return;
             //   }
             // }
-            socket.emit("openBrowser", pid, _bid);//, isChecker);
+            socket.emit("openBrowser", pid, _bid, index);//, isChecker);
           }
         }else{
           modal("알림", `브라우져(${_bid})를 찾을 수 없습니다`);
@@ -276,7 +457,7 @@ let Vapp;
         if(browser){
           browser.isOn = opened;
           if(!opened){
-            browser.ip = "";
+            // browser.ip = "";
             browser.isMatching = false;
           }
           this.$forceUpdate();
@@ -285,17 +466,24 @@ let Vapp;
       setBrowserIP(pid, _bid, ip){
         let browser = this.getBrowserObj(pid, _bid);
         if(browser){
-          browser.ip = ip;
+          // browser.ip = ip;
           this.$forceUpdate();
         }
       },
       updateLog(pid, _bid, data){
         let browser = this.getBrowserObj(pid, _bid);
         if(browser){
-          if(browser.logs.length < MAX_LOG_LENGTH){
-            browser.logs.push({data, createdAt:new Date()});
+          if(!browser.logs){
+            browser.logs = [];
+          }
+          if(data.isSame){
+            browser.logs[browser.logs.length-1] = {data, createdAt:new Date()};
           }else{
-            browser.logs = browser.logs.slice(-(MAX_LOG_LENGTH-1)).concat({data, createdAt:new Date()});
+            if(browser.logs.length < MAX_LOG_LENGTH){
+              browser.logs.push({data, createdAt:new Date()});
+            }else{
+              browser.logs = browser.logs.slice(-(MAX_LOG_LENGTH-1)).concat({data, createdAt:new Date()});
+            }
           }
           this.updateLogScroll(_bid);
         }
@@ -305,10 +493,29 @@ let Vapp;
           let $el = $(`.${_bid}>.browser-logger`);
           $el.scrollTop($el.prop('scrollHeight'));
         },50);
+        this.$forceUpdate();
       },
       async openAccountModal(pid, _bid){
+        let browser = this.getBrowserObj(pid, _bid);
+        if(!browser || browser.used){
+          return;
+        }
+
+        let res = await api.loadBrowser(_bid);
+        if(res.status == "success"){
+          this.setBrowserObj(pid, _bid, res.data);
+          browser = res.data;
+        }else{
+          modal("오류", `브라우져 정보 로딩 실패. ${res.message}`);
+          return;
+        }
+
+        if(!browser || browser.used){
+          return;
+        }
+
         let accounts;
-        let res = await api.getLinkedAccounts();
+        res = await api.getLinkedAccounts();
         if(res.status == "success"){
           accounts = res.data.filter(account=>!account.browser);
         }else{
@@ -316,7 +523,7 @@ let Vapp;
           return;
         }
         // console.log({accounts});
-        let browser = this.getBrowserObj(pid, _bid);
+        // let browser = this.getBrowserObj(pid, _bid);
         if(accounts.length){
           let selectedAccount;
           let accountElList = accounts.map(account=>{

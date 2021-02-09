@@ -9,8 +9,20 @@ let Vapp;
   }else{
     countryObj = {};
   }
-  console.log({countryObj});
+  // console.log({countryObj});
   let accountRegistFormFormat = [
+    {
+      name: "국가",
+      key: "country",
+      list: Object.keys(countryObj).map(code=>{
+        return {
+          name: countryObj[code],
+          value: code
+        }
+      }),
+      value: "BD",
+      type: "select"
+    },
     {
       name: "bet365 id",
       key: "id",
@@ -61,18 +73,6 @@ let Vapp;
       key: "money",
       value: "",
       type: "text"
-    },
-    {
-      name: "국가",
-      key: "country",
-      list: Object.keys(countryObj).map(code=>{
-        return {
-          name: countryObj[code],
-          value: code
-        }
-      }),
-      value: "BD",
-      type: "select"
     }
   ]
 
@@ -156,45 +156,13 @@ let Vapp;
 
       $(this.$el).removeClass("pre-hide");
 
-      // let $accountMoneyInput = $(".account-money-input");
-      // // let originMoneyValue;
-      // $accountMoneyInput.on("focus", e=>{
-      //   let v = $(e.target).val();
-      //   $(e.target).data('originMoneyValue', v);
-      //   if(v == '0'){
-      //     $(e.target).val('');
-      //   }
-      //   // console.error("focus", e.target.value);
-      // })
-      // .on("input", e=>{
-      //   let c = e.originalEvent.data;
-      //   let $el = $(e.target);
-      //   console.error("input", e.originalEvent.data);
-      //   let ov = $el.data('originMoneyValue');
-      //   //back space is null;
-      //   if(c == null || /[0-9]/.test(c)){
-      //     let m = parseInt($el.val().replace(/,/g, ''));
-      //     if(m > 500){
-      //       m = 500;
-      //     }
-      //     if(isNaN(m)){
-      //       m = 0;
-      //     }
-      //     ov = m; // comma();
-      //     $el.data('originMoneyValue', ov);
-      //     $el.val(ov);
-      //   }else{
-      //     $el.val(ov);
-      //   }
-      //   // e.stopPropagation();
-      //   // e.preventDefault();
-      // })
-      // .on("blur", e=>{
-      //   let $el = $(e.target);
-      //   if($el.val() == ''){
-      //     $el.val($el.data('originMoneyValue'));
-      //   }
-      // })
+      window.addEventListener("keydown", e=>{
+        if(e.key == "F5"){
+          this.reload();
+          api.refreshMoney();
+          e.preventDefault();
+        }
+      })
 
 
       this.$nextTick(function() {
@@ -222,6 +190,10 @@ let Vapp;
     methods: {
       comma(n){
         return comma(Math.floor(n));
+      },
+
+      reload(){
+        this.loadList(this.curPage, this.tab, this.email);
       },
 
       optionNameValidation(){

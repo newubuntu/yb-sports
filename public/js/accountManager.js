@@ -26,6 +26,14 @@ let Vapp;
 
       await this.loadList();
 
+      window.addEventListener("keydown", e=>{
+        if(e.key == "F5"){
+          this.reload();
+          api.refreshMoney();
+          e.preventDefault();
+        }
+      })
+
       this.$nextTick(()=>{
         this.$storeTable = $("#storeTable").remove();
         $(this.$el).removeClass("pre-hide");
@@ -36,6 +44,11 @@ let Vapp;
       comma(n){
         return comma(Math.floor(n));
       },
+
+      reload(){
+        this.loadList();
+      },
+
       async loadList(){
         let accounts;
         let res = await api.getLinkedAccounts();
@@ -55,6 +68,7 @@ let Vapp;
           this.accounts = accounts;
         }
       },
+
       getBorderClass(id){
         let account = this.accounts.find(account=>account._id==id);
         if(account){

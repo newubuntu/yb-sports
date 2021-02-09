@@ -3,23 +3,29 @@ console.log("modal.js");
 let $centerModal = $("#centerModal")
 .on("shown.coreui.modal", e=>{
   // console.error("??", e);
-  $centerModal.data("pressOk", null);
+  $centerModal.data("pressNum", 0);
 })
 // .on("hidden.coreui.modal", e=>{
 //   console.error(e);
 // })
 //
 
-$centerModal.on("click", ".close, .btn-secondary, .btn-primary", e=>{
+$centerModal.on("click", ".close, .btn-modal", e=>{
   // console.log("!!", $(e.target).hasClass("btn-primary"));
-  $centerModal.data("pressOk", $(e.target).hasClass("btn-primary"));
+  let r = 0;
+  if($(e.target).hasClass("btn-2")){
+    r = 1;
+  }else if($(e.target).hasClass("btn-3")){
+    r = 2;
+  }
+  $centerModal.data("pressNum", r);
   modalHide();
 })
 
 $centerModal.on("keydown", e=>{
   if(e.keyCode == 13){
-    if($centerModal.data("buttonCount") == 2){
-      $centerModal.data("pressOk", true);
+    if($centerModal.data("buttonCount") >= 2){
+      $centerModal.data("pressNum", 1);
     }
     $centerModal.modal("hide");
   }
@@ -50,13 +56,19 @@ function modal(title, body, option){//buttons=['확인']){
     }, option);
 
     $centerModal.data("buttonCount", opt.buttons.length);
-    if(opt.buttons.length==1){
-      $centerModal.find(".btn-secondary").html(opt.buttons[0]);
-      $centerModal.find(".btn-primary").html(opt.buttons[1]).hide();
-    }else{
-      $centerModal.find(".btn-secondary").html(opt.buttons[0]);
-      $centerModal.find(".btn-primary").html(opt.buttons[1]).show();
-    }
+    $centerModal.find(".btn-modal").hide();
+    opt.buttons.forEach((name,i)=>{
+      $centerModal.find(`.btn-${i+1}`).html(opt.buttons[i]).show();
+    })
+    // if(opt.buttons.length==1){
+    //   $centerModal.find(".btn-1").html(opt.buttons[0]);
+    //   $centerModal.find(".btn-2").hide();
+    //   $centerModal.find(".btn-3").hide();
+    // }else{
+    //   $centerModal.find(".btn-1").html(opt.buttons[0]);
+    //   $centerModal.find(".btn-2").html(opt.buttons[1]).show();
+    //   $centerModal.find(".btn-3").hide();
+    // }
 
     $centerModal.find(".modal-title").text(title||"");
     if(typeof body === "string"){
@@ -67,7 +79,7 @@ function modal(title, body, option){//buttons=['확인']){
 
     if(typeof opt.validation === "function"){
       $centerModal.on("hide.coreui.modal", e=>{
-        if(!$centerModal.data("pressOk")){
+        if(!$centerModal.data("pressNum")){
           return true;
         }
 
@@ -76,7 +88,7 @@ function modal(title, body, option){//buttons=['확인']){
     }
     $centerModal.one("hidden.coreui.modal", e=>{
       $centerModal.off("hide.coreui.modal");
-      resolve($centerModal.data("pressOk"))
+      resolve($centerModal.data("pressNum"))
     });
     let modalOpt = {show:true};
     if(opt.lock){

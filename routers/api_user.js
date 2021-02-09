@@ -1,28 +1,43 @@
 module.exports = MD=>{
   let {
     io,
+    mongoose,
     sendDataToMain,
     sendDataToBg,
     sendDataToBet365,
     emitToMember,
     emitToAdmin,
     emitToProgram,
+    emitToProgramPromise,
+    socketResolveList,
     config,
     comma,
     router,
     User,
     Program,
     Browser,
+    BetData,
+    Event,
     Log,
     Account,
     Option,
     Approval,
+    Setting,
+    DepositLog,
     authAdmin,
     authMaster,
     task,
     deposit,
     approvalTask,
-    refreshMoney
+    refreshTab,
+    refreshMoney,
+    refreshBet365Money,
+    refreshBet365TotalMoney,
+    updateBet365Money,
+    updateBet365TotalMoney,
+    getSetting,
+    calc,
+    MoneyManager
   } = MD;
 
   // for master
@@ -89,9 +104,9 @@ module.exports = MD=>{
       populate: {
         path: 'browsers',
         model: Browser,
-        options: {
-          select: 'account option'
-        },
+        // options: {
+        //   select: 'account option'
+        // },
         populate: [
           {
             path: 'account',
@@ -130,7 +145,8 @@ module.exports = MD=>{
     .sort({createdAt:-1})
     .limit(limit)
     .skip(offset)
-    .populate(populateObj);
+    .populate(populateObj)
+    .lean();
 
     // console.log("query", query);
     // console.log("clientIp", req.clientIp);
@@ -147,10 +163,12 @@ module.exports = MD=>{
           console.error(e);
           count = 0;
         }
-        let _user = Object.assign({}, user._doc);
-        _user.accountCount = count;
+        // let _user = Object.assign({}, user._doc);
+        // _user.accountCount = count;
+        user.accountCount = count;
         // console.log(count);
-        return _user;
+        // return _user;
+        return user;
       }));
     }
 
@@ -169,6 +187,44 @@ module.exports = MD=>{
     });
   }))
 
+  router.post("/update_money/:id", authMaster, task(async (req, res)=>{
+    let id = req.params.id;
+    let data = req.body;
+    delete data._id;
+    let {money, wallet} = data;
+    // console.error({money, wallet});
+    try{
+      if(money !== undefined){
+        await MoneyManager.setMoney(id, money, "from master");
+        // if(money > 0){
+        //   await MoneyManager.setMoney(id, money, "from master");
+        // }else if(money < 0){
+        //   await MoneyManager.withdrawMoney(id, Math.abs(money), "from master");
+        // }
+      }
+
+      if(wallet !== undefined){
+        await MoneyManager.setWallet(id, wallet, "from master");
+        // if(wallet > 0){
+        //   await MoneyManager.depositWallet(id, wallet, "from master");
+        // }else if(wallet < 0){
+        //   await MoneyManager.withdrawWallet(id, Math.abs(wallet), "from master");
+        // }
+      }
+    }catch(e){
+      console.error(e);
+      res.json({
+        status: "fail",
+        message: "입출금 업데이트 실패"
+      });
+      return
+    }
+
+    res.json({
+      status: "success"
+    });
+  }))
+
   router.post("/update_user/:id", authMaster, task(async (req, res)=>{
     // console.error(req.body)
     // if(!req.user.master){
@@ -183,6 +239,10 @@ module.exports = MD=>{
     let id = req.params.id;
     let user = req.body;
     delete user._id;
+
+    delete user.money;
+    delete user.wallet;
+    delete user.bet365Money;
 
     await User.updateOne({_id:id}, user);
     res.json({
@@ -223,10 +283,10 @@ module.exports = MD=>{
       populate: {
         path: 'browsers',
         model: Browser,
-        options: {
-          select: 'account option'
-          // select: 'account option logs'
-        },
+        // options: {
+        //   select: 'account option'
+        //   // select: 'account option logs'
+        // },
         populate: [
           {
             path: 'account',
@@ -252,17 +312,17 @@ module.exports = MD=>{
           // }
         ]
       }
-    })
+    }).lean();
     // .deepPopulate(['programs.browsers.logs']);
 
     // 현재 설정된 program count, browser count 로 잘라 내보냄
     user.programs = user.programs.slice(0, user.programCount);
     await Promise.all(user.programs.map(async program=>{
       program.browsers = program.browsers.slice(0, user.browserCount);
-      for(let i=0; i<program.browsers.length; i++){
-        let browser = program.browsers[i];
-        browser.logs = await Log.find({browser:browser._id});
-      }
+      // for(let i=0; i<program.browsers.length; i++){
+      //   let browser = program.browsers[i];
+      //   browser.logs = await Log.find({browser:browser._id});
+      // }
     }))
 
 

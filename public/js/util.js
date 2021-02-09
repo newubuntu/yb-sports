@@ -5,8 +5,12 @@ function reverse(str){
 function comma(n){
   // if(n === undefined) return "0";
   // n = n.toString();
+  let minus;
   if(typeof n === "number"){
-    n = n.toString();
+    if(n<0){
+      minus = true;
+    }
+    n = n.toString().replace(/-/g,'');
   }else if(typeof n === "string"){
     // console.log("@", n);
     n = n.replace(/,/g,'');
@@ -15,7 +19,10 @@ function comma(n){
     if(isNaN(n)){
       return n = "0";
     }
-    n = n.toString();
+    if(n<0){
+      minus = true;
+    }
+    n = n.toString().replace(/-/g,'');
   }
   if(!n) return "0";
 
@@ -29,7 +36,7 @@ function comma(n){
     }
   }
 
-  return a.join('');
+  return (minus?'-':'')+a.join('');
 
   // let t = reverse(n).matchAll(/((?:\d\d\d|\d\d|\d))/gm);
   // let v, result=[];
@@ -48,6 +55,13 @@ function comma(n){
   // return reverse(expgen("{(###|##|#)}").getAll(reverse(n)).join(','))
 }
 
+function round(n,p=0){
+  return Math.round(n * Math.pow(10,p))/Math.pow(10,p);
+}
+
+function printPercent(n){
+  return round(n*100,2) + '%';
+}
 
 function setupMoneyInput(input){
   if(!input) return;
@@ -117,12 +131,26 @@ function screenUnlock(){
   $cover.remove();
 }
 
+let _loadingLock;
+function loadingLock(){
+  _loadingLock = true;
+}
+function loadingUnlock(){
+  _loadingLock = false;
+}
+
+let loading;
 function startLoading(){
+  if(_loadingLock) return;
+  if(loading) return;
+  loading = true;
   $cover.append($spinner);
   $cover.appendTo(document.body);
 }
 
 function stopLoading(){
+  if(_loadingLock) return;
+  loading = false;
   $cover.remove();
 }
 
@@ -130,6 +158,146 @@ function delay(n){
   return new Promise(resolve=>setTimeout(resolve, n));
 }
 
+let resumeCallback = {};
+function pause(key){
+  return new Promise(resolve=>resumeCallback[key]=resolve);
+}
+
+function resume(key){
+  if(typeof resumeCallback[key] === "function"){
+    resumeCallback[key]();
+  }
+}
+
 function gotoLogin(){
   window.location.href = "/login";
+}
+
+const calc = {
+    stakeB: function (oddA, oddB, stakeA) {
+        return oddA / oddB * stakeA;
+    },
+    investment: function (oddA, oddB, stakeA) {
+        return this.stakeB(oddA, oddB, stakeA) + stakeA;
+    },
+    profit: function (oddA, oddB, stakeA, stakeB) {
+			if(stakeB !== undefined){
+				return oddA * stakeA - (stakeB + stakeA);
+			}
+      return oddA * stakeA - this.investment(oddA, oddB, stakeA);
+    },
+    profitP: function (oddA, oddB) {
+        return this.profit(oddA, oddB, 1) / this.investment(oddA, oddB, 1);
+    }
+};
+
+function profitSoundEffect(profit){
+  if(profit > 1){
+    Sound.play("coin2");
+  }else{
+    Sound.play("coin1");
+  }
+}
+
+var Sound = {
+    itv: {},
+    els: {},
+    ct: {},
+    urls: {
+      reqWithdraw: "/sounds/reqWithdraw.mp3",
+      coin1: "/sounds/coin1.mp3",
+      coin2: "/sounds/coin2.mp3",
+      lakeBet365Money: "/sounds/lakeBet365Money.mp3",
+      lakePncMoney: "/sounds/lakePncMoney.mp3"
+    },
+    init: function () {
+        for (let o in this.urls) {
+            let t = document.createElement("audio");
+            this.els[o] = t;
+            t.src = this.urls[o];
+        }
+    },
+    create: function(name){
+      return new Promise(resolve=>{
+        let t = new Audio(`/sounds/${name}.mp3`);
+        t.oncanplay = function(){
+          resolve();
+        }
+        this.els[name] = t;
+      })
+    },
+    play: async function (name, repeat = 1, delay = 0) {
+      if(!this.els[name]){
+        await this.create(name);
+      }
+      this.ct[name] = 0;
+      this._play(name, repeat, delay);
+    },
+    _play: function (name, repeat, delay) {
+        if (this.els[name]) {
+            if (!this.ct[name])
+                this.ct[name] = 1;
+            else
+                this.ct[name]++;
+            let self = this;
+            if(!repeat || repeat <= 0) repeat = 1;
+            this.els[name].onended = function () {
+                if (self.ct[name] < repeat) {
+                    if (delay) {
+                        this.itv[name] = setTimeout(function () {
+                            self._play(name, repeat);
+                        }, delay);
+                    }
+                    else {
+                        self._play(name, repeat);
+                    }
+                }
+            };
+            this.els[name].currentTime = 0;
+            this.els[name].play();
+        }
+    },
+    clear: function () {
+        for (let o in this.els) {
+            this.els[o].onended = null;
+            this.els[o].pause();
+            clearInterval(this.itv[o]);
+        }
+    }
+};
+
+class _Sound {
+  static links = {
+    lakeBet365Money: "/sounds/lakeBet365Money.mp3"
+  };
+  static pool = {}
+  static play(name, loop=1){
+    let sound = this.get(name);
+    if(sound){
+      if(loop>1){
+        sound.once("end", ()=>{
+          this.play(name, loop-1);
+        })
+      }
+      sound.once('load', ()=>{
+        sound.play();
+      });
+    }
+  }
+
+  static create(name){
+    if(!this.has(name) && this.links[name]){
+      this.pool[name] = new Howl({
+        src: this.links[name]
+      })
+    }
+  }
+
+  static has(name){
+    return !!this.pool[name];
+  }
+
+  static get(name){
+    return this.pool[name];
+  }
 }

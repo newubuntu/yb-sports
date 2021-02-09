@@ -7,18 +7,19 @@ const browserSchema = new mongoose.Schema({
   user: {type: Schema.Types.ObjectId, ref: 'User'},
   program: {type: Schema.Types.ObjectId, ref: 'Program'},
   option: {type: Schema.Types.ObjectId, ref: 'Option'},
-  logs: [{type: Schema.Types.ObjectId, ref: 'Log'}]
+  used: {type: Boolean}
+  // logs: [{type: Schema.Types.ObjectId, ref: 'Log'}]
 },{
   timestamps: true
 })
 
 browserSchema.plugin(deepPopulate);
 
-browserSchema.statics.create = async function(payload){
-  const p = new this(payload);
-  await p.save();
-  return p;
-}
+// browserSchema.statics.create = async function(payload){
+//   const p = new this(payload);
+//   await p.save();
+//   return p;
+// }
 
 // browserSchema.methods.log = function(msg){
 //   console.log(this.account.id, msg);

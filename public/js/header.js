@@ -12,7 +12,7 @@ const Vmoney = new Vue({
   methods: {
     //comma: comma,
     printMoney(v){
-      return comma(v);
+      return comma(Math.floor(v));
     }
   },
   mounted: async function(){

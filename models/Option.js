@@ -9,10 +9,10 @@ const optionSchema = new mongoose.Schema({
   timestamps: true
 })
 
-optionSchema.statics.create = function(payload){
-  const p = new this(payload);
-  return p.save();
-}
+// optionSchema.statics.create = function(payload){
+//   const p = new this(payload);
+//   return p.save();
+// }
 
 // optionSchema.statics.find = function(_id){
 //   return this.find(_id?{_id}:undefined);

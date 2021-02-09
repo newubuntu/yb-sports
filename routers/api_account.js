@@ -27,7 +27,8 @@ module.exports = MD=>{
     refreshBet365Money,
     updateBet365Money,
     updateBet365TotalMoney,
-    getSetting
+    getSetting,
+    MoneyManager
   } = MD;
 
   router.get("/buy_account/:id", task(async (req, res)=>{
@@ -96,8 +97,11 @@ module.exports = MD=>{
       return;
     }
 
-    user.wallet -= setting.accountPrice + account.money;
-    await user.save();
+    await MoneyManager.withdrawWallet(user, setting.accountPrice + account.money, "buy account");
+
+    // user.wallet -= setting.accountPrice + account.money;
+    // await user.save();
+
     account.user = user._id;
     await account.save();
 
@@ -233,7 +237,8 @@ module.exports = MD=>{
     .sort({createdAt:-1})
     .limit(limit)
     .skip(offset)
-    .populate(populateObj);
+    .populate(populateObj)
+    .lean();
 
     // console.log("@@@@@", accounts);
 
@@ -491,7 +496,8 @@ module.exports = MD=>{
     })
     .select(["-skrillId", "-skrillPw", "-skrillCode"])
     // .select(["id", "died", "limited", "browser", "number", "money", "deposit"])
-    .sort({id:1});
+    .sort({id:1})
+    .lean();
     //.populate('browser');
 
     res.json({
@@ -536,7 +542,8 @@ module.exports = MD=>{
       }
     }
 
-    let account = await Account.create(body);
+    await Account.create(body);
+    let account = await Account.findOne({}).lean();
 
     res.json({
       status: "success",

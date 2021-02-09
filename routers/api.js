@@ -11,12 +11,32 @@ const Approval = require('../models/Approval');
 const Setting = require('../models/Setting');
 const BetData = require('../models/BetData');
 const Event = require('../models/Event');
+const DepositLog = require('../models/DepositLog');
+const TestData = require('../models/TestData');
 
 
 const config = require('../config');
 const {comma} = require('../utils');
 
 const {v4:uuidv4} = require('uuid');
+
+const calc = {
+    stakeB: function (oddA, oddB, stakeA) {
+        return oddA / oddB * stakeA;
+    },
+    investment: function (oddA, oddB, stakeA) {
+        return this.stakeB(oddA, oddB, stakeA) + stakeA;
+    },
+    profit: function (oddA, oddB, stakeA, stakeB) {
+			if(stakeB !== undefined){
+				return oddA * stakeA - (stakeB + stakeA);
+			}
+      return oddA * stakeA - this.investment(oddA, oddB, stakeA);
+    },
+    profitP: function (oddA, oddB) {
+        return this.profit(oddA, oddB, 1) / this.investment(oddA, oddB, 1);
+    }
+};
 
 module.exports = io=>{
 
@@ -46,8 +66,15 @@ module.exports = io=>{
     context.emit.apply(context, args);
   }
 
+  function emitToOnlyAdmin(...args){
+    let context = io.to('onlyadmin');
+    context.emit.apply(context, args);
+  }
 
-
+  function emitToMaster(...args){
+    let context = io.to('master');
+    context.emit.apply(context, args);
+  }
 
 
   function emitToProgram(pid, ...args){
@@ -157,12 +184,13 @@ module.exports = io=>{
     account.trash = true;
 
     // updateData.money = 0;
-    await User.updateOne({_id:account.user}, {$inc:{wallet:money}});
     await account.save();
+    // await User.updateOne({_id:account.user}, {$inc:{wallet:money}});
+    await MoneyManager.depositWallet(account.user, money, `bookmaker withdraw '${account.id}' of '${account.user.email?account.user.email:account.user._id}'`);
     await refreshBet365Money(account);
     // await updateBet365Money(account, 0, true);
     // 출금횟수는 빈번하지 않으니 아래를 진행해도 될듯.
-    await updateBet365TotalMoney(account.user, true);
+    await updateBet365TotalMoney(account.user._id, true);
     // await Account.updateOne({_id:account.}, updateData);
   }
 
@@ -184,18 +212,33 @@ module.exports = io=>{
     }
   }
 
-  async function refreshMoney(user){
-    user = getUser(user);
+
+  let refreshMoneyItvs = {};
+  async function refreshMoney(user, onlySite){
+    user = await getUser(user);
     if(user){
+      let {money, wallet, bet365Money} = user;
+      let obj;
+      if(onlySite){
+        obj = {money, wallet};
+      }else{
+        obj = {money, wallet, bet365Money};
+      }
+
+      clearTimeout(refreshMoneyItvs[user.email]);
+      refreshMoneyItvs[user.email] = setTimeout(()=>{
+        emitToMember(user.email, "updateMoney", obj);
+      }, 100)
+      // console.log("######refreshMoney", user);
       // console.error("######1", user.bet365Money);
       // await updateBet365TotalMoney(user);
       // console.error("######2", user.bet365Money);
-      emitToMember(user.email, "updateMoney", user);
+
     }
   }
 
   async function updateMoney(user, sync){
-    user = getUser(user);
+    user = await getUser(user);
     if(user){
       await updateBet365TotalMoney(user);
       if(sync){
@@ -233,6 +276,15 @@ module.exports = io=>{
     return account;
   }
 
+  async function refreshTab(user, links){
+    user = await getUser(user);
+    if(user){
+      emitToMember(user.email, "refreshTab", {
+        link: links
+      })
+    }
+  }
+
   async function refreshBet365Money(account){
     account = await getAccount(account);
     if(account && account.user){
@@ -251,7 +303,7 @@ module.exports = io=>{
   async function updateBet365Money(account, money, sync){
     account = await getAccount(account);
     if(account){
-      account.money = Math.floor(money);
+      account.money = money;// Math.floor(money);
       await account.save();
       if(sync){
         await refreshBet365Money(account);
@@ -262,13 +314,18 @@ module.exports = io=>{
   async function getUser(user){
     if(user instanceof mongoose.Types.ObjectId || typeof user === "string"){
       user = await User.findOne({_id:user}).select('-password');
+    }else if(user && !user.email){
+      user = await User.findOne({_id:user._id}).select('-password');
     }
     return user;
   }
 
   async function refreshBet365TotalMoney(user){
+    console.log("refreshBet365TotalMoney");
     user = await getUser(user);
-    emitToMember(user.email, "updateMoney", {bet365Money:user.bet365Money});
+    if(user){
+      emitToMember(user.email, "updateMoney", {bet365Money:user.bet365Money});
+    }
   }
 
   // 자주 호출하지 말자.
@@ -280,10 +337,10 @@ module.exports = io=>{
     if(!user) return;
 
     let filter = {user:user, trash:false, removed:false};
-    let accounts = await Account.find(filter);
+    let accounts = await Account.find(filter).select("money").lean();
     let totalMoney = accounts.reduce((r,account)=>r+account.money, 0);
     // console.log("@@@@@@ totalMoney", totalMoney);
-    user.bet365Money = Math.floor(totalMoney);
+    user.bet365Money = totalMoney;
     await user.save();
     // await User.updateOne({_id:browser.user}, {bet365Money:result[0].money});
     if(sync){
@@ -304,6 +361,125 @@ module.exports = io=>{
       },{}) : data.value;
     }
   }
+
+  // 돈입출력처리하자
+  class MoneyManager {
+    static _checkMoneyName(name){
+      switch(name){
+        case "money":
+        case "wallet":
+          return true;
+      }
+      console.error("잘못된 money 이름");
+      return false;
+    }
+
+    static async _inc_process(user, prop, money, memo){
+      if(!this._checkMoneyName(prop)) return;
+      try{
+        user = await getUser(user);
+        if(user){
+          // user[prop] += money;
+          // await user.save();
+          let updateObj = {};
+          updateObj[prop] = money;
+          let new_user = await User.findOneAndUpdate({_id:user._id}, {$inc:updateObj}, {new:true}).select(prop).lean();
+          let type = money < 0 ? "withdraw" : "deposit";
+          console.log(`[MoneyManager] ${user.email} ${type} ${prop} ${memo?memo:''} : ${money}`);
+          await DepositLog.create({
+            user: user._id,
+            memo:memo + ` (result ${prop}: ${new_user[prop]})`,
+            type,
+            money,
+            moneyName: prop
+          })
+          //onlySite
+          refreshMoney(user._id, true);
+        }
+        return true;
+      }catch(e){
+        console.error(e);
+        return false;
+      }
+    }
+
+    static async _set_process(user, prop, money, memo){
+      if(!this._checkMoneyName(prop)) return;
+      try{
+        user = await getUser(user);
+        if(user){
+          let type = "set";
+          let originMoney = user[prop];
+          console.log(`[MoneyManager] ${user.email} ${type} ${prop} for set : ${-originMoney}`);
+          await DepositLog.create({
+            user: user._id,
+            memo: "before set",
+            type,
+            money: -originMoney,
+            moneyName: prop
+          })
+          // user[prop] = money;
+          // await user.save();
+
+          let updateObj = {};
+          updateObj[prop] = money;
+          await User.updateOne({_id:user._id}, updateObj).select(prop).lean();
+
+          console.log(`[MoneyManager] ${user.email} ${type} ${prop} ${memo?memo:''} : ${money}`);
+          await DepositLog.create({
+            user: user._id,
+            memo,
+            type,
+            money,
+            moneyName: prop
+          })
+          //onlySite
+          refreshMoney(user._id, true);
+        }
+        return true;
+      }catch(e){
+        console.error(e);
+        return false;
+      }
+    }
+
+    static async _deposit(user, prop, money, memo){
+      if(money > 0){
+        return this._inc_process(user, prop, money, memo);
+      }
+    }
+
+    static async _withdraw(user, prop, money, memo){
+      if(money > 0){
+        return this._inc_process(user, prop, -money, memo);
+      }
+    }
+
+    static async setMoney(user, money, memo){
+      return this._set_process(user, "money", money, memo);
+    }
+
+    static async setWallet(user, money, memo){
+      return this._set_process(user, "wallet", money, memo);
+    }
+
+    static async depositMoney(user, money, memo){
+      return this._deposit(user, "money", money, memo);
+    }
+
+    static async depositWallet(user, money, memo){
+      return this._deposit(user, "wallet", money, memo);
+    }
+
+    static async withdrawMoney(user, money, memo){
+      return this._withdraw(user, "money", money, memo);
+    }
+
+    static async withdrawWallet(user, money, memo){
+      return this._withdraw(user, "wallet", money, memo);
+    }
+  }
+
 
   let MD = {
     io,
@@ -329,17 +505,21 @@ module.exports = io=>{
     Option,
     Approval,
     Setting,
+    DepositLog,
     authAdmin,
     authMaster,
     task,
     deposit,
     approvalTask,
+    refreshTab,
     refreshMoney,
     refreshBet365Money,
     refreshBet365TotalMoney,
     updateBet365Money,
     updateBet365TotalMoney,
-    getSetting
+    getSetting,
+    calc,
+    MoneyManager
   }
 
   require('./api_socket')(MD);
@@ -349,25 +529,124 @@ module.exports = io=>{
   require('./api_program')(MD);
   require('./api_deposit')(MD);
   require('./api_approval')(MD);
+  require('./api_bet_history')(MD);
 
+  require('./api_event_settled_checker')(MD);
+
+  router.post("/input_test_data", async (req, res)=>{
+    let d;
+    try{
+      d = await TestData.create(req.body);
+    }catch(e){
+      console.error(e);
+      res.json({
+        status: "fail"
+      })
+      return
+    }
+    res.json({
+      status: "success",
+      data: d._id
+    })
+  })
 
   // from betburger
   router.post("/input_data", (req, res)=>{
     // console.log("receive gamedata");
-    //io.to("__checker__")
-    // console.log("send gamedata");
-    io.to("__data_receiver__").emit("gamedata", req.body);
-    // sendDataToMain(pid, bid, com, data){
+    let room = "__data_receiver__";
+
+    let map = io.sockets.adapter.rooms.get(room);
+    if(map){
+      // 추후에 체크기 수량에 따라 벳버거 데이터를 분배하여 처리하도록하자
+      // console.log("count", map.size);
+      io.to(room).emit("gamedata", req.body);
+    }
     res.send('1');
   })
 
   router.post("/input_bet", task(async (req, res)=>{
     let data = req.body;
     data.user = req.user._id;
+
+    if(data.siteStake < 0){
+      res.json({
+        status: "fail",
+        message: "잘못된 stake값입니다."
+      })
+      return;
+    }
+
+    let profit;
+    try{
+      profit = calc.profit(data.siteOdds, data.bookmakerOdds, data.siteStake, data.bookmakerStake);
+      // data.profit = calc.profit(data.siteOdds, data.bookmakerOdds, data.siteStake, data.bookmakerStake);
+    }catch(e){
+      console.error(e);
+    }
+
+    if(profit > 100){
+      res.json({
+        status: "fail",
+        message: "잘못된 수익값입니다."
+      })
+      return;
+    }
+
+    // try{
+    //   data.profitP = calc.profitP(data.siteOdds, data.bookmakerOdds);
+    // }catch(e){
+    //   console.error(e);
+    // }
+
+    let event;
+    try{
+      event = await Event.findOne({_id:data.event});
+      if(!event){
+        res.json({
+          status: "fail",
+          message: "없는 이벤트에 대한 배팅입니다."
+        })
+        return;
+      }else{
+        event.bookmaker = data.bookmaker;
+        data.sportName = event.sportName;
+        delete data.bookmaker;
+        await event.save();
+      }
+    }catch(e){
+      console.error(e);
+    }
+
     let bd;
     console.log("input bet", data);
     try{
+      if(event.betStatus !== "ACCEPTED"){
+        data.betStatus = event.betStatus;
+      }
+      // data.event = await Event.findOne()
       bd = await BetData.create(data);
+      // let user = await User.findOneAndUpdate({_id:req.user._id}, {$inc:{money:-data.siteStake}}, {new:true});
+      // refreshMoney(user, true);
+      await MoneyManager.withdrawMoney(req.user._id, data.siteStake, `bet`);
+
+      // 배팅을 했는데 현재 event의 상태가 이미 결과처리된 이벤트라면 바로 결과처리.
+      if(event.betStatus !== "ACCEPTED"){
+        if(event.betStatus == "WON"){
+          console.log(`---- direct Settled Bet: WON ----`)
+          console.log(`-- user: ${req.user.email}`);
+          console.log(`-- result: ${data.siteOdds * data.siteStake}`);
+          await MoneyManager.depositMoney(req.user._id, data.siteOdds * data.siteStake, `(direct) bet <span class="text-info">WON</span> result (odds:${data.siteOdds}, stake:${data.siteStake})`);
+        }else if(event.betStatus == "REFUNDED" || event.betStatus == "CANCELLED"){
+          console.log(`---- direct Settled Bet: ${event.betStatus} ----`)
+          console.log(`-- user: ${req.user.email}`);
+          console.log(`-- result: ${data.siteStake}`);
+          await MoneyManager.depositMoney(req.user._id, data.siteStake, `(direct) bet <span class="text-warning">${event.betStatus}</span> result`);
+        }
+      }
+      // console.error("##profitSound", req.user.email, profit);
+      emitToMember(req.user.email, "profitSound", profit);
+      console.log(`---- bet: ${data.siteStake} ----`);
+      console.log(`-- user: ${req.user.email}`);
     }catch(e){
       console.error(e);
       res.json({
@@ -381,6 +660,121 @@ module.exports = io=>{
       status: "success",
       data: bd._id
     })
+  }))
+
+  router.post("/get_money_log", authMaster, task(async (req, res)=>{
+    let {
+      ids, offset, limit, curPage, email, type, moneyName, range
+    } = req.body;
+    let query = {type, moneyName};
+
+    if(email){
+      let user = await User.findOne({email});
+      if(user){
+        query.user = user._id;
+      }else{
+        query.user = null;
+      }
+    }
+
+    for(let o in query){
+      if(query[o] === undefined || query[o] === ""){
+        delete query[o];
+      }
+    }
+
+    if(ids){
+      query._id = ids;
+    }
+
+    // if(accountId){
+    //   let account = await Account.findOne({id:accountId});
+    //   if(account){
+    //     query.account = account._id;
+    //   }else{
+    //     query.account = null;
+    //   }
+    // }
+
+
+
+    if(curPage !== undefined){
+      // 페이지가 설정되었으면, 그에 맞춰서 limit, offset 계산
+      limit = 20;//config.ACCOUNT_LIST_COUNT_PER_PAGE;
+      offset = curPage * limit;
+    }else{
+      // 페이지가 설정안되었다면. 전달된 limit, offset 사용
+      // 전달된 limit, offset이 없으면 기본값사용
+      if(limit === undefined){
+        limit = 20;//config.ACCOUNT_LIST_COUNT_PER_PAGE;
+      }
+      if(offset === undefined){
+        offset = 0;
+      }
+
+      curPage = offset / limit;
+    }
+
+    let populateObjList = [
+      {
+        path: 'user',
+        model: User,
+        select: '-password'
+      }
+    ]
+
+    if(range){
+      query.createdAt= {
+        $gte: new Date(range.start),
+        $lte: new Date(range.end)
+      }
+    }
+
+    console.log("query", query);
+
+    // 전체숫자는 limit되지 않은숫자여야하므로 이 count방법을 유지한다.
+    let count = await DepositLog.countDocuments(query);
+    let pageLength = Math.ceil(count / limit);// 0 ~
+    let maxPage = pageLength - 1;
+    // console.log("account count", count);
+    let startPage = Math.floor(curPage / config.PAGE_COUNT) * config.PAGE_COUNT;
+    let endPage = Math.min(startPage + config.PAGE_COUNT-1, maxPage);
+
+    let list = await DepositLog.find(query)
+    .sort({createdAt:-1})
+    .limit(limit)
+    .skip(offset)
+    .populate(populateObjList)
+    .lean();
+
+    let sum = await DepositLog.aggregate()
+    .match(query)
+    .group({
+      _id: 'null',
+      total: {$sum:'$money'}
+    });
+
+    let users = await User.find({}).select("email").lean();
+    // let sum = await DepositLog.aggregate([
+    //   {
+    //     $group: {
+    //       _id: "null",
+    //       total: {
+    //         $sum: "$money"
+    //       }
+    //     }
+    //   },
+    //   {
+    //     $match: query
+    //   }
+    // ])
+    // console.log("????", query, list);
+    console.log("sum", sum);
+
+    res.json({
+      status: "success",
+      data: {list, users, sum:sum[0]?sum[0].total:0, curPage, startPage, endPage, maxPage, count, pageCount:config.PAGE_COUNT}
+    });
   }))
 
   router.post("/set_setting", authMaster, task(async (req, res)=>{
@@ -477,7 +871,7 @@ module.exports = io=>{
 
     let json;
     // console.log("??", code)
-    if(code != "undefined"){
+    if(code != "undefined" && code){
       // console.log("#$%");
       json = {
         zone: setting.value["proxyZone-" + code],
@@ -516,7 +910,7 @@ module.exports = io=>{
   }))
 
   router.get("/balance", async (req, res)=>{
-    let user = await User.findOne({email:req.user.email}).select(["money", "wallet", "bet365Money"]);
+    let user = await User.findOne({email:req.user.email}).select(["money", "wallet", "bet365Money", "email"]);
     // console.error("@@@@@@1", user.bet365Money);
     await updateBet365TotalMoney(user);
     // console.error("@@@@@@2", user.bet365Money);
@@ -532,8 +926,9 @@ module.exports = io=>{
   })
 
   router.get("/refreshMoney", async (req, res)=>{
-    let user = await User.findOne({email:req.user.email}).select(["money", "wallet", "bet365Money"]);
+    let user = await User.findOne({email:req.user.email}).select(["money", "wallet", "bet365Money", "email"]);
     await updateBet365TotalMoney(user);
+    // console.error("?", user.email);
     io.to(user.email).emit("updateMoney", {
       money: user.money,
       wallet: user.wallet,
