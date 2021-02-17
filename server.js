@@ -19,7 +19,9 @@
 
   //////////// mongoose logger //////////////
   const {MongooseQueryLogger} = require('mongoose-query-logger');
-  
+
+  console.error("NODE_ENV", process.env.NODE_ENV);
+
   if(process.env.NODE_ENV != "production"){
     const queryLogger = new MongooseQueryLogger();
     mongoose.plugin(queryLogger.getPlugin());
@@ -90,10 +92,13 @@
     store: store
   })
   app.use(_session);
-  app.use(forceDomain({
-    hostname: 'www.surebet.vip'
-    // protocol: 'https'
-  }));
+
+  if(process.env.NODE_ENV == "production"){
+    app.use(forceDomain({
+      hostname: 'www.surebet.vip'
+      // protocol: 'https'
+    }));
+  }
 
   // 중복로긴 방지
   app.use((req, res, next) => {

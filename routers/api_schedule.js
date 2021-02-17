@@ -57,7 +57,7 @@ module.exports = async MD=>{
 
   // setInterval(process, cycleTime);
   if(argv[0] == "master"){
-    console.error("##MASTER");
+    // console.error("##MASTER");
     // 매시간 15분 마다 이벤트 결과 확인
     let job15m = new CronJob('0 */15 * * * *', function() {
        eventSettledCheckProcess();

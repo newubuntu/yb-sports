@@ -7,7 +7,10 @@
       "autorestart": true,
       "error_file": "master_err.log",
       "env": {
-        "__HOST": "localhost",
+        "NODE_ENV": "development",
+        "API_PORT": 80
+      },
+      "env_production": {
         "NODE_ENV": "production",
         "API_PORT": 80
       },
@@ -22,6 +25,10 @@
       "autorestart": true,
       "error_file": "slave_err.log",
       "env": {
+        "NODE_ENV": "development",
+        "API_PORT": 80
+      },
+      "env_production": {
         "NODE_ENV": "production",
         "API_PORT": 80
       },

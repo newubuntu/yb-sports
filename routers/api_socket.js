@@ -2,6 +2,7 @@ const {v4:uuidv4} = require('uuid');
 
 module.exports = MD=>{
   let {
+    argv,
     io,
     redisClient,
     mongoose,
@@ -286,7 +287,8 @@ module.exports = MD=>{
 
         //정재된 매칭 게임데이터
         socket.on("inputGameData", obj=>{
-          console.log("inputGameData", obj);
+          //if(argv[0] == "master"){
+          console.error("inputGameData");
           // let event;
           // try{
           //   event = await Event.create(obj);
