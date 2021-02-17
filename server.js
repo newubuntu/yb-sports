@@ -12,7 +12,7 @@
   const bodyParser = require("body-parser");
   const cors = require('cors');
   const ios = require('express-socket.io-session');
-  const forceDomain = require('forcedomain');
+  const {forceDomain} = require('forcedomain');
   // const FileStore = require('session-file-store')(session);
   // const MongoStore = require('connect-mongo')(session);
 
