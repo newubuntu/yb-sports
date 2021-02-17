@@ -6,6 +6,7 @@ let papi;
 
 module.exports = async MD=>{
   let {
+    argv,
     io,
     mongoose,
     sendDataToMain,
@@ -55,11 +56,14 @@ module.exports = async MD=>{
   // let cycleTime = 1000 * 60 * 60 * 1;
 
   // setInterval(process, cycleTime);
-  // 매시간 15분 마다 이벤트 결과 확인
-  let job15m = new CronJob('0 */15 * * * *', function() {
-     eventSettledCheckProcess();
-  });
-  job15m.start();
+  if(argv[0] == "master"){
+    console.error("##MASTER");
+    // 매시간 15분 마다 이벤트 결과 확인
+    let job15m = new CronJob('0 */15 * * * *', function() {
+       eventSettledCheckProcess();
+    });
+    job15m.start();
+  }
 
 
   // 1일마다 브라우져당 log에서 500개 이상일 때,

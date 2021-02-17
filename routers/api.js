@@ -18,6 +18,7 @@ const TestData = require('../models/TestData');
 const BenList = require('../models/BenList');
 const Withdraw = require('../models/Withdraw');
 
+let argv = process.argv.slice(2);
 
 const config = require('../config');
 const {comma} = require('../utils');
@@ -487,6 +488,7 @@ module.exports = io=>{
 
 
   let MD = {
+    argv,
     redisClient,
     io,
     mongoose,

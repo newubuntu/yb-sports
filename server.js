@@ -19,6 +19,7 @@
 
   //////////// mongoose logger //////////////
   const {MongooseQueryLogger} = require('mongoose-query-logger');
+  
   if(process.env.NODE_ENV != "production"){
     const queryLogger = new MongooseQueryLogger();
     mongoose.plugin(queryLogger.getPlugin());
