@@ -491,7 +491,7 @@
 
 
 
-  var server = http.listen(port, '127.0.0.1', () => {
+  var server = http.listen(port, '0.0.0.0', () => {
     console.log('server is running on port', server.address().port);
   });
 })()
