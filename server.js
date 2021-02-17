@@ -12,6 +12,7 @@
   const bodyParser = require("body-parser");
   const cors = require('cors');
   const ios = require('express-socket.io-session');
+  const forceDomain = require('forcedomain');
   // const FileStore = require('session-file-store')(session);
   // const MongoStore = require('connect-mongo')(session);
 
@@ -88,6 +89,10 @@
     store: store
   })
   app.use(_session);
+  app.use(forceDomain({
+    hostname: 'www.surebet.vip'
+    // protocol: 'https'
+  }));
 
   // 중복로긴 방지
   app.use((req, res, next) => {
