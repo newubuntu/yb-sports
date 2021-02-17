@@ -100,6 +100,7 @@ module.exports = MD=>{
         }else if(data.link == "__program__"){
           socket.join("__program__");
           socket.emit("email", email);
+          // console.error("??", data);
           if(Array.isArray(data.groups)){
             data.groups.forEach(group=>{
               socket.join(group);

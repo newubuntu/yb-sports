@@ -566,8 +566,11 @@ module.exports = io=>{
     console.log("receive gamedata");
     let room = "__data_receiver__";
 
+    //console.error(io.in(room).sockets);
+
     let map = io.sockets.adapter.rooms.get(room);
     if(map){
+      // console.log(map);
       // 추후에 체크기 수량에 따라 벳버거 데이터를 분배하여 처리하도록하자
       // console.log("count", map.size);
       io.to(room).emit("gamedata", req.body);
