@@ -5,6 +5,9 @@ block styles
     .browser {
       height: 250px;
     }
+    .browser-logger{
+      padding: 2px;
+    }
     .browser-logger>ul {
       padding-inline-start: 5px;
     }
@@ -41,11 +44,32 @@ block scripts
 
 block view
   .fade-in.pre-hide#app
+    .card.withdraw-form.pre-hide
+      .card-header
+        |출금할 금액을 입력하세요.          
+      .card-body
+        .input-group
+          .input-group-prepend
+            span.input-group-text $
+          input.form-control.withdraw-input(type="number" min="10")
     //-.col-6.col-sm-4.col-md-2.col-xl.mb-3.mb-xl-0    
     button.btn.btn-square.btn-reddit(type="button" v-on:click="sk_addProgram")
       svg.c-icon.mr-2
         use(xlink:href="/vendors/@coreui/icons/svg/brand.svg#cib-addthis")
       |PC 추가
+    .float-right.btn-group(role="group")
+      button.btn.btn-square.btn-primary(type="button" v-on:click="refreshMoneyAll()")
+        svg.c-icon.c-icon-lg
+          use(xlink:href="/vendors/@coreui/icons/sprites/solid.svg#cis-reload")
+        | 전체 bet365머니 갱신
+      button.btn.btn-square.btn-success(type="button" v-on:click="startMatchAllProgram()")
+        | 전체 매칭시작
+      button.btn.btn-square.btn-warning(type="button" v-on:click="stopMatchAllProgram()")
+        | 전체 매칭중지
+      button.btn.btn-square.btn-info(type="button" v-on:click="openBrowserAll()")
+        | 전체 켜기
+      button.btn.btn-square.btn-secondary(type="button" v-on:click="closeBrowserAll()")
+        | 전체 끄기      
     hr
     .card(v-for="program in programs" :data-pid="program._id" :class="program.connected?'border-warning':'border-secondary'")
       .card-header
@@ -58,6 +82,19 @@ block view
             input.form-control.pc-name-input(v-else type="text" placeholder="PC 이름을 입력하세요" :value="program._name" v-on:blur="onChangeName" :data-pid="program._id")
             button.btn.btn-square.btn-secondary(type="button" v-on:click="copyPid(program._id)" :title="program._id")
               | PC코드복사
+          .btn-group(role="group")
+            button.btn.btn-square.btn-primary(type="button" v-on:click="refreshMoneyAll(program)")
+              svg.c-icon.c-icon-lg
+                use(xlink:href="/vendors/@coreui/icons/sprites/solid.svg#cis-reload")
+              | 전체 bet365머니 갱신
+            button.btn.btn-square.btn-success(type="button" v-on:click="startMatchAllBrowser(program)")
+              | 전체 매칭시작
+            button.btn.btn-square.btn-warning(type="button" v-on:click="stopMatchAllBrowser(program)")
+              | 전체 매칭중지
+            button.btn.btn-square.btn-info(type="button" v-on:click="closeBrowserAll(program)")
+              | 전체 켜기
+            button.btn.btn-square.btn-secondary(type="button" v-on:click="openBrowserAll(program)")
+              | 전체 끄기            
           .btn-group(role="group")
             button.btn.btn-square.btn-behance(type="button" v-on:click="sk_addBrowser(program._id)")
               svg.c-icon
@@ -83,9 +120,13 @@ block view
                       | {{browser.option ? browser.option.name : "옵션선택"}}
                     span.b-money ${{browser.account ? Math.floor(browser.account.money) : 0}}
                     span
-                      button.btn.btn-sm.btn-primary.btn-refresh-money(type="button" :data-bid="browser._id" v-on:click="refreshMoney(program, browser)")
+                      button.btn.btn-sm.btn-primary.btn-refresh-money(type="button" title="머니갱신" :data-bid="browser._id" v-on:click="refreshMoney(program, browser)")
                         svg.c-icon.c-icon-lg
-                          use(xlink:href="/vendors/@coreui/icons/sprites/solid.svg#cis-reload")                      
+                          use(xlink:href="/vendors/@coreui/icons/sprites/solid.svg#cis-reload")
+                    span
+                      button.btn.btn-sm.btn-primary.btn-withdraw-money(type="button" title="출금" :data-bid="browser._id" v-on:click="openWithdrawModal(program, browser)")
+                        svg.c-icon.c-icon-lg
+                          use(xlink:href="/vendors/@coreui/icons/sprites/brand.svg#cib-cashapp")
                   .btn-group(role="group")
                     button.btn.btn-square.btn-warning(type="button" v-if="browser.isMatching" v-on:click="stopMatch(program, browser)")
                       | 매칭중지
@@ -103,6 +144,6 @@ block view
                         use(xlink:href="/vendors/@coreui/icons/svg/solid.svg#cis-trash")
                       | 제거
               .card-body.browser-logger.scroll
-                ul
-                  li(v-for="log in browser.logs")
+                ul.logger-ul
+                  //-li(v-for="log in browser.logs")
                     div.log-line(:class="log.data?'text-'+log.data.type:''" v-html="logToHtml(log)")

@@ -49,8 +49,12 @@ function log(msg, type, sendToServer){
       $el.addClass('log-' + type);
     }
 
+    let isBottom = $logCon.scrollTop()+$logCon.prop('offsetHeight')+20 >= $logCon.prop('scrollHeight');
+
     $logCon.append($el.html('<span class="text-secondary">'+(new Date()).toLocaleTimeString() + '</span> ' + msg));
-    $logCon.scrollTop($logCon.prop('scrollHeight'));
+    if(isBottom){
+      $logCon.scrollTop($logCon.prop('scrollHeight'));
+    }
   }
 
   console.log("[log]", msg);
@@ -665,13 +669,21 @@ async function checkBalance(lv=0){
     return true;
   }else{
     log(`피나클 잔액확인 실패: ${balance.message}`, "danger", true);
-    if(lv==0){
-      log('재시도..', null, true)
+    if(lv <= 3){
+      log('재시도..', null, true);
+      await delay(2000);
       return await checkBalance(lv+1);
     }else{
       return false;
     }
   }
+}
+
+async function reLogin(){
+  activeBet365();
+  let m = await sendData("reLogin", null, PN_B365);
+  activeMain();
+  return m;
 }
 
 // 유저 양빵 처리
@@ -694,11 +706,13 @@ async function userYbProcess(data){
 
   if(bet365Info.money == null){
     log("벳365 로그아웃 됨. 재 로그인 시도 중..", "danger", true);
-    activeBet365();
-    let m = await sendData("reLogin", null, PN_B365);
-    activeMain();
+    // activeBet365();
+    // let m = await sendData("reLogin", null, PN_B365);
+    // activeMain();
+    let m = await reLogin();
     if(m == null){
       log("재 로그인 실패. 브라우져를 다시 켜주세요.", "danger", true);
+      stopMatch(true);
       return;
     }else{
       log("벳365 재로그인 완료. 링크 다시 여는중..", null, true);
@@ -1179,6 +1193,16 @@ async function checkBetmaxProcess(data){
       return;
     }
 
+    if(betmaxInfo.status == "logouted"){
+      log("배팅취소: 벳365 로그아웃 됨. 재 로그인 시도 중..", "danger", true);
+      let m = await reLogin();
+      if(m == null){
+        log("재 로그인 실패. 브라우져를 다시 켜주세요.", "danger", true);
+        stopMatch(true);
+      }
+      return;
+    }
+
     if(betmaxInfo.status == "placed"){
       log(`배팅취소: ${betmaxInfo.message}`, "danger", true);
       stopMatch(true);
@@ -1375,6 +1399,10 @@ async function init(){
   urlParams = getUrlParams(window.location.href);
   history.replaceState({}, "index", "http://localhost:8080/main.html");
 
+  // axios.get("http://lumtest.com/myip.json").then(res=>{
+  //   console.error(res.data);
+  // })
+
   setupF5Lock();
 
   socket = io();
@@ -1465,11 +1493,36 @@ async function init(){
       log("벳365 money갱신: 로그인 전입니다", null, true);
       return;
     }
+    log("벳365 money갱신중..", null, true);
     activeBet365();
     let money = await sendData("loadMoney", null, PN_B365);
     activeMain();
     console.error("money", money);
     log(`벳365 money갱신: $${money}`, null, true);
+    if(uuid){
+      socket.emit("resolve", money, uuid);
+    }
+  })
+
+  socket.on("withdraw", async (data, uuid)=>{
+    console.error("withdraw", data, uuid);
+    if(!flag.bet365LoginComplete){
+      if(uuid){
+        socket.emit("resolve", "로그인 전입니다.", uuid);
+      }
+      log("벳365 출금시도: 로그인 전입니다", null, true);
+      return;
+    }
+    log("벳365 출금시도중..", null, true);
+    activeBet365();
+    let money = await sendData("withdraw", data, PN_B365);
+    activeMain();
+    // console.error("money", money);
+    if(money == null){
+      log(`벳365 출금요청실패`, "danger", true);
+    }else{
+      log(`벳365 출금요청완료. 잔액: $${money}`, null, true);
+    }
     if(uuid){
       socket.emit("resolve", money, uuid);
     }

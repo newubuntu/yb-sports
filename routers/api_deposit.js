@@ -14,6 +14,8 @@ module.exports = MD=>{
     Program,
     Browser,
     Log,
+    BenList,
+    Withdraw,
     Account,
     Option,
     Approval,
@@ -111,7 +113,15 @@ module.exports = MD=>{
   // 브라우져 연결 끊기
   router.post("/request_deposit_account/:id", task(async (req, res)=>{
     let id = req.params.id;
-    let account = await Account.findOne({_id:id}).populate('browser');
+    let withdrawMoney = req.body.money;
+    let account = await Account.findOne({_id:id})
+    // .populate({
+    //   path: 'browser',
+    //   model: Browser,
+    //   select: "-logs"
+    // })
+    .lean();
+
     if(!account){
       res.json({
         status: "fail",
@@ -120,13 +130,13 @@ module.exports = MD=>{
       return;
     }
 
-    if(account.depositStatus == 'requested' || account.depositStatus == 'outstanding'){
-      res.json({
-        status: "fail",
-        message: "이미 출금요청 됐습니다."
-      })
-      return;
-    }
+    // if(account.depositStatus == 'requested' || account.depositStatus == 'outstanding'){
+    //   res.json({
+    //     status: "fail",
+    //     message: "이미 출금요청 됐습니다."
+    //   })
+    //   return;
+    // }
 
     // 출금이 완료되어 휴지통에 들어간 계정이, 휴지통에서 복구되는 상황이있음.
     // 휴지통에서 복구된다고 출금완료 이력을 제거하지는 않으므로 아래는 주석
@@ -139,52 +149,29 @@ module.exports = MD=>{
     //   return;
     // }
 
-    if(account.money < 20){
-      res.json({
-        status: "fail",
-        message: "잔액이 너무 작습니다. 출금요청시 필요한 최소금액은 $20입니다."
-      })
-      return;
-    }
+    // if(withdrawMoney < 10){
+    //   res.json({
+    //     status: "fail",
+    //     message: "잔액이 너무 작습니다. 출금요청시 필요한 최소금액은 $10입니다."
+    //   })
+    //   return;
+    // }
 
-    // console.log("??", account);
+    // let pid, bid;
+    // if(account.browser){
+    //   pid = account.browser.program._id;
+    //   bid = account.browser._id;
+    // }
 
-    let pid, bid;
-    if(account.browser){
-      pid = account.browser.program._id;
-      bid = account.browser._id;
+    // await account.requestDeposit(req.user);
 
-      // await account.disconnectBrowser();
-      // account.browser.account = null;
-      // await account.browser.save();
-      // account.browser = null;
-      // await account.save();
-
-      // emitToProgram(pid, "closeBrowser", bid);
-    }
-
-    await account.requestDeposit(req.user);
-
-    // account.depositStatus = 'requested';
-    // account.depositDate = new Date();
-    //
-    // let ap = await Approval.open({
-    //   title: "벳삼 출금 요청",
-    //   detail: `출금을 요청합니다.`,
-    //   type: "deposit",
-    //   user: req.user._id,
-    //   account: account._id
-    // })
-    // account.depositApproval = ap;
-    //
-    // await account.disconnectBrowser();
-
-    // await account.save();
-
-    // await Account.updateOne({_id:id}, {
-    //   depositStatus: 'requested',
-    //   depositDate: new Date()
+    // await Withdraw.create({
+    //   id: account.id,
+    //   type: "bookmaker",
+    //   status: "requested",
+    //   money: withdrawMoney
     // });
+
 
     emitToAdmin('menuBadge', {
       link: '/admin/accountManager',
@@ -201,8 +188,8 @@ module.exports = MD=>{
     });
 
     res.json({
-      status: "success",
-      data: {pid, bid}
+      status: "success"
+      // ,data: {pid, bid}
     })
   }))
 

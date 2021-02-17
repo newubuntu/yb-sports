@@ -69,7 +69,7 @@ block view
         .card(:class="getBorderClass(account._id)")
           .card-body(:class="getDepositClass(account._id)")
             .btn-toolbar.justify-content-between
-              .requested-deposit-cover(v-if="account.requestedDeposit")
+              //-.requested-deposit-cover(v-if="account.requestedDeposit")
                 | 출금요청 중
               svg.c-icon(v-if="account.browser")
                 use(xlink:href="/vendors/@coreui/icons/svg/solid.svg#cis-link-intact")
@@ -82,7 +82,7 @@ block view
                     |{{account.id}}
               .money 잔액: ${{comma(account.money) || 0}}
               .btn-group
-                button.btn.btn-sm.btn-square.btn-secondary(v-if="!account.requestedDeposit" type="button" v-on:click="deposit(account._id)")
+                //-button.btn.btn-sm.btn-square.btn-secondary(v-if="!account.requestedDeposit" type="button" v-on:click="deposit(account._id)")
                   svg.c-icon
                     use(xlink:href="/vendors/@coreui/icons/svg/solid.svg#cis-dollar-circle")
                   | 출금요청

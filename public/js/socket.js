@@ -66,6 +66,11 @@ $(document).ready(async ()=>{
     return;
   }
 
+  socket.on("destroyedSession", ()=>{
+    console.error("destroyedSession");
+    window.location.href = '/login';
+  })
+
   socket.on("sound", data=>{
     console.error("receive sound message", data);
     let {name, loop} = data;
@@ -160,18 +165,21 @@ $(document).ready(async ()=>{
   // socket.on("join", data=>{
   //   console.log('join room:', data);
   // })
-
+  let itvUpdateMoney;
   socket.on("updateMoney", money=>{
-    console.log("updateMoney:", money);
-    if(money.money !== undefined){
-      Vmoney.money.site = money.money;
-    }
-    if(money.wallet !== undefined){
-      Vmoney.money.wallet = money.wallet;
-    }
-    if(money.bet365Money !== undefined){
-      Vmoney.money.bet365 = money.bet365Money;
-    }
+    clearTimeout(itvUpdateMoney);
+    itvUpdateMoney = setTimeout(()=>{
+      console.log("updateMoney:", money);
+      if(money.money !== undefined){
+        Vmoney.money.site = money.money;
+      }
+      if(money.wallet !== undefined){
+        Vmoney.money.wallet = money.wallet;
+      }
+      if(money.bet365Money !== undefined){
+        Vmoney.money.bet365 = money.bet365Money;
+      }
+    }, 100);
   })
 
 })

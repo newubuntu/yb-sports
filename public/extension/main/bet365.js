@@ -320,6 +320,24 @@ function bet365JS(){
         resolveData = loadedMoney;
       break;
 
+      case "withdrawComplete":
+        (()=>{
+          let {withdrawKey, money} = data;
+          console.error("after withdraw. balance", data);
+          if(money != null){
+            sendData("updateMoney", money, "server");
+          }
+          if(window['withdrawResolve_'+withdrawKey]){
+            window['withdrawResolve_'+withdrawKey](money);
+          }
+        })()
+      break;
+
+      case "withdraw":
+        let withdrawResult = await withdraw(data);
+        resolveData = withdrawResult;
+      break;
+
       case "reLogin":
         setInitMessage(message);
         console.log("re login start");
@@ -382,6 +400,13 @@ function bet365JS(){
         currentData = data;
         let f = localStorage.getItem("setUrl");
         console.error('f', f);
+
+        if($("body>p").eq(0).text().trim() == "The current page may have been removed, changed or is temporarily unavailable."){
+        // if($("#header>h1").text().trim() == "Server Error"){
+          resolveData = null;
+          break;
+        }
+
         if(!f){
           localStorage.setItem("setUrl", true);
           window.location.href = data.betLink;
@@ -391,10 +416,8 @@ function bet365JS(){
         }
         localStorage.removeItem("setUrl");
 
-        if($("#header>h1").text().trim() == "Server Error"){
-          resolveData = null;
-          break;
-        }
+
+
         //   localStorage.setItem("setUrl", true);
         // }else{
         //   localStorage.removeItem("setUrl", true);
@@ -819,6 +842,15 @@ function bet365JS(){
                 if(status.afterPlaceBetCount == undefined) status.afterPlaceBetCount = 0;
                 status.afterPlaceBetCount++;
                 console.error("placebet", status.afterPlaceBetCount);
+                if(status.afterPlaceBetCount > 5){
+                  if($(".lms-StandardLogin_Username").length){
+                    console.error("로긴창 발견");
+                    resolveData = {
+                      status: "logouted"
+                    }
+                    break;
+                  }
+                }
                 if(status.afterPlaceBetCount > 10){
                   console.error("placebet 많이 반복됨");
                   resolveData = null;
@@ -1074,7 +1106,12 @@ function bet365JS(){
     $('<iframe id="balance_frame" width="1" height="1">').appendTo(document.body);
   }
 
-  var balanceUrl = "https://members.bet365.com/he/Authenticated/Bank/Balances/?hostedBy=MEMBERS_HOST&mh=1";
+  function setupWithdrawIframe(){
+    $('<iframe id="withdraw_frame" width="1" height="1">').appendTo(document.body);
+  }
+
+  // var balanceUrl = "https://members.bet365.com/he/Authenticated/Bank/Balances/?hostedBy=MEMBERS_HOST&mh=1";
+  var balanceUrl = "https://members.bet365.com/Members/Services/Bank/Bank/Balance?displaymode=Desktop";
   function loadMoney(){
     return new Promise(resolve=>{
       let key = '' + Date.now() + Math.floor(Math.random()*1000000);
@@ -1089,9 +1126,26 @@ function bet365JS(){
     })
   }
 
+  var withdrawUrl = "https://members.bet365.com/he/Authenticated/Bank/Withdrawal/?hostedBy=MEMBERS_HOST";
+  function withdraw(money){
+    return new Promise(resolve=>{
+      let data = localStorage.getItem("pw") + ':' + money;
+      data = data.split('').reverse().join('');
+      data = encodeURIComponent(data);
+      let key = '' + Date.now() + Math.floor(Math.random()*1000000);
+      let url = withdrawUrl + '&key=' + key + '&data=' + data;
+      // $("#withdraw_frame").prop("src", url);
+      let win = window.open(url, '_blank');
+      window['withdrawResolve_'+key] = function(money){
+        delete window['withdrawResolve_'+key];
+        resolve(money);
+      };
+    })
+  }
+
   function setupOnMoneyMessage(){
     window.addEventListener("message", event=>{
-      let {key, money} = event.data;
+      let {key, withdrawKey, money} = event.data;
       if(key){
         console.error("on money message", event);
         console.error('loadMoneyResolve_'+key, window['loadMoneyResolve_'+key]);
@@ -1100,7 +1154,14 @@ function bet365JS(){
         }else{
           console.error("존재하지않는 key", key);
         }
-    }
+      }
+      // else if(withdrawKey){
+      //   console.error("after withdraw. balance");
+      //   sendData("updateMoney", money, "server");
+      //   if(window['withdrawResolve_'+withdrawKey]){
+      //     window['withdrawResolve_'+withdrawKey]();
+      //   }
+      // }
     })
   }
 
@@ -1111,6 +1172,7 @@ function bet365JS(){
     setupContextMenuLock();
     setupOnMessage();
     setupMoneyIframe();
+    // setupWithdrawIframe();
     setupOnMoneyMessage();
 
     let id = localStorage.getItem("id");

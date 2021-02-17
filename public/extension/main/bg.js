@@ -24,13 +24,24 @@ function bgJS(){
   //     ['blocking', 'requestHeaders']
   //   );
   // }
-  
+
 
   window._onBgMessage = async function _onBgMessage(message){
     let {com, data, from} = message;
     let resolveData;
 
     switch(com){
+      case "withdrawComplete":        
+        chrome.tabs.query({ active: true }, function(tabs) {
+          chrome.tabs.remove(tabs[0].id, ()=>{
+            sendData("withdrawComplete", data, PN_B365, true);
+          });
+        });
+        // chrome.tabs.query({url:data.url}, function(tabs){
+        //   chrome.tabs.remove(tabs[0].id);
+        // });
+      break;
+
   		case "getBalance":
   			resolveData = await papi.getBalance();
   		break;

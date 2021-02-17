@@ -1,0 +1,19 @@
+{
+  "apps": [{
+    "name": "yb",
+    "__script": "bin/www/server.js",
+    "__script": "node",
+    "__args": "server.js",
+    "script": "server.js",
+    "watch": false,
+    "autorestart": true,
+    "error_file": "err.log",
+    "env": {
+      "__HOST": "localhost",
+      "NODE_ENV": "production",
+      "API_PORT": 80
+    },
+    "exec_mode": "cluster",
+    "instances": 4
+  }]
+}

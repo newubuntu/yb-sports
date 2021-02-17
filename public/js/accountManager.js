@@ -264,32 +264,32 @@ let Vapp;
       },
 
       async deposit(id){
-        let account = this.getAccountObj(id);
-        if(account){
-          if(account.money < 20){
-            modal("알림", "잔액이 $20미만이어서 출금요청이 불가능합니다.");
-            return;
-          }
-          let desc = [
-            "- 출금된 계정은 더 이상 사용 불가능 합니다.",
-            "- 연결된 브라우져가 즉시 종료되고 계정연결이 해제됩니다."
-          ]
-          if(!(await modal("출금요청", `계정 '${account.id}'를 출금요청 하시겠습니까?<br>${desc.join('<br>')}`, {buttons:["취소", "출금요청"]}))) return;
-
-          let res = await api.requestDepositAccount(id);
-          if(res.status == "success"){
-            account.requestedDeposit = true;
-            this.$forceUpdate();
-
-            if(res.data && res.data.pid){
-              closeBrowser(res.data.pid, res.data.bid);
-            }
-          }else{
-            modal("오류", `출금요청 실패<br>${res.message}`);
-          }
-        }else{
-          modal("알림", `${id} 계정을 찾을 수 없습니다.`);
-        }
+        // let account = this.getAccountObj(id);
+        // if(account){
+        //   if(account.money < 10){
+        //     modal("알림", "잔액이 $10미만이어서 출금요청이 불가능합니다.");
+        //     return;
+        //   }
+        //   let desc = [
+        //     "- 출금된 계정은 더 이상 사용 불가능 합니다.",
+        //     "- 연결된 브라우져가 즉시 종료되고 계정연결이 해제됩니다."
+        //   ]
+        //   if(!(await modal("출금요청", `계정 '${account.id}'를 출금요청 하시겠습니까?<br>${desc.join('<br>')}`, {buttons:["취소", "출금요청"]}))) return;
+        //
+        //   let res = await api.requestDepositAccount(id);
+        //   if(res.status == "success"){
+        //     account.requestedDeposit = true;
+        //     this.$forceUpdate();
+        //
+        //     if(res.data && res.data.pid){
+        //       closeBrowser(res.data.pid, res.data.bid);
+        //     }
+        //   }else{
+        //     modal("오류", `출금요청 실패<br>${res.message}`);
+        //   }
+        // }else{
+        //   modal("알림", `${id} 계정을 찾을 수 없습니다.`);
+        // }
       },
 
       getAccountObj(id, arr){

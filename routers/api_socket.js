@@ -3,6 +3,7 @@ const {v4:uuidv4} = require('uuid');
 module.exports = MD=>{
   let {
     io,
+    redisClient,
     mongoose,
     sendDataToMain,
     sendDataToBg,
@@ -39,7 +40,7 @@ module.exports = MD=>{
   let chekerBid;
   io.on('connection', socket=>{
     console.log("socket connected", socket.id);
-    console.log("socket clients", io.sockets.sockets.keys());
+    // console.log("socket clients", io.sockets.sockets.keys());
     console.log("socket clients count", io.engine.clientsCount);
 
 
@@ -199,24 +200,24 @@ module.exports = MD=>{
         })
 
         socket.on("joinDataReceiver", bid=>{
-          console.error("####joinDataReceiver");
+          console.log("####joinDataReceiver");
           socket.join("__data_receiver__");
           // socket.leave("__data_receiver2__");
         })
 
         socket.on("joinDataReceiver2", bid=>{
-          console.error("####joinDataReceiver2");
+          console.log("####joinDataReceiver2");
           socket.join("__data_receiver2__");
           // socket.leave("__data_receiver__");
         })
 
         socket.on("leaveDataReceiver", bid=>{
-          console.error("####leaveDataReceiver");
+          console.log("####leaveDataReceiver");
           socket.leave("__data_receiver__");
         })
 
         socket.on("leaveDataReceiver2", bid=>{
-          console.error("####leaveDataReceiver2");
+          console.log("####leaveDataReceiver2");
           socket.leave("__data_receiver2__");
         })
 
@@ -224,13 +225,22 @@ module.exports = MD=>{
           emitToDashboard("log", data, socket._pid, bid);
           // io.to(email + "/dashboard").emit("log", data, socket._pid, bid);
 
-          let browser = await Browser.findOne({_id:bid}).populate({
+
+
+          // let browser = await Browser.findOne({_id:bid}).select("logs");
+          // if(browser){
+          //   await browser.log(data);
+          // }
+
+          let browser = await Browser.findOne({_id:bid})
+          .populate({
             path: "account",
             model: Account,
             options: {
               select: "id"
             }
-          });
+          }).lean();
+
           if(!browser){
             console.error("log기록중, browser를 못찾음", bid);
             return;
@@ -252,25 +262,6 @@ module.exports = MD=>{
               data: data
             });
           }
-
-          // if(browser.logs.length >= config.MAX_LOG_LENGTH){
-          //   // browser.logs.shift();
-          //   let arr = browser.logs.slice(0, config.MAX_LOG_LENGTH);
-          //   arr.forEach(a=>{
-          //     browser.logs.pull({_id:a._id});
-          //   })
-          // }
-          // browser.logs.push(c_log._id);
-          // await browser.save();
-
-          // 각 브라우져의 log를 모두 가지고 있는일은 위험하다. max log수만큼만
-          // 유지하고 나머지는 지우자
-          // console.log("Delete log", "$lte", c_log.number, c_log.number-config.MAX_LOG_LENGTH);
-          // if(!data.isSame){
-            //이게 각 브라우저당 제한수 밑으로 제거해야 맞는거다..
-            // log 처리할때마다 지우지말고, 주기적으로 특정기간이 지난 것들을 지우자.
-            // await Log.deleteMany({number:{$lte:c_log.number-config.MAX_LOG_LENGTH}});
-          // }
         })
 
         socket.on("delivery", async (obj, bid, uuid)=>{
@@ -360,8 +351,11 @@ module.exports = MD=>{
 
 
         // from extension bg
-        let updateMoneyCallTimes = {};
+        // let updateMoneyCallTimes = redisClient.get('updateMoneyCallTimes');
+
         socket.on("updateMoney", async (money, bid)=>{
+          let updateMoneyCallTimes = redisClient.get('updateMoneyCallTimes')||{};
+          // console.log("@@@@@11updateMoney", money);
           // extension으로 부터 호출되기 때문에.
           // 잘못된 코드로 반복호출되는 상황을 고려하여 안전장치를 둠.
           // 각 브라우져별로 1초 이내에 재호출된 머니갱신 신호는 무시함.
@@ -374,17 +368,29 @@ module.exports = MD=>{
             return;
           }
           updateMoneyCallTimes[bid] = t;
+          redisClient.set('updateMoneyCallTimes', updateMoneyCallTimes);
+          // console.log("@@@@@22updateMoney", money);
           // let account = await Account.findOne({browser:bid, trash:false, removed:false})
           // console.log("updateMoney", money, bid);
           let browser = await Browser.findOne({_id:bid, account:{$ne:null}})
-          .populate({
-            path: "account",
-            model: Account
-          });
+          // .select("-logs")
+          .populate([
+            {
+              path: "account",
+              model: Account
+            }
+            // {
+            //   path: "user",
+            //   model: User
+            // }
+          ]);
 
           if(browser){
             // browser.account.money = money;
             // await browser.account.save();
+
+            // console.log("@@@@1", browser.account.id);
+            // console.log("@@@@2", browser.user.email);
 
             await updateBet365Money(browser.account, money, true);
             await updateBet365TotalMoney(browser.user, true);
@@ -484,6 +490,9 @@ module.exports = MD=>{
             if(program){
               if(program.browsers.length < user.browserCount){
                 let browser = await program.addBrowser();
+                browser = await Browser.findOne({_id: browser._id}).sort({$natural:-1});
+                // console.log("???", browser);
+                // browser.test();
                 if(browser){
                   socket.emit("addBrowser", pid, browser);
                 }
@@ -548,7 +557,9 @@ module.exports = MD=>{
                 select: "id pw limited died country money"
               }
             }
-          ]).lean();
+          ])
+          //.select("-logs")
+          .lean();
           // let exists = await Browser.exists({_id:_bid, account:{$ne:null}, option:{$ne:null}});
           if(!browser){
             socket.emit("modal", {

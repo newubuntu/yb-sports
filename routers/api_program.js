@@ -34,30 +34,32 @@ module.exports = MD=>{
     console.log("load_program", pid);
     let user = await User.findOne({_id:req.user._id})
     .select(["email", "money", "programs"])
-    // .populate([
-    //   {
-    //     path: "programs",
-    //     model: Program,
-    //     populate: {
-    //       path: "browsers",
-    //       model: Browser,
-    //       populate: [
-    //         {
-    //           path: "account",
-    //           model: Account,
-    //           options: {
-    //             select: "id pw limited died country money"
-    //           }
-    //         },
-    //         {
-    //           path: "option",
-    //           model: Option
-    //         }
-    //       ]
-    //     }
-    //   }
-    // ])
-    .deepPopulate(['programs.browsers']).lean();
+    .populate([
+      {
+        path: "programs",
+        model: Program,
+        populate: {
+          path: "browsers",
+          model: Browser
+          // select: "-logs",
+          // populate: [
+          //   {
+          //     path: "account",
+          //     model: Account,
+          //     options: {
+          //       select: "id pw limited died country money"
+          //     }
+          //   },
+          //   {
+          //     path: "option",
+          //     model: Option
+          //   }
+          // ]
+        }
+      }
+    ])
+    // .deepPopulate(['programs.browsers'])
+    .lean();
 
     let program = user.programs.find(p=>p._id==pid);
     // console.log("?", user);
@@ -70,8 +72,17 @@ module.exports = MD=>{
   router.post("/update_browser/:bid", task(async (req, res)=>{
     let bid = req.params.bid;
     let browser = req.body.browser;
+    if(!browser){
+      res.json({
+        status: "fail",
+        message: "전달된 browser 데이터가 없습니다."
+      });
+      return;
+    }
+
+    delete browser.logs;
     console.log("update_browser", bid);
-    let originBrowser = await Browser.findOne({_id:bid});
+    let originBrowser = await Browser.findOne({_id:bid});//.select("-logs");
 
     if(browser.account !== undefined){
       if(originBrowser.account){
@@ -110,7 +121,7 @@ module.exports = MD=>{
       // account:{$ne:null},
       // option:{$ne:null}
     })
-    //.select(["account", "option"])
+    //.select("-logs")
     .populate([
       {
         path: "account",
@@ -147,8 +158,12 @@ module.exports = MD=>{
     .limit(config.MAX_LOG_LENGTH)
     .lean();
 
+    // let bid = req.params.bid;
+    // let browser = await Browser.findOne({_id:bid}).select("logs").lean();
+
     res.json({
       status: "success",
+      // data: (browser.logs||[]).sort((a,b)=>b.updatedAt-a.updatedAt)
       data: logs
     });
   }))

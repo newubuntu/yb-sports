@@ -1,18 +1,28 @@
 ( async ()=>{
   const mongoose = require('mongoose');
   // const autoIncrement = require('mongoose-auto-increment');
+  const compression = require('compression');
   const express = require("express");
   const session = require('express-session');
+  const connectRedis = require('connect-redis');
+  const redis = require('redis');
+  const RedisStore = connectRedis(session);
+  const redisClient = redis.createClient();
   const connect = require("./dbconnect");
   const bodyParser = require("body-parser");
   const cors = require('cors');
   const ios = require('express-socket.io-session');
-  const FileStore = require('session-file-store')(session);
+  // const FileStore = require('session-file-store')(session);
   // const MongoStore = require('connect-mongo')(session);
 
+
+  //////////// mongoose logger //////////////
   const {MongooseQueryLogger} = require('mongoose-query-logger');
-  const queryLogger = new MongooseQueryLogger();
-  mongoose.plugin(queryLogger.getPlugin());
+  if(process.env.NODE_ENV != "production"){
+    const queryLogger = new MongooseQueryLogger();
+    mongoose.plugin(queryLogger.getPlugin());
+  }
+  ///////////////////////////////////////////
 
   const requestIp = require('request-ip');
 
@@ -31,8 +41,24 @@
 
   const http = require("http").Server(app);
   // const io = require("socket.io")(http);
-  const io = require("socket.io")(http);
+  const io = require("socket.io")(http, { transports: ['websocket'] });
+  const IoRedis = require('socket.io-redis');
 
+  io.adapter(IoRedis({ host: 'localhost', port: 6379 }));
+  // io.adapter(initRedisAdapter(6379, 'localhost'));
+  // function initRedisAdapter(port,host) {
+  //   var pub = redis.createClient(port,host,{detect_buffers: true});
+  //   pub.on('error',onRedisError);
+  //   var sub = redis.createClient(port,host,{detect_buffers: true});
+  //   sub.on('error',onRedisError);
+  //   var redisAdapter = IoRedis({ pubClient: pub, subClient: sub });
+  //   function onRedisError(err){
+  //     console.error("Redis error: ",err);
+  //   }
+  //   return redisAdapter;
+  // }
+
+  // io.adapter(socketRedis({ host: 'localhost', port: 6379 }));
 
   mongoose.set('useFindAndModify', false);
   mongoose.set('useCreateIndex', true);
@@ -42,16 +68,65 @@
     console.log("Successfully connected to mongodb");
   })
 
+  // const store = new FileStore();
+
+  const store = new RedisStore({
+    // host: 'localhost',
+    // port: 6379,
+    // prefix: 'session:',
+    // db: 0,
+    client: redisClient
+  });
+
   let dayTime = 1000 * 60 * 60 * 24;
   let _session = session({
-    secret :'TkqTo!@#$',
+    secret: 'TkqTo!@#$',
     cookie: { maxAge: dayTime * 365 },
-    resave:false,
-    saveUninitialized:true,
+    resave: false,
+    saveUninitialized: true,
     //store: new MongoStore({mongooseConnection: mongoose.connection})
-    store: new FileStore()
+    store: store
   })
   app.use(_session);
+
+  // 중복로긴 방지
+  app.use((req, res, next) => {
+    const page = req.path || "";
+    const uri = page.replace(/\?.*/, "");
+
+    // 정적파일 요청의 경우 스킵
+    if (uri.includes(".")) {
+      next();
+      return;
+    }
+
+    // 중복 로그인 체크
+    if (req.session.user) {
+      const { user } = req.session;
+      store.all((_, sessions) => {
+        sessions.forEach( e=> {
+          // 세션에 사용자 정보가 담겨있고, 담겨있는 사용자의 아이디와 현재 세션의 사용자 아이디가 같지만
+          // 세션의 ID가 다른 경우 다른 디바이스에서 접속한걸로 간주하고 이전에 등록된 세션을 파괴한다.
+          if (e.user && e.user.email == user.email && e.id != req.session.id) {
+            console.log("중복로긴. 세션파괴", e.user.email);
+            store.destroy(e.id, error=> {
+              /* redis 오류로 인한 에러 핸들링 */
+              if(error){
+                console.error("session destroy error", error);
+                return;
+              }
+              io.to(user.email).emit("destroyedSession");
+            });
+          }
+        });
+      });
+    }
+    // console.log("!!!! next", i);
+    next();
+  })
+
+  app.disable('x-powered-by');
+  app.use(compression());
 
   app.use(requestIp.mw());
 
@@ -73,6 +148,17 @@
   //     }
   // ]);
 
+  // app.get("/test", (req, res)=>{
+  //   console.log('-----------------');
+  //   store.all((_, sessions) => {
+  //     console.log("sessions", sessions);
+  //     // sessions.forEach( e=> {
+  //     //   console.log("session", e);
+  //     // })
+  //   })
+  //   console.log('-----------------');
+  //   res.send(200);
+  // })
 
 
   // auth middleware
@@ -126,6 +212,12 @@
 
 
   io.use(ios(_session, {autoSave:true}));
+
+  // let PID = process.pid;
+  // app.get("/pid", (req, res)=>{
+  //
+  //   res.send(''+process.pid);
+  // })
 
   // app.set('trust proxy', true);
   app.get("/ip", (req, res)=>{
@@ -274,6 +366,7 @@
   app.get('/dashboard', async (req, res)=>{
     // console.log("SESSION", req.session);
     // res.render('dashboard', { user:req.session.user, pages:req.session.pages, link:req.url, admin:req.session.admin });
+    // req.pageData.pid = process.pid;
     res.render('dashboard', req.pageData);
   })
 

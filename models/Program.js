@@ -30,7 +30,7 @@ programSchema.methods.addBrowser = async function(){//(bid){
     //     data.account = account._id;
     //   }
     // }
-    let data = {user:this.user._id, program:this._id};
+    let data = {user:this.user._id, program:this._id, logs:[]};
     let p = await Browser.create(data);
     this.browsers.push(p);
     this.save();

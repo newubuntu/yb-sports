@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const User = require('../models/User');
 const Setting = require('../models/Setting');
+const config = require('../config');
 const {
   generateSalt,
   hash,
@@ -49,8 +50,8 @@ module.exports = io=>{
         ip: req.clientIp.replace('::ffff:', ''),//req.connection.remoteAddress,
         email: req.body.email,
         password: await hash(req.body.password, salt), // dont remove the await
-        programCount: setting?setting.programLimit:2,
-        browserCount: setting?setting.browserLimit:6
+        programCount: setting?setting.programLimit:config.PROGRAM_COUNT,
+        browserCount: setting?setting.browserLimit:config.BROWSER_COUNT
       })
       let response = await user.save();
       io.to('admin').emit('requestUserRegist');

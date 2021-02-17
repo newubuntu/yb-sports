@@ -67,6 +67,7 @@ function setupMoneyInput(input){
   if(!input) return;
   input.style.textAlign = "right";
   input.onkeydown = function(event){
+    // console.error(event.keyCode);
     switch(event.keyCode){
       case 8:// backspace
       case 46:// delete
@@ -78,8 +79,11 @@ function setupMoneyInput(input){
 
       default:
         if(
-          !(event.keyCode >= 48 && event.keyCode <= 57 ||
-          event.keyCode >= 96 && event.keyCode <= 105)
+          !(
+            event.keyCode >= 48 && event.keyCode <= 57 ||
+            event.keyCode >= 96 && event.keyCode <= 105
+            // event.keyCode == 109 // -
+          )
         ){
           event.preventDefault();
         }
@@ -101,7 +105,8 @@ function setupMoneyInput(input){
 }
 
 function toNumber(str){
-  return Number(str.replace(/[^0-9]/g,''));
+  //str.replace(/)
+  return Number(str.replace(/[^0-9-]/g,''));
 }
 
 

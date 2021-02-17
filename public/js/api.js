@@ -154,8 +154,8 @@ let api = (()=>{
       return ax("/update_account/" + id, account, "POST");
     },
 
-    requestDepositAccount(id){
-      return ax("/request_deposit_account/" + id, null, "POST");
+    requestDepositAccount(id, money){
+      return ax("/request_deposit_account/" + id, {money}, "POST");
     },
 
     rejectRequestDepositAccount(id){

@@ -1,4 +1,6 @@
 const router = require("express").Router();
+const redis = require('redis');
+const redisClient = redis.createClient();
 // const session = require("express-session");
 const mongoose = require("mongoose");
 const User = require('../models/User');
@@ -13,6 +15,8 @@ const BetData = require('../models/BetData');
 const Event = require('../models/Event');
 const DepositLog = require('../models/DepositLog');
 const TestData = require('../models/TestData');
+const BenList = require('../models/BenList');
+const Withdraw = require('../models/Withdraw');
 
 
 const config = require('../config');
@@ -288,7 +292,7 @@ module.exports = io=>{
   async function refreshBet365Money(account){
     account = await getAccount(account);
     if(account && account.user){
-      console.log("refreshBet365Money");
+      console.log("refreshBet365Money", account.id, account.user.email);
       emitToMember(account.user.email, "updateEachBet365Money", {
         account: {
           _id: account._id,
@@ -306,6 +310,7 @@ module.exports = io=>{
       account.money = money;// Math.floor(money);
       await account.save();
       if(sync){
+        account = await Account.findOne({_id:account._id});
         await refreshBet365Money(account);
       }
     }
@@ -482,6 +487,7 @@ module.exports = io=>{
 
 
   let MD = {
+    redisClient,
     io,
     mongoose,
     sendDataToMain,
@@ -501,6 +507,8 @@ module.exports = io=>{
     BetData,
     Event,
     Log,
+    BenList,
+    Withdraw,
     Account,
     Option,
     Approval,
@@ -519,7 +527,8 @@ module.exports = io=>{
     updateBet365TotalMoney,
     getSetting,
     calc,
-    MoneyManager
+    MoneyManager,
+    uuidv4
   }
 
   require('./api_socket')(MD);
@@ -531,7 +540,7 @@ module.exports = io=>{
   require('./api_approval')(MD);
   require('./api_bet_history')(MD);
 
-  require('./api_event_settled_checker')(MD);
+  require('./api_schedule')(MD);
 
   router.post("/input_test_data", async (req, res)=>{
     let d;
@@ -552,7 +561,7 @@ module.exports = io=>{
 
   // from betburger
   router.post("/input_data", (req, res)=>{
-    // console.log("receive gamedata");
+    console.log("receive gamedata");
     let room = "__data_receiver__";
 
     let map = io.sockets.adapter.rooms.get(room);
@@ -560,6 +569,7 @@ module.exports = io=>{
       // 추후에 체크기 수량에 따라 벳버거 데이터를 분배하여 처리하도록하자
       // console.log("count", map.size);
       io.to(room).emit("gamedata", req.body);
+      // io.emit("gamedata", req.body);
     }
     res.send('1');
   })
@@ -821,7 +831,7 @@ module.exports = io=>{
   }))
 
   router.get("/get_pncinfo/:email", task(async (req, res)=>{
-    console.error("###params", req.params);
+    console.log("###params", req.params);
     let user = await User.findOne({email:req.params.email});
     if(!user){
       res.json({
@@ -832,7 +842,7 @@ module.exports = io=>{
     }
 
     let data = await getSetting(["pinnacleId", "pinnaclePw"]);
-    console.error("pncinfo", data);
+    console.log("pncinfo", data);
 
     res.json({
       status: "success",
