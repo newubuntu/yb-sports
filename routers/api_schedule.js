@@ -46,7 +46,11 @@ module.exports = async MD=>{
   } = MD;
 
   let pdata = await getSetting(["pinnacleId", "pinnaclePw"])
-  papi = new PAPI(Buffer.from(pdata.pinnacleId + ':' + pdata.pinnaclePw).toString('base64'));
+  if(pdata){
+    papi = new PAPI(Buffer.from(pdata.pinnacleId + ':' + pdata.pinnaclePw).toString('base64'));
+  }else{
+    console.error("you must be set pinnacle ID/PW");
+  }
 
   // let cycleTime = 1000 * 60 * 60 * 1;
 

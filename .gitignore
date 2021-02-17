@@ -1,3 +1,4 @@
 node_modules
 sessions
 download
+*.log
