@@ -31,7 +31,6 @@ const placeBetErrorMap = {
 }
 
 module.exports = class PAPI {
-  net = null;
   constructor(authCode){
     // this.setup(id, pw);
     this.setup(authCode);
