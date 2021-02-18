@@ -235,7 +235,7 @@
 
   console.log("???", process.cwd());
 
-  if(process.cwd().indexOf("C:") == -1 && process.env.NODE_ENV == "production"){
+  if((process.cwd()||'').indexOf("C:") == -1 && process.env.NODE_ENV == "production"){
     app.use(forceDomain({
       hostname: 'www.surebet.vip'
       // protocol: 'https'
