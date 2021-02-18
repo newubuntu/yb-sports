@@ -245,6 +245,10 @@ let api = (()=>{
       return ax("/update_money/" + id, data, "POST");
     },
 
+    addMoney(id, data){
+      return ax("/add_money/" + id, data, "POST");
+    },
+
     refreshMoney(){
       return ax("/refreshMoney");
     },

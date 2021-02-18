@@ -187,6 +187,45 @@ module.exports = MD=>{
     });
   }))
 
+  router.post("/add_money/:id", authMaster, task(async (req, res)=>{
+    let id = req.params.id;
+    let data = req.body;
+    delete data._id;
+    let {money, wallet} = data;
+    // console.error({money, wallet});
+    try{
+      if(money !== undefined){
+        // await MoneyManager.setMoney(id, money, "from master");
+        if(money > 0){
+          await MoneyManager.depositMoney(id, money, "from master");
+        }else if(money < 0){
+          await MoneyManager.withdrawMoney(id, Math.abs(money), "from master");
+        }
+      }
+
+      if(wallet !== undefined){
+        // await MoneyManager.setWallet(id, wallet, "from master");
+        if(wallet > 0){
+          await MoneyManager.depositWallet(id, wallet, "from master");
+        }else if(wallet < 0){
+          await MoneyManager.withdrawWallet(id, Math.abs(wallet), "from master");
+        }
+      }
+    }catch(e){
+      console.error(e);
+      res.json({
+        status: "fail",
+        message: "입출금 업데이트 실패"
+      });
+      return
+    }
+
+    res.json({
+      status: "success"
+
+    });
+  }))
+
   router.post("/update_money/:id", authMaster, task(async (req, res)=>{
     let id = req.params.id;
     let data = req.body;

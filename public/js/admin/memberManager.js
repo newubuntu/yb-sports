@@ -89,9 +89,11 @@ let Vapp;
 
     updated(){
       // console.error("?");
-      $(".money-input").each((i,el)=>{
-        setupMoneyInput(el);
-      }).on("input", e=>{
+      $(".money-input")
+      // .each((i,el)=>{
+      //   setupMoneyInput(el);
+      // })
+      .on("input", e=>{
         $(e.target).addClass('text-warning');
       })
     },
@@ -105,7 +107,7 @@ let Vapp;
         this.loadList(this.curPage, this.tab);
       },
 
-      async updateMoney($input, user, target){
+      async addMoney($input, user, target){
         let displayName = {
           money: "P머니",
           wallet: "지갑"
@@ -116,41 +118,42 @@ let Vapp;
         }
         let displayMoney = $input.val();
         let money = toNumber(displayMoney);
-        let r = await modal("확인", `${user.email}의 ${displayName}을(를) ${displayMoney} 로 설정하시겠습니까?`, {
+        let r = await modal("확인", `${user.email}의 ${displayName}에 ${displayMoney}를 추가하시겠습니까?`, {
           lock: true,
-          buttons: ["취소", "설정"]
+          buttons: ["취소", "추가"]
         });
 
         if(r){
           let data = {};
           data[target] = money;
           // let res = await api.updateUser(user._id, data);
-          let res = await api.updateMoney(user._id, data);
+          let res = await api.addMoney(user._id, data);
           $input.removeClass('text-warning');
           if(res.status == "success"){
-            user[target] = money;
+            user[target] += money;
             // 접속해있는 대상에게 실시간 변경 위해
             sendDataToMember(user.email, "updateMoney", data);
-            modal("확인", `${displayName} 설정 완료`);
+            modal("확인", `${displayName} 추가 완료`);
+            $input.val(0);
           }else{
-            $input.val(this.comma(user[target]));
-            modal("오류", `${displayName} 설정 실패<br>${res.message}`)
+            $input.val(user[target]);
+            modal("오류", `${displayName} 추가 실패<br>${res.message}`)
           }
         }else{
           // console.error(user[target]);
           $input.removeClass('text-warning');
-          $input.val(this.comma(user[target]));
+          $input.val(user[target]);
         }
       },
 
-      async updatePmoney(user){
+      async addPmoney(user){
         let $input = $(`.pmoney[data-id="${user._id}"]`);
-        this.updateMoney($input, user, "money");
+        this.addMoney($input, user, "money");
       },
 
-      async updateWallet(user){
+      async addWallet(user){
         let $input = $(`.wallet[data-id="${user._id}"]`);
-        this.updateMoney($input, user, "wallet");
+        this.addMoney($input, user, "wallet");
       },
 
       async updateProgramCount(user){

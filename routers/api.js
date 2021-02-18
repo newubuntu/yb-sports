@@ -935,9 +935,9 @@ module.exports = io=>{
   }))
 
   router.get("/balance", async (req, res)=>{
-    let user = await User.findOne({email:req.user.email}).select(["money", "wallet", "bet365Money", "email"]);
     // console.error("@@@@@@1", user.bet365Money);
-    await updateBet365TotalMoney(user);
+    await updateBet365TotalMoney(req.user._id);
+    let user = await User.findOne({_id:req.user._id}).select(["money", "wallet", "bet365Money", "email"]);
     // console.error("@@@@@@2", user.bet365Money);
     res.json({
       status: "success",

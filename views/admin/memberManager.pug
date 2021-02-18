@@ -11,6 +11,10 @@ block append styles
     .pmoney, .wallet {
       text-align: right;
     }
+    /* .money-input {
+      -webkit-appearance: none !important;
+      margin: 0 !important;
+    } */
 
 block view
   h1 [마스터] 회원관리
@@ -64,11 +68,11 @@ block view
                   th 이메일
                   th 등록일
                   th IP
-                  th(v-if="tab>0" style="width: 170px;")
+                  th(v-if="tab>0" style="width: 210px;")
                     .c-money.c-money-site
                       img.c-icon.mr-2(src="/assets/img/pn-icon.png")
                       span P머니
-                  th(v-if="tab>0" style="width: 170px;")
+                  th(v-if="tab>0" style="width: 210px;")
                     .c-money.c-money-wallet
                       svg.c-icon.mr-2
                         use(xlink:href="/vendors/@coreui/icons/sprites/linear.svg#cil-wallet")
@@ -94,16 +98,20 @@ block view
                   td {{user.ip}}
                   td(v-if="tab>0")
                     .input-group
-                      input.form-control.money-input.pmoney(type="text" :data-id="user._id" :value="comma(user.money)")
+                      .input-group-prepend
+                        .input-group-text ${{comma(user.money)}}
+                      input.form-control.money-input.pmoney(type="number" :data-id="user._id" value="0")
                       .input-group-append
-                        button.btn.btn-sm.btn-primary(type="button" v-on:click="updatePmoney(user)")
-                          |수정
+                        button.btn.btn-sm.btn-primary(type="button" v-on:click="addPmoney(user)")
+                          |추가
                   td(v-if="tab>0")
                     .input-group
-                      input.form-control.money-input.wallet(type="text" :data-id="user._id" :value="comma(user.wallet)")
+                      .input-group-prepend
+                        .input-group-text ${{comma(user.wallet)}}
+                      input.form-control.money-input.wallet(type="number" :data-id="user._id" value="0")
                       .input-group-append
-                        button.btn.btn-sm.btn-primary(type="button" v-on:click="updateWallet(user)")
-                          |수정
+                        button.btn.btn-sm.btn-primary(type="button" v-on:click="addWallet(user)")
+                          |추가
                   td(v-if="tab>0") {{comma(user.bet365Money)}}
                   td(v-if="tab>0")
                     //PC(program) count                

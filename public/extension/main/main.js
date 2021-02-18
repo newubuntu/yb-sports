@@ -664,6 +664,7 @@ async function checkBalance(lv=0){
   if(balance.status == "success"){
     if(optionName != "체크기" && balance.data.money < 100){
       log(`피나클 잔액이 100 미만입니다.`, "danger", true);
+      sendDataToSite("sound", {name:"lakePncMoney"});
       return false;
     }
     return true;
@@ -693,7 +694,6 @@ async function userYbProcess(data){
   printGame(data);
 
   if(!(await checkBalance())){
-    sendDataToSite("sound", {name:"lakePncMoney"});
     stopMatch(true);
     return;
   }
