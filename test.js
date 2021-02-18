@@ -62,9 +62,12 @@ let socketMap = {
     this._del(store, key);
     this.setStore(store);
   },
-  join: function(room, socket){
+  join: function(room, socket, reset){
     if(room instanceof mongoose.Types.ObjectId){
       room = room.toString();
+    }
+    if(reset){
+      await this.del(room);
     }
     // console.error("@@join", room, socket.id);
     return this.set(`${room}.${socket.id}`, 1);
