@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "nodemon ./server.js",
     "__": "set NODE_ENV=production",
-    "start": "pm2 reload pm2.json env-production",
+    "start": "pm2 reload pm2.json --env production",
     "test": "pm2 reload pm2.json env",
     "monit": "pm2 monit",
     "stop": "pm2 stop all",

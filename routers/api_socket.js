@@ -85,54 +85,75 @@ module.exports = MD=>{
 
       if(email){
         socket._email = email;
-        socket.join(email);
-        socket.join(session.user._id);
+        await io.$.join(email, socket, true);
+        await io.$.join(session.user._id, socket, true);
+
+        // socket.join(email);
+        // socket.join(session.user._id);
+
         // console.error("socket session", session);
         if(session.admin && data.link !== "__program__"){
           // console.log("@@ join socket admin group");
-          socket.join('admin');
+          await io.$.join('admin', socket);
+          // socket.join('admin');
           if(session.onlyadmin){
-            socket.join('onlyadmin');
+            // socket.join('onlyadmin');
+            await io.$.join('onlyadmin', socket);
           }
           if(session.master){
-            socket.join('master');
+            // socket.join('master');
+            await io.$.join('master', socket);
           }
         }else if(data.link == "__program__"){
-          socket.join("__program__");
+          // socket.join("__program__");
+          await io.$.join('__program__', socket);
+          // console.error("####", await io.$.list('__program__'));
           socket.emit("email", email);
-          // console.error("??", data);
+          // console.error("program connected", data);
+          // console.error("@!@!@!", socket.id, io.to(socket.id).sockets.sockets.get(socket.id) === socket);
           if(Array.isArray(data.groups)){
             data.groups.forEach(group=>{
-              socket.join(group);
+              // socket.join(group);
+              io.$.join(group, socket);
             })
           }
         }
+
+        // console.error("###", email, await io.$.list('admin'), socket.id);
         // socket.join([email, data.pageCode]);
       }
 
       function emitToDashboard(...args){
-        let context = io.to(email + "/dashboard");
-        context.emit.apply(context, args);
+        // let context = io.to(email + "/dashboard");
+        // context.emit.apply(context, args);
+
+        io.$.emit(email + "/dashboard", ...args);
       }
 
       function emitToDashboardPromise(...args){
         let context = io.to(email + "/dashboard");
         let uuid = uuidv4();
         args.push(uuid);
-        context.emit.apply(context, args);
+        // context.emit.apply(context, args);
+
+        io.$.emit(email + "/dashboard", ...args);
         return new Promise(resolve=>{
           socketResolveList[uuid] = resolve;
         })
       }
 
       function emitToPrograms(...args){
-        let context = io.to(email + "__program__");
-        context.emit.apply(context, args);
+        // let context = io.to(email + "__program__");
+        // context.emit.apply(context, args);
+
+        io.$.emit(email + "__program__", ...args);
       }
 
       function emitToAllPrograms(...args){
-        let context = io.to("__program__");
-        context.emit.apply(context, args);
+        // let context = io.to("__program__");
+        // context.emit.apply(context, args);
+
+        io.$.emit("__program__", ...args);
       }
 
       function emitPromise(com, data){
@@ -143,7 +164,8 @@ module.exports = MD=>{
         })
       }
 
-      socket.join(email+data.link);
+      // socket.join(email+data.link);
+      await io.$.join(email + data.link, socket);
 
 
       if(session.admin){
@@ -174,13 +196,15 @@ module.exports = MD=>{
         console.log("program socket init");
         socket._pid = data.pid;
         // programSockets[data.pid] = socket;
-        socket.join(data.pid);
+        // socket.join(data.pid);
+        await io.$.join(data.pid, socket, true);
 
-        setTimeout(()=>{
+        setTimeout(async ()=>{
+          // console.error("####", await io.$.list(data.pid));
           emitToDashboard("connectedProgram", data.pid);
-        }, 10)
+        }, 500)
 
-        socket.on("joinChecker", (bid)=>{
+        socket.on("joinChecker", async (bid)=>{
           // console.log("@@@has chekerSocket", !!chekerSocket)
           console.log("##joinChecker");
           if(chekerSocket == socket){
@@ -191,36 +215,40 @@ module.exports = MD=>{
             chekerBid = bid;
           }else{
             if(chekerSocket){
-              chekerSocket.leave("__checker__");
+              // chekerSocket.leave("__checker__");
+              await io.$.leave("__checker__", chekerSocket);
               chekerSocket.emit("closeBrowser", chekerBid);
               console.log("prev cheker close");
             }
-            socket.join("__checker__");
+            // socket.join("__checker__");
+            await io.$.join("__checker__", socket);
             chekerSocket = socket;
             chekerBid = bid;
           }
         })
 
-        socket.on("joinDataReceiver", bid=>{
+        socket.on("joinDataReceiver", abid=>{
           console.log("####joinDataReceiver");
-          socket.join("__data_receiver__");
-          // socket.leave("__data_receiver2__");
+          // socket.join("__data_receiver__");
+          io.$.join("__data_receiver__", socket);
         })
 
         socket.on("joinDataReceiver2", bid=>{
           console.log("####joinDataReceiver2");
-          socket.join("__data_receiver2__");
-          // socket.leave("__data_receiver__");
+          // socket.join("__data_receiver2__");
+          io.$.join("__data_receiver2__", socket);
         })
 
         socket.on("leaveDataReceiver", bid=>{
           console.log("####leaveDataReceiver");
-          socket.leave("__data_receiver__");
+          // socket.leave("__data_receiver__");
+          io.$.leave("__data_receiver__", socket);
         })
 
         socket.on("leaveDataReceiver2", bid=>{
           console.log("####leaveDataReceiver2");
-          socket.leave("__data_receiver2__");
+          // socket.leave("__data_receiver2__");
+          io.$.leave("__data_receiver2__", socket);
         })
 
         socket.on("log", async (data, bid)=>{
@@ -314,7 +342,9 @@ module.exports = MD=>{
 
           let room = "__data_receiver2__";
           // console.log(io.sockets.clients(room));
-          io.to(room).emit("gamedata2", obj);
+          // io.to(room).emit("gamedata2", obj);
+          io.$.emit(room, "gamedata2", obj);
+
           Event.create(obj).catch(e=>{
             console.error("이벤트 저장 오류");
             console.error(e);
@@ -335,11 +365,12 @@ module.exports = MD=>{
           // }
         })
 
-        socket.on("disconnect", ()=>{
+        socket.on("disconnect", async ()=>{
           console.log("disconnect program socket", socket._pid);
 
           if(chekerSocket === socket){
-            chekerSocket.leave("__checker__");
+            // chekerSocket.leave("__checker__");
+            await io.$.leave("__checker__", chekerSocket);
             chekerSocket = null;
             chekerBid = null;
           }
@@ -528,7 +559,8 @@ module.exports = MD=>{
 
         function closeBrowser(pid, bid){
           if(chekerSocket === socket){
-            socket.leave("__checker__");
+            // socket.leave("__checker__");
+            io.$.leave("__checker__", socket);
             chekerSocket = null;
             chekerBid = null;
           }
@@ -644,9 +676,20 @@ module.exports = MD=>{
     //   // io.to(data.email).emit("money", 1111);
     // })
 
-    socket.on("disconnect", ()=>{
+    socket.on("disconnect", async ()=>{
       console.log("user is disconnect", socket.id, socket._email);
-      socket.leave(socket._email);
+      // socket.leave(socket._email);
+      await io.$.leave(socket._email, socket);
+      await io.$.leave(socket._email+'__program__', socket);
+      await io.$.leave(socket._email+'/dashboard', socket);
+      if(session && session.user && session.user._id){
+        await io.$.leave(session.user._id, socket);
+      }
+      await io.$.leave('admin', socket);
+      await io.$.leave('onlyadmin', socket);
+      await io.$.leave('master', socket);
+      await io.$.leave('__program__', socket);
+      await io.$.leave('__checker__', socket);
     })
   })
 }

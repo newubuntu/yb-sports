@@ -62,37 +62,43 @@ module.exports = io=>{
 
   function emitToMember(...args){
     let email = args.shift();
-    let context = io.to(email);
-    context.emit.apply(context, args);
+    // let context = io.to(email);
+    // context.emit.apply(context, args);
+    io.$.emit(email, ...args);
   }
 
   function emitToAdmin(...args){
-    let context = io.to('admin');
-    context.emit.apply(context, args);
+    // let context = io.to('admin');
+    // context.emit.apply(context, args);
+    io.$.emit('admin', ...args);
   }
 
   function emitToOnlyAdmin(...args){
-    let context = io.to('onlyadmin');
-    context.emit.apply(context, args);
+    // let context = io.to('onlyadmin');
+    // context.emit.apply(context, args);
+    io.$.emit('onlyadmin', ...args);
   }
 
   function emitToMaster(...args){
-    let context = io.to('master');
-    context.emit.apply(context, args);
+    // let context = io.to('master');
+    // context.emit.apply(context, args);
+    io.$.emit('master', ...args);
   }
 
 
   function emitToProgram(pid, ...args){
-    let context = io.to(pid);
-    context.emit.apply(context, args);
+    // let context = io.to(pid);
+    // context.emit.apply(context, args);
+    io.$.emit(pid, ...args);
   }
 
   let socketResolveList = {};
   function emitToProgramPromise(pid, ...args){
-    let context = io.to(pid);
+    // let context = io.to(pid);
     let uuid = uuidv4();
     args.push(uuid);
-    context.emit.apply(context, args);
+    // context.emit.apply(context, args);
+    io.$.emit(pid, ...args);
     return new Promise(resolve=>{
       socketResolveList[uuid] = resolve;
     })
@@ -568,14 +574,15 @@ module.exports = io=>{
 
     //console.error(io.in(room).sockets);
 
-    let map = io.sockets.adapter.rooms.get(room);
-    if(map){
-      // console.log(map);
-      // 추후에 체크기 수량에 따라 벳버거 데이터를 분배하여 처리하도록하자
-      // console.log("count", map.size);
-      io.to(room).emit("gamedata", req.body);
-      // io.emit("gamedata", req.body);
-    }
+    // let map = io.sockets.adapter.rooms.get(room);
+    // if(map){
+    //   console.log("found checker");
+    //   // 추후에 체크기 수량에 따라 벳버거 데이터를 분배하여 처리하도록하자
+    //   // console.log("count", map.size);
+    //   io.to(room).emit("gamedata", req.body);
+    //   // io.emit("gamedata", req.body);
+    // }
+    io.$.emit(room, "gamedata", req.body);
     res.send('1');
   })
 
@@ -944,11 +951,14 @@ module.exports = io=>{
     let user = await User.findOne({email:req.user.email}).select(["money", "wallet", "bet365Money", "email"]);
     await updateBet365TotalMoney(user);
     // console.error("?", user.email);
-    io.to(user.email).emit("updateMoney", {
+    let data = {
       money: user.money,
       wallet: user.wallet,
       bet365Money: user.bet365Money
-    });
+    };
+
+    io.$.emit(user.email, "updateMoney", data);
+    // io.to(user.email).emit("updateMoney", data);
 
     res.json({
       status: "success"

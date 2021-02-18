@@ -1,7 +1,7 @@
 {
   "apps": [
     {
-      "name": "Master",
+      "name": "M",
       "script": "server.js",
       "watch": false,
       "autorestart": true,
@@ -19,7 +19,7 @@
       "instances": 1
     },
     {
-      "name": "Slave",
+      "name": "S",
       "script": "server.js",
       "watch": false,
       "autorestart": true,

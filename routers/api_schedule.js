@@ -65,6 +65,37 @@ module.exports = async MD=>{
     job15m.start();
   }
 
+  // 정각마다 소켓맵 청소
+  let job1h = new CronJob('0 0 */24 * * *', async function() {
+    socketMapCheckProcess();
+  })
+  job1h.start();
+
+  // io.$.reset();
+
+  // setTimeout(socketMapCheckProcess, 5000);
+
+  async function socketMapCheckProcess(){
+    console.log("-------- socketMap check --------");
+    let list = await io.$.list();
+    // console.log(list);
+    for(let room in list){
+      for(let id in list[room]){
+        // console.error(room, id, list[room][id]);
+        // console.error(io.to(id).sockets.sockets.get(id));
+        if(!io.to(id).sockets.sockets.get(id)){
+          // list[room][id]++;
+          // console.error("??????????");
+          if(list[room][id] > 5 && argv[0] == "master"){
+            await io.$.del(`${room}|${id}`);
+          }else{
+            await io.$.setCount(`${room}|${id}`, list[room][id]+1);
+          }
+        }
+      }
+    }
+  }
+
 
   // 1일마다 브라우져당 log에서 500개 이상일 때,
   // 마지막 500개를 제외하고 앞에것을 제거하는 스케쥴을 작성

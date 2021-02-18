@@ -543,7 +543,7 @@ module.exports = MD=>{
     }
 
     await Account.create(body);
-    let account = await Account.findOne({}).lean();
+    let account = await Account.findOne({id:body.id}).lean();
 
     res.json({
       status: "success",
