@@ -51,7 +51,7 @@ module.exports = MD=>{
 
 
     socket.on("init", async data=>{
-      console.log("init", data);
+      console.error("init", data);
       let session = socket.handshake.session;
       let email;
       if(!session.user && data.link !== "__program__"){
