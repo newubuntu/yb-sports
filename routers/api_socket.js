@@ -682,9 +682,6 @@ module.exports = MD=>{
       await io.$.leave(socket._email, socket);
       await io.$.leave(socket._email+'__program__', socket);
       await io.$.leave(socket._email+'/dashboard', socket);
-      if(session && session.user && session.user._id){
-        await io.$.leave(session.user._id, socket);
-      }
       await io.$.leave('admin', socket);
       await io.$.leave('onlyadmin', socket);
       await io.$.leave('master', socket);
