@@ -62,43 +62,43 @@ module.exports = io=>{
 
   function emitToMember(...args){
     let email = args.shift();
-    // let context = io.to(email);
-    // context.emit.apply(context, args);
-    io.$.emit(email, ...args);
+    let context = io.to(email);
+    context.emit.apply(context, args);
+    // io.$.emit(email, ...args);
   }
 
   function emitToAdmin(...args){
-    // let context = io.to('admin');
-    // context.emit.apply(context, args);
-    io.$.emit('admin', ...args);
+    let context = io.to('admin');
+    context.emit.apply(context, args);
+    // io.$.emit('admin', ...args);
   }
 
   function emitToOnlyAdmin(...args){
-    // let context = io.to('onlyadmin');
-    // context.emit.apply(context, args);
-    io.$.emit('onlyadmin', ...args);
+    let context = io.to('onlyadmin');
+    context.emit.apply(context, args);
+    // io.$.emit('onlyadmin', ...args);
   }
 
   function emitToMaster(...args){
-    // let context = io.to('master');
-    // context.emit.apply(context, args);
-    io.$.emit('master', ...args);
+    let context = io.to('master');
+    context.emit.apply(context, args);
+    // io.$.emit('master', ...args);
   }
 
 
   function emitToProgram(pid, ...args){
-    // let context = io.to(pid);
-    // context.emit.apply(context, args);
-    io.$.emit(pid, ...args);
+    let context = io.to(pid);
+    context.emit.apply(context, args);
+    // io.$.emit(pid, ...args);
   }
 
   let socketResolveList = {};
   function emitToProgramPromise(pid, ...args){
-    // let context = io.to(pid);
+    let context = io.to(pid);
     let uuid = uuidv4();
     args.push(uuid);
-    // context.emit.apply(context, args);
-    io.$.emit(pid, ...args);
+    context.emit.apply(context, args);
+    // io.$.emit(pid, ...args);
     return new Promise(resolve=>{
       socketResolveList[uuid] = resolve;
     })
@@ -582,7 +582,8 @@ module.exports = io=>{
     //   io.to(room).emit("gamedata", req.body);
     //   // io.emit("gamedata", req.body);
     // }
-    io.$.emit(room, "gamedata", req.body);
+    // io.$.emit(room, "gamedata", req.body);
+    io.to(room).emit("gamedata", req.body);
     res.send('1');
   })
 
@@ -918,7 +919,7 @@ module.exports = io=>{
         }
       }
     }
-    // console.log("####", json);
+    
     // for(let o in setting.value){
     //   if(o.indexOf("proxy") > -1){
     //     json[o] = setting.value[o];
@@ -957,8 +958,8 @@ module.exports = io=>{
       bet365Money: user.bet365Money
     };
 
-    io.$.emit(user.email, "updateMoney", data);
-    // io.to(user.email).emit("updateMoney", data);
+    // io.$.emit(user.email, "updateMoney", data);
+    io.to(user.email).emit("updateMoney", data);
 
     res.json({
       status: "success"

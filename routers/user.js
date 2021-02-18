@@ -54,8 +54,8 @@ module.exports = io=>{
         browserCount: setting?setting.browserLimit:config.BROWSER_COUNT
       })
       let response = await user.save();
-      // io.to('admin').emit('requestUserRegist');
-      io.$.emit('admin', 'requestUserRegist');
+      io.to('admin').emit('requestUserRegist');
+      // io.$.emit('admin', 'requestUserRegist');
       // console.error(io.to('admin'));
       return res.status(200).json({
         status: "success",

@@ -50,122 +50,123 @@
 
   io.adapter(IoRedis({ host: 'localhost', port: 6379 }));
 
-  let socketMap = {
-    domain: function(root, key, value){
-      if(!key) return root;
-      let s,o,p = key.split('|');
-      key = p.pop();
-      o = root;
-      while(1){
-        s=p.shift();
-        if(!s) break;
-        if(!o[s]) o[s] = {};
-        o = o[s];
-      }
-      if(value !== undefined){
-        // console.error("!!", root, o, key, value);
-        o[key] = value;
-      }
-      return o[key];
-    },
-    _del: function(root, key){
-      let s,o,p = key.split('|');
-      key = p.pop();
-      o = root;
-      while(1){
-        s=p.shift();
-        if(!s) break;
-        if(!o[s]) o[s] = {};
-        o = o[s];
-      }
-      delete o[key];
-    },
-    getStore: function(){
-      return new Promise(resolve=>{
-        redisClient.get("smap", (err, store)=>{
-          if(store){
-            resolve(JSON.parse(store));
-          }else{
-            resolve({});
-          }
-        })
-      })
-    },
-    setStore: function(store){
-      redisClient.set("smap", JSON.stringify(store));
-    },
-    set: async function(key, value){
-      let store = await this.getStore();
-      this.domain(store, key, value);
-      this.setStore(store);
-    },
-    get: async function(key){
-      let store = await this.getStore();
-      // console.log("get", key, store);
-      return this.domain(store, key);
-    },
-    del: async function(key){
-      // let store = redisClient.get("smap") || {};
-      let store = await this.getStore();
-      this._del(store, key);
-      this.setStore(store);
-    },
-    join: async function(room, socket, reset){
-      if(room instanceof mongoose.Types.ObjectId){
-        room = room.toString();
-      }
-      if(reset){
-        await this.del(room);
-      }
-      // console.error("@@join", room, socket.id);
-      await this.set(`${room}|${socket.id}`, 1);
-    },
-    leave: function(room, socket){
-      if(room instanceof mongoose.Types.ObjectId){
-        room = room.toString();
-      }
-      return this.del([room, socket?socket.id:''].filter(a=>!!a).join('|'));
-    },
-    list: async function(room){
-      if(room instanceof mongoose.Types.ObjectId){
-        room = room.toString();
-      }
-      if(room){
-        let a = await this.get(room);
-        if(a){
-          return Object.keys(a);
-        }else{
-          return [];
-        }
-      }else{
-        return this.get();
-      }
-    },
-    emit: function(room, ...rest){
-      this.list(room).then(ids=>{
-        ids.forEach(id=>{
-          let ctx = io.to(id);
-          // ctx.emit.apply(ctx, rest);
-          // console.error("###@@@1", room, id);
-          if(ctx.sockets.sockets.get(id)){
-            // console.error("###@@@2", room, id, rest);
-            ctx.emit.apply(ctx, rest);
-          }
-          // else{
-          //   this.del(`${room}|${id}`);
-          // }
-        })
-      })
-    },
-    reset: function(){
-      this.setStore({});
-    },
-    setCount: function(key, c){
-      return this.set(key, c);
-    }
-  }
-
-  io.$ = socketMap;
+  // let socketMap = {
+  //   domain: function(root, key, value){
+  //     if(!key) return root;
+  //     let s,o,p = key.split('|');
+  //     key = p.pop();
+  //     o = root;
+  //     while(1){
+  //       s=p.shift();
+  //       if(!s) break;
+  //       if(!o[s]) o[s] = {};
+  //       o = o[s];
+  //     }
+  //     if(value !== undefined){
+  //       // console.error("!!", root, o, key, value);
+  //       o[key] = value;
+  //     }
+  //     return o[key];
+  //   },
+  //   _del: function(root, key){
+  //     let s,o,p = key.split('|');
+  //     key = p.pop();
+  //     o = root;
+  //     while(1){
+  //       s=p.shift();
+  //       if(!s) break;
+  //       if(!o[s]) o[s] = {};
+  //       o = o[s];
+  //     }
+  //     delete o[key];
+  //   },
+  //   getStore: function(){
+  //     return new Promise(resolve=>{
+  //       redisClient.get("smap", (err, store)=>{
+  //         if(store){
+  //           resolve(JSON.parse(store));
+  //         }else{
+  //           resolve({});
+  //         }
+  //       })
+  //     })
+  //   },
+  //   setStore: function(store){
+  //     redisClient.set("smap", JSON.stringify(store));
+  //   },
+  //   set: async function(key, value){
+  //     let store = await this.getStore();
+  //     this.domain(store, key, value);
+  //     this.setStore(store);
+  //   },
+  //   get: async function(key){
+  //     let store = await this.getStore();
+  //     // console.log("get", key, store);
+  //     return this.domain(store, key);
+  //   },
+  //   del: async function(key){
+  //     // let store = redisClient.get("smap") || {};
+  //     let store = await this.getStore();
+  //     this._del(store, key);
+  //     this.setStore(store);
+  //   },
+  //   join: async function(room, socket, reset){
+  //     if(room instanceof mongoose.Types.ObjectId){
+  //       room = room.toString();
+  //     }
+  //     if(reset){
+  //       await this.del(room);
+  //     }
+  //     // console.error("@@join", room, socket.id);
+  //     await this.set(`${room}|${socket.id}`, 1);
+  //   },
+  //   leave: function(room, socket){
+  //     if(room instanceof mongoose.Types.ObjectId){
+  //       room = room.toString();
+  //     }
+  //     return this.del([room, socket?socket.id:''].filter(a=>!!a).join('|'));
+  //   },
+  //   list: async function(room){
+  //     if(room instanceof mongoose.Types.ObjectId){
+  //       room = room.toString();
+  //     }
+  //     if(room){
+  //       let a = await this.get(room);
+  //       if(a){
+  //         return Object.keys(a);
+  //       }else{
+  //         return [];
+  //       }
+  //     }else{
+  //       return this.get();
+  //     }
+  //   },
+  //   emit: function(room, ...rest){
+  //     this.list(room).then(ids=>{
+  //       ids.forEach(id=>{
+  //         let ctx = io.to(id);
+  //         // ctx.emit.apply(ctx, rest);
+  //         // ctx.emit.apply(ctx, rest);
+  //         console.error("###@@@1", room, id);
+  //         if(ctx.sockets.sockets.get(id)){
+  //           console.error("###@@@2", room, id);
+  //           ctx.emit.apply(ctx, rest);
+  //         }
+  //         // else{
+  //         //   this.del(`${room}|${id}`);
+  //         // }
+  //       })
+  //     })
+  //   },
+  //   reset: function(){
+  //     this.setStore({});
+  //   },
+  //   setCount: function(key, c){
+  //     return this.set(key, c);
+  //   }
+  // }
+  //
+  // io.$ = socketMap;
 
   // console.error("@@@@@", io.to("test"));
   // io.$.reset();
@@ -232,7 +233,9 @@
   })
   app.use(_session);
 
-  if(process.env.NODE_ENV == "production"){
+  // console.log("???", process.cwd());
+
+  if(process.cwd().indexOf("C:") == -1 && process.env.NODE_ENV == "production"){
     app.use(forceDomain({
       hostname: 'www.surebet.vip'
       // protocol: 'https'
@@ -324,6 +327,7 @@
     if(!email && req.session.user){
       email = req.session.user.email;// || req.body.email || req.query.email;
     }
+    // console.error("??", req.headers);
     // console.log("?", email);
     if(!email){
       res.status(500).json({
