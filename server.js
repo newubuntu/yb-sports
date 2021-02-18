@@ -233,7 +233,7 @@
   })
   app.use(_session);
 
-  // console.log("???", process.cwd());
+  console.log("???", process.cwd());
 
   if(process.cwd().indexOf("C:") == -1 && process.env.NODE_ENV == "production"){
     app.use(forceDomain({
