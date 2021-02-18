@@ -168,14 +168,15 @@ module.exports = MD=>{
     });
   }))
 
-  router.get("/check_pid/:pid", async (req, res)=>{
+  router.get("/check_pid/:pid", task(async (req, res)=>{
     let pid = req.params.pid;//req.query.pid || req.body.pid;
 
     console.log("check_pid", pid);
-    let user = req.user;//await User.findOne({email});
-    let has = user.programs.indexOf(pid) > -1;
+    let user = await User.findOne({email:req.user.email, programs:{$in:pid}});
+    // if(user)
+    // let has = user.programs.indexOf(pid) > -1;
     // let user = await User.findOne({email:req.session.user.email, programs:{ $contains : pid }});
-    if(has){
+    if(user){
       res.json({
         status: "success"
       })
@@ -185,9 +186,9 @@ module.exports = MD=>{
         message: "등록되지 않은 프로그램 ID입니다."
       })
     }
-  })
+  }))
 
-  router.get("/get_pids", async (req, res)=>{
+  router.get("/get_pids", task(async (req, res)=>{
     let user = await User.findOne({email:req.user._id}).lean();
     // console.log(user.programs);
     if(user){
@@ -200,5 +201,5 @@ module.exports = MD=>{
         status: "fail"
       })
     }
-  })
+  }))
 }
