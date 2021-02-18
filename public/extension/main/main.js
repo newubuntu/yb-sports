@@ -1340,7 +1340,7 @@ function setupMode(mode){
     #matchButton2 {
         width: 219px;
         height: 179px;
-        background: url(http://175.196.220.135/extension/main/imgs/startbtn-normal.png);
+        background: url(//www.surebet.vip/extension/main/imgs/startbtn-normal.png);
         position: absolute;
         top: 50%;
         left: 50%;
@@ -1348,21 +1348,21 @@ function setupMode(mode){
         cursor: pointer;
       }
       #matchButton2:hover {
-        background: url(http://175.196.220.135/extension/main/imgs/startbtn-hover.png);
+        background: url(//www.surebet.vip/extension/main/imgs/startbtn-hover.png);
       }
 
       #matchButton2.active {
-        background: url(http://175.196.220.135/extension/main/imgs/stopbtn-normal.png);
+        background: url(//www.surebet.vip/extension/main/imgs/stopbtn-normal.png);
       }
 
       #matchButton2.active:hover {
-        background: url(http://175.196.220.135/extension/main/imgs/stopbtn-hover.png);
+        background: url(//www.surebet.vip/extension/main/imgs/stopbtn-hover.png);
       }
 
       .icon {
         width: 250px;
         height: 250px;
-        background: url(http://175.196.220.135/extension/main/imgs/off-icon.png);
+        background: url(//www.surebet.vip/extension/main/imgs/off-icon.png);
         position: absolute;
         top: 50%;
         left: 50%;
@@ -1370,7 +1370,7 @@ function setupMode(mode){
       }
 
       .icon.active {
-        background: url(http://175.196.220.135/extension/main/imgs/on-icon.png);
+        background: url(//www.surebet.vip/extension/main/imgs/on-icon.png);
       }
 
       .container{
