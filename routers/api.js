@@ -882,7 +882,7 @@ module.exports = io=>{
   }))
 
   router.get("/get_proxy/:code", task(async (req, res)=>{
-    let setting = await Setting.findOne().sort({createdAt:-1});
+    let setting = await Setting.findOne({}).sort({createdAt:-1});
     let code = req.params.code;
     if(!setting){
       res.json({
@@ -919,12 +919,14 @@ module.exports = io=>{
         }
       }
     }
-    
+
     // for(let o in setting.value){
     //   if(o.indexOf("proxy") > -1){
     //     json[o] = setting.value[o];
     //   }
     // }
+
+    console.log("get proxy info", json);
 
     res.json({
       status: "success",

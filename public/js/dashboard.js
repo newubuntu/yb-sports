@@ -485,7 +485,7 @@ let Vapp;
         // sendDataToMain(program._id, browser._id, "startMatch");
         if(!browser.isMatching){
           let data = await sendDataToMainPromise(program._id, browser._id, "startMatch");
-          console.log("??? after startMatch", data);
+          // console.log("??? after startMatch", data);
           browser.isMatching = data;
           this.$forceUpdate();
         }
