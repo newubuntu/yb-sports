@@ -17,15 +17,21 @@ let api = (()=>{
     startLoading();
   }
 
-  function ax(url, data, method='GET', headers){
-    rmStartLoding();
+  function ax(url, data, method='GET', headers, noCover){
+    if(!noCover){
+      rmStartLoding();
+    }
     return net({method, url, data, headers})
     .then(res=>{
-      rvStopLoading();
+      if(!noCover){
+        rvStopLoading();
+      }
       return success(res)
     })
     .catch(e=>{
-      rvStopLoading();
+      if(!noCover){
+        rvStopLoading();
+      }
       return err(e)
     });
   }
@@ -292,7 +298,7 @@ let api = (()=>{
     },
 
     loadLogs(bid){
-      return ax("/load_logs/" + bid);
+      return ax("/load_logs/" + bid, null, "GET", null, true);
     },
 
     getDeposits(opt){

@@ -255,8 +255,8 @@ let Vapp;
 
           let multiLoadCount = 3;
           this.$nextTick(async ()=>{
-            startLoading();
-            loadingLock();
+            // startLoading();
+            // loadingLock();
             for(let j=0; j<this.programs.length; j++){
               let program = this.programs[j];
               for(let i=0; i<program.browsers.length; i+=multiLoadCount){
@@ -284,8 +284,8 @@ let Vapp;
                 // }
               }
             }
-            loadingUnlock();
-            stopLoading();
+            // loadingUnlock();
+            // stopLoading();
           })
         }
       },
