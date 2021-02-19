@@ -1,8 +1,8 @@
 //const axios = require('axios');
 // const {API_BASEURL, EMAIL} = require('./config.js');
 // let API_BASEURL_LIST = [];
-let apiIndex = 0;
 function setupAPI(email){
+  let apiIndex = 0;
   let net = axios.create({
     baseURL: API_BASEURL_LIST[apiIndex],
     headers: {
