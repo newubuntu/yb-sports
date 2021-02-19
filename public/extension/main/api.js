@@ -11,7 +11,9 @@ function setupAPI(email){
   })
 
   function rotationUrl(){
-    apiIndex = API_BASEURL_LIST.length % (apiIndex + 1);
+    if(++apiIndex >= API_BASEURL_LIST.length){
+      apiIndex = 0;
+    }
     setBaseUrl(API_BASEURL_LIST[apiIndex]);
     console.error("rotation api url:", API_BASEURL_LIST[apiIndex]);
   }
