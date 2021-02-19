@@ -13,7 +13,7 @@
   const cors = require('cors');
   const ios = require('express-socket.io-session');
   const {forceDomain} = require('forcedomain');
-  const subdomain = require('express-subdomain');
+  
   // const FileStore = require('session-file-store')(session);
   // const MongoStore = require('connect-mongo')(session);
 
@@ -377,10 +377,6 @@
       // protocol: 'https'
     }));
   }
-
-  app.use("/api", subdomain('api.v1', apiRouter));
-  app.use("/api", subdomain('api.v2', apiRouter));
-  app.use("/api", subdomain('api.v3', apiRouter));
 
   app.set('views', './views');
   app.set('view engine', 'pug');

@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const redis = require('redis');
 const redisClient = redis.createClient();
+const subdomain = require('express-subdomain');
 // const session = require("express-session");
 const mongoose = require("mongoose");
 const User = require('../models/User');
@@ -549,6 +550,10 @@ module.exports = io=>{
   require('./api_bet_history')(MD);
 
   require('./api_schedule')(MD);
+
+  router.use("/api", subdomain('api.v1', router));
+  router.use("/api", subdomain('api.v2', router));
+  router.use("/api", subdomain('api.v3', router));
 
   router.post("/input_test_data", async (req, res)=>{
     let d;
