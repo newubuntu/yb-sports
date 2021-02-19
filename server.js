@@ -366,21 +366,21 @@
 
   if((process.cwd()||'').indexOf("C:") == -1 && process.env.NODE_ENV == "production"){
     app.use(forceDomain({
-      hostname: 'www.surebet.vip',
-      excludeRule: {
-        test: function(hostname){
-          ///^api\..*/
-          console.log("hostname", hostname);
-          return true;
-        }
-      }
+      hostname: 'www.surebet.vip'
+      // excludeRule: {
+      //   test: function(hostname){
+      //     ///^api\..*/
+      //     console.log("hostname", hostname);
+      //     return true;
+      //   }
+      // }
       // protocol: 'https'
     }));
   }
 
-  app.use(subdomain('api.v1', apiRouter));
-  app.use(subdomain('api.v2', apiRouter));
-  app.use(subdomain('api.v3', apiRouter));
+  app.use("/api", subdomain('api.v1', apiRouter));
+  app.use("/api", subdomain('api.v2', apiRouter));
+  app.use("/api", subdomain('api.v3', apiRouter));
 
   app.set('views', './views');
   app.set('view engine', 'pug');
