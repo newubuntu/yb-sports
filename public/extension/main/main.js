@@ -1431,7 +1431,7 @@ async function init(){
       email: urlParams.email,
       countryCode: urlParams.countryCode,
       // ip: _ip,
-      needPnc: urlParams.needPnc
+      needPnc: urlParams.needPnc == "true"
     };
     BID = data.bid;
     EMAIL = data.email;

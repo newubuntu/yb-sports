@@ -236,12 +236,7 @@
 
   // console.log("???", process.cwd());
 
-  if((process.cwd()||'').indexOf("C:") == -1 && process.env.NODE_ENV == "production"){
-    app.use(forceDomain({
-      hostname: 'www.surebet.vip'
-      // protocol: 'https'
-    }));
-  }
+
 
   // 중복로긴 방지
   app.use((req, res, next) => {
@@ -365,6 +360,17 @@
 
   app.use("/api", apiRouter);
   app.use("/user", userRouter);
+
+  // app.use("/api", subdomain('www', apiRouter));
+  // app.use("/user", subdomain('www', userRouter));
+
+  if((process.cwd()||'').indexOf("C:") == -1 && process.env.NODE_ENV == "production"){
+    app.use(forceDomain({
+      hostname: 'www.surebet.vip',
+      excludeRule: /^api\..*/
+      // protocol: 'https'
+    }));
+  }
 
   app.use(subdomain('api.v1', apiRouter));
   app.use(subdomain('api.v2', apiRouter));
