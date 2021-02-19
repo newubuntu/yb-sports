@@ -59,10 +59,15 @@ module.exports = async MD=>{
   if(argv[0] == "master"){
     // console.error("##MASTER");
     // 매시간 5분 마다 이벤트 결과 확인
-    let job15m = new CronJob('0 */5 * * * *', function() {
+    let job5m = new CronJob('0 */5 * * * *', function() {
        eventSettledCheckProcess();
     });
-    job15m.start();
+    job5m.start();
+
+    let job1h = new CronJob('0 0 */24 * * *', function() {
+       clearLogProcess();
+    });
+    job1h.start();
   }
 
   // 정각마다 소켓맵 청소
@@ -100,6 +105,31 @@ module.exports = async MD=>{
   // 1일마다 브라우져당 log에서 500개 이상일 때,
   // 마지막 500개를 제외하고 앞에것을 제거하는 스케쥴을 작성
 
+  async function clearLogProcess(){
+    // let b = await Browser.findOne({});
+    // for(let i=0; i<320; i++){
+    //   await Log.create({browser:b, bet365Id:'test', data:{c:i}});
+    //   await new Promise(resolve=>setTimeout(resolve, 100));
+    // }
+    // return;
+    console.log("-------- clear log process --------");
+    const count = await Log.aggregate()
+    .group({
+      _id: "$browser",
+      count: {
+        $sum: 1
+      }
+    })
+    // console.log(count);
+    let max = config.MAX_LOG_LENGTH;
+    for(let i=0; i<count.length; i++){
+      if(count[i].count > max){
+        let offset = count[i].count - max;
+        let logs = await Log.find({browser:count[i]._id}).limit(offset).sort("updatedAt").select('_id');
+        await Log.deleteMany({_id:logs});
+      }
+    }
+  }
 
   ///// test
   // let user = await User.findOne({email:"asdf1212@gmail.com"});

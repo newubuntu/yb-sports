@@ -13,7 +13,7 @@
   const cors = require('cors');
   const ios = require('express-socket.io-session');
   const {forceDomain} = require('forcedomain');
-  
+
   // const FileStore = require('session-file-store')(session);
   // const MongoStore = require('connect-mongo')(session);
 
@@ -22,6 +22,8 @@
   const {MongooseQueryLogger} = require('mongoose-query-logger');
 
   console.log("NODE_ENV", process.env.NODE_ENV);
+
+  let useForceDomain = false;
 
   if(process.env.NODE_ENV != "production"){
     const queryLogger = new MongooseQueryLogger();
@@ -364,7 +366,7 @@
   // app.use("/api", subdomain('www', apiRouter));
   // app.use("/user", subdomain('www', userRouter));
 
-  if((process.cwd()||'').indexOf("C:") == -1 && process.env.NODE_ENV == "production"){
+  if(useForceDomain && (process.cwd()||'').indexOf("C:") == -1 && process.env.NODE_ENV == "production"){
     app.use(forceDomain({
       hostname: 'www.surebet.vip'
       // excludeRule: {
