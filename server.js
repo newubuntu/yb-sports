@@ -13,6 +13,7 @@
   const cors = require('cors');
   const ios = require('express-socket.io-session');
   const {forceDomain} = require('forcedomain');
+  const subdomain = require('express-subdomain');
   // const FileStore = require('session-file-store')(session);
   // const MongoStore = require('connect-mongo')(session);
 
@@ -20,7 +21,7 @@
   //////////// mongoose logger //////////////
   const {MongooseQueryLogger} = require('mongoose-query-logger');
 
-  console.error("NODE_ENV", process.env.NODE_ENV);
+  console.log("NODE_ENV", process.env.NODE_ENV);
 
   if(process.env.NODE_ENV != "production"){
     const queryLogger = new MongooseQueryLogger();
@@ -359,8 +360,16 @@
     next();
   })
 
-  app.use("/api", require("./routers/api")(io));
-  app.use("/user", require("./routers/user")(io));
+  const apiRouter = require("./routers/api")(io);
+  const userRouter = require("./routers/user")(io);
+
+  app.use("/api", apiRouter);
+  app.use("/user", userRouter);
+
+  app.use(subdomain('api.v1', apiRouter));
+  app.use(subdomain('api.v2', apiRouter));
+  app.use(subdomain('api.v3', apiRouter));
+
   app.set('views', './views');
   app.set('view engine', 'pug');
 

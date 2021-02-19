@@ -51,7 +51,7 @@ module.exports = MD=>{
 
 
     socket.on("init", async data=>{
-      console.error("init", data);
+      console.log("init", data);
       let session = socket.handshake.session;
       let email;
       if(!session.user && data.link !== "__program__"){
@@ -316,7 +316,7 @@ module.exports = MD=>{
         //정재된 매칭 게임데이터
         socket.on("inputGameData", obj=>{
           //if(argv[0] == "master"){
-          console.error("inputGameData");
+          console.log("inputGameData");
           // let event;
           // try{
           //   event = await Event.create(obj);

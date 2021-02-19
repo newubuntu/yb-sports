@@ -1,12 +1,26 @@
 //const axios = require('axios');
 // const {API_BASEURL, EMAIL} = require('./config.js');
-function setupAPI(baseURL, email){
+let API_BASEURL_LIST = [];
+let apiIndex = 0;
+function setupAPI(baseURLs, email){
+  API_BASEURL_LIST = baseURLs;
   let net = axios.create({
-    baseURL: baseURL,
+    baseURL: baseURLs[0],
     headers: {
       'Authorization': email
     }
   })
+
+  function rotationUrl(){
+    apiIndex = API_BASEURL_LIST.length % (apiIndex + 1);
+    setBaseUrl(API_BASEURL_LIST[apiIndex]);
+    console.error("rotation api url:", API_BASEURL_LIST[apiIndex]);
+  }
+
+  // console.error("??", net.defaults);
+  function setBaseUrl(url){
+    net.defaults.baseURL = url;
+  }
 
   function success(res){
     if(res.data.status == "success"){
@@ -27,6 +41,9 @@ function setupAPI(baseURL, email){
       if(e.response.data && e.response.data.status == "fail"){
         return e.response.data;
       }else{
+        if(e.response.status == 403){
+          rotationUrl();
+        }
         return {
           status: 'fail',
           message: e.response.statusText
@@ -47,6 +64,8 @@ function setupAPI(baseURL, email){
   }
 
   return {
+    setBaseUrl,
+    rotationUrl,
 
     getPncinfo(email){
       return ax('/get_pncinfo/' + email);

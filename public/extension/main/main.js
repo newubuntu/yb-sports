@@ -1445,7 +1445,7 @@ async function init(){
     await sendData("runApiCode", {email:EMAIL, code:apiCode}, PN_BG);
     await sendData("saveBet365Account", data, PN_BG);
     await sendData("runBet365Code", bet365Code, PN_BG);
-    api = setupAPI(API_BASEURL, EMAIL);
+    api = setupAPI(API_BASEURL_LIST, EMAIL);
 
     // tabActiveSchedule();
   })

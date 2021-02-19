@@ -934,7 +934,7 @@ module.exports = io=>{
     })
   }))
 
-  router.get("/balance", async (req, res)=>{
+  router.get("/balance", task(async (req, res)=>{
     // console.error("@@@@@@1", user.bet365Money);
     await updateBet365TotalMoney(req.user._id);
     let user = await User.findOne({_id:req.user._id}).select(["money", "wallet", "bet365Money", "email"]);
@@ -948,9 +948,9 @@ module.exports = io=>{
         bet365Money: user.bet365Money
       }
     })
-  })
+  }))
 
-  router.get("/refreshMoney", async (req, res)=>{
+  router.get("/refreshMoney", task(async (req, res)=>{
     let user = await User.findOne({email:req.user.email}).select(["money", "wallet", "bet365Money", "email"]);
     await updateBet365TotalMoney(user);
     // console.error("?", user.email);
@@ -966,7 +966,7 @@ module.exports = io=>{
     res.json({
       status: "success"
     })
-  })
+  }))
 
   return router;
 }
