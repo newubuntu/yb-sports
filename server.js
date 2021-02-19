@@ -367,7 +367,13 @@
   if((process.cwd()||'').indexOf("C:") == -1 && process.env.NODE_ENV == "production"){
     app.use(forceDomain({
       hostname: 'www.surebet.vip',
-      excludeRule: /^api\..*/
+      excludeRule: {
+        test: function(hostname){
+          ///^api\..*/
+          console.log("hostname", hostname);
+          return true;
+        }
+      }
       // protocol: 'https'
     }));
   }
