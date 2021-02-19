@@ -7,6 +7,10 @@ let api = (()=>{
     // }
   })
 
+  function setBaseUrl(url){
+    net.defaults.baseURL = url;
+  }
+
   let itv;
   function rvStopLoading(){
     itv = setTimeout(stopLoading, 100);
@@ -69,6 +73,8 @@ let api = (()=>{
   }
 
   return {
+    setBaseUrl,
+    
     getCountryList(){
       return ax('/get_country_list');
     },
