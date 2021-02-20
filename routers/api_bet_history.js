@@ -40,9 +40,9 @@ module.exports = MD=>{
     //개별수정
     let betDatas;
     if(editTarget == 1){
-      betDatas = await BetData.find({_id, betStatus:{$ne:"ACCEPTED"}});
+      betDatas = await BetData.find({_id});//, betStatus:{$ne:"ACCEPTED"}});
     }else if(editTarget == 2){
-      betDatas = await BetData.find({betId, betStatus:{$ne:"ACCEPTED"}});
+      betDatas = await BetData.find({betId});//, betStatus:{$ne:"ACCEPTED"}});
     }
 
     if(betDatas){
