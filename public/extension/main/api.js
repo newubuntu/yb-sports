@@ -79,6 +79,10 @@ function setupAPI(email){
     //   return ax('/get_setting');
     // },
 
+    // test(){
+    //   return ax('/ip', {test:1}, "POST");
+    // },
+
     balance(){
       return ax('/balance');
     },

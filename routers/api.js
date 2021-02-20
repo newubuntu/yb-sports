@@ -565,9 +565,10 @@ module.exports = io=>{
 
   //test
   // let axios = require('axios');
-  // router.get("/ip", (req, res)=>{
+  // router.post("/ip", (req, res)=>{
   //   var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-  //   console.log("test ip", ip);
+  //   let body = req.body;
+  //   console.log("test ip", ip, body);
   //   // let net = axios.create({
   //   //   // baseURL: API_BASEURL_LIST[apiIndex],
   //   //   // baseURL: API_BASEURL,
@@ -577,7 +578,7 @@ module.exports = io=>{
   //   // net({method:"GET", url:"/api", data:{test:1}}).then(r=>{
   //   //   console.log("??", r.data);
   //   // });
-  //   res.json({ip});
+  //   res.json({ip, body});
   //   // res.send(ip);
   // })
 

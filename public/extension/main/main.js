@@ -324,7 +324,7 @@ async function placeBet(line){
 
           case "ACCEPTED":
             console.error("피나클 배팅성공", bets.betData.straightBet);
-            log(`피나클 배팅성공. odds: ${bets.betData.straightBet.price}`, "success", true);
+            log(`피나클 배팅성공. odds: ${bets.betData.straightBet.price}, betId:${bets.betData.straightBet.betId}`, "success", true);
           break;
 
           default:

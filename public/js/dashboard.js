@@ -582,6 +582,8 @@ let Vapp;
             browser.isMatching = false;
           }
           this.$forceUpdate();
+        }else{
+          console.error({pid, _bid}, "getBrowserObj 실패");
         }
       },
       setBrowserIP(pid, _bid, ip){
