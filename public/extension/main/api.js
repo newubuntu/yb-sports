@@ -6,7 +6,8 @@ function setupAPI(email){
   let net = axios.create({
     baseURL: API_BASEURL_LIST[apiIndex],
     headers: {
-      'Authorization': email
+      'Authorization': email,
+      'cache-control': 'no-cache, must-revalidate, post-check=0, pre-check=0'
     }
   })
 
