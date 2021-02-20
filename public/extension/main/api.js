@@ -2,22 +2,24 @@
 // const {API_BASEURL, EMAIL} = require('./config.js');
 // let API_BASEURL_LIST = [];
 function setupAPI(email){
-  let apiIndex = 0;
   let net = axios.create({
-    baseURL: API_BASEURL_LIST[apiIndex],
+    // baseURL: API_BASEURL_LIST[apiIndex],
+    // baseURL: API_BASEURL,
+    baseURL: LOCAL_HOST_URL + "/api",
     headers: {
-      'Authorization': email,
-      'cache-control': 'no-cache, must-revalidate, post-check=0, pre-check=0'
+      'Authorization': email
+      // 'cache-control': 'no-cache, must-revalidate, post-check=0, pre-check=0'
     }
   })
 
-  function rotationUrl(){
-    if(++apiIndex >= API_BASEURL_LIST.length){
-      apiIndex = 0;
-    }
-    setBaseUrl(API_BASEURL_LIST[apiIndex]);
-    console.error("rotation api url:", API_BASEURL_LIST[apiIndex]);
-  }
+  // let apiIndex = 0;
+  // function rotationUrl(){
+  //   if(++apiIndex >= API_BASEURL_LIST.length){
+  //     apiIndex = 0;
+  //   }
+  //   setBaseUrl(API_BASEURL_LIST[apiIndex]);
+  //   console.error("rotation api url:", API_BASEURL_LIST[apiIndex]);
+  // }
 
   // console.error("??", net.defaults);
   function setBaseUrl(url){
@@ -43,9 +45,9 @@ function setupAPI(email){
       if(e.response.data && e.response.data.status == "fail"){
         return e.response.data;
       }else{
-        if(e.response.status == 403){
-          rotationUrl();
-        }
+        // if(e.response.status == 403){
+        //   rotationUrl();
+        // }
         return {
           status: 'fail',
           message: e.response.statusText
@@ -67,7 +69,7 @@ function setupAPI(email){
 
   return {
     setBaseUrl,
-    rotationUrl,
+    // rotationUrl,
 
     getPncinfo(email){
       return ax('/get_pncinfo/' + email);

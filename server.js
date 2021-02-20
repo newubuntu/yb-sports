@@ -282,8 +282,18 @@
   app.use(requestIp.mw());
 
   app.use(express.static("public"));
-  // app.use(cors());
-  app.options('*', cors())
+  app.use(cors());
+
+  // app.all('*', function(req, res, next) {
+  //   res.header('Access-Control-Allow-Origin', '*');
+  //   res.header('Access-Control-Allow-Credentials', 'true');
+  //   res.header('Access-Control-Allow-Methods', 'PUT, GET, POST, DELETE, OPTIONS');
+  //   res.header(
+  //     'Access-Control-Allow-Headers',
+  //     'Origin, X-Requested-With, Content-Type, X-HTTP-Method-Override, Accept, Authorization'
+  //   );
+  //   next();
+  // });
 
   //body-parser
   app.use(bodyParser.urlencoded({extended:true}));
@@ -384,6 +394,7 @@
   app.set('views', './views');
   app.set('view engine', 'pug');
 
+  
 
   io.use(ios(_session, {autoSave:true}));
 

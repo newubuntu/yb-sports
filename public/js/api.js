@@ -1,11 +1,11 @@
 let api = (()=>{
   let net = axios.create({
-    baseURL: "/api",
+    baseURL: "/api"
     // ,
-    headers: {
-      // 'Authorization': EMAIL
-      'cache-control': 'no-cache, must-revalidate, post-check=0, pre-check=0'
-    }
+    // ,headers: {
+    //   // 'Authorization': EMAIL
+    //   'cache-control': 'no-cache, must-revalidate, post-check=0, pre-check=0'
+    // }
   })
 
   function setBaseUrl(url){

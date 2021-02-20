@@ -551,9 +551,35 @@ module.exports = io=>{
 
   require('./api_schedule')(MD);
 
-  router.use("/api", subdomain('api.v1', router));
-  router.use("/api", subdomain('api.v2', router));
-  router.use("/api", subdomain('api.v3', router));
+  // router.use("/api", subdomain('api.v1', router));
+  // router.use("/api", subdomain('api.v2', router));
+  // router.use("/api", subdomain('api.v3', router));
+
+
+
+  // router.post("/test", async (req, res)=>{
+  //   res.send(1);
+  // })
+
+
+
+  //test
+  // let axios = require('axios');
+  // router.get("/ip", (req, res)=>{
+  //   var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+  //   console.log("test ip", ip);
+  //   // let net = axios.create({
+  //   //   // baseURL: API_BASEURL_LIST[apiIndex],
+  //   //   // baseURL: API_BASEURL,
+  //   //   baseURL: "http://localhost:8080"
+  //   // })
+  //   // // axios.get("http://localhost:8080/api", {test:1});
+  //   // net({method:"GET", url:"/api", data:{test:1}}).then(r=>{
+  //   //   console.log("??", r.data);
+  //   // });
+  //   res.json({ip});
+  //   // res.send(ip);
+  // })
 
   router.post("/input_test_data", async (req, res)=>{
     let d;
