@@ -64,7 +64,7 @@ module.exports = async MD=>{
     });
     job5m.start();
 
-    let job1h = new CronJob('0 0 */24 * * *', function() {
+    let job1h = new CronJob('0 3 */24 * * *', function() {
        clearLogProcess();
     });
     job1h.start();

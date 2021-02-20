@@ -23,7 +23,7 @@
 
   console.log("NODE_ENV", process.env.NODE_ENV);
 
-  let useForceDomain = false;
+  let useForceDomain = true;
 
   if(process.env.NODE_ENV != "production"){
     const queryLogger = new MongooseQueryLogger();
@@ -282,7 +282,8 @@
   app.use(requestIp.mw());
 
   app.use(express.static("public"));
-  app.use(cors());
+  // app.use(cors());
+  app.options('*', cors())
 
   //body-parser
   app.use(bodyParser.urlencoded({extended:true}));

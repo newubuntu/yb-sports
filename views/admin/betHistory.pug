@@ -260,7 +260,7 @@ block view
                     a(:href="'#'+tab" style="cursor:pointer" v-on:click="loadList(0, tab, {accountId, email, status, betId:item.betId})")
                       |{{item.betId}}
                   td
-                    button.btn.btn-sm.btn-primary(v-if="item.betStatus!='ACCEPTED' && user.master" type="button" v-on:click="openEditModal(item)")
+                    button.btn.btn-sm.btn-primary(v-if="user.master" type="button" v-on:click="openEditModal(item)")
                       |수정
                   td {{item.sportName}}
                   td {{item.event.leagueName}}
