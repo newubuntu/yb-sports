@@ -221,7 +221,7 @@ module.exports = MD=>{
       query.user = user._id;
     }
 
-    // console.log("@@@query", query);
+    console.log("query", query);
     // console.log("@@@populateObj", populateObj);
 
     // 전체숫자는 limit되지 않은숫자여야하므로 이 count방법을 유지한다.
@@ -240,6 +240,10 @@ module.exports = MD=>{
     .populate(populateObj)
     .lean();
 
+
+    if(used == true){
+      accounts = accounts.filter(account=>!!account.user);
+    }
     // console.log("@@@@@", accounts);
 
     // let r = Account.find(query)
