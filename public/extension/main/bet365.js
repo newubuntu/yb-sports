@@ -639,7 +639,7 @@ function bet365JS(){
             // inputWithEvent($input[0], stake);
             await delay(100);
             let btns = await findAcceptOrPlacebetOrPlaced(5000);
-            await delay(100);
+            await delay(1000);
             console.log("find btns", btns);
             let $acceptBtn = btns[0];
             let $placeBetBtn = btns[1];
@@ -733,7 +733,8 @@ function bet365JS(){
               }
 
               $placeBetBtn.click();
-              await delay(1000);
+              await waitLoading();
+              // await delay(1000);
               message = betslipMessage();
               console.error("placebet message:", message);
               if(compareMessage(message, MESSAGE.RESTRICTIONS)){
@@ -783,7 +784,8 @@ function bet365JS(){
                 await setStake(stake);
                 $acceptBtn.click();
               }
-              await delay(1000);
+              await waitLoading();
+              // await delay(1000);
               message = betslipMessage();
               console.error("accept message:", message);
             }else{
@@ -930,6 +932,17 @@ function bet365JS(){
       break;
     }
     return resolveData;
+  }
+
+  async function waitLoading(){
+    // await delay(100);
+    await until(()=>{
+      return $(".bss-ProcessingButton_HasInPlay:visible").length > 0;
+    });
+    await until(()=>{
+      return $(".bss-ProcessingButton_HasInPlay:visible").length == 0;
+    });
+    await delay(100);
   }
 
   var messagePromises = window['messagePromises']||{};

@@ -818,16 +818,17 @@ async function userYbProcess(data){
           stopMatch(true);
           break;
         }else if(result.status == "foundBetmax"){
-          if(betOption.betmaxRatio !== undefined){
+          // 양빵/체크기 옵션적용이 서로 헷갈려서 고정값으로 변경
+          // if(betOption.betmaxRatio !== undefined){
             //ratio 90~100% random
-            let ratio = betOption.betmaxRatio * (Math.random()*0.1+0.9);
+            let ratio = 0.9 * (Math.random()*0.1+0.9);
             let nbm = round(result.betmax * ratio/100, 2);
             log(`betmax:${result.betmax} -> ${nbm}(${round(ratio,2)}%)`, null, true);
             result.betmax = nbm;
-          }
+          // }
+          changeOddsBet365Process(data, result.info.odds);
           data.bet365.stake = result.betmax;
           updatePncStake(data);
-          changeOddsBet365Process(data, result.info.odds);
           updateBet365Stake(data);
           checkProfit = profitAllValidation(data);
           fixedBetmax = true;
@@ -1243,7 +1244,7 @@ async function checkBetmaxProcess(data){
 
     // 체크기에서 일부러 큰값을 보낸다. 배팅기에서 벳맥스체크를 다시 하도록 유도.
     // 추후에는.. 체크기와 동일한 시점에 작동하도록 고민...
-    betmaxInfo.betmax = betmaxInfo.betmax * 1.2;
+    betmaxInfo.betmax = betmaxInfo.betmax * 2;
 
     // 벳맥스체크에서는 원래값을 그냥보내고 배팅기에서 절삭처리하도록 변경한다.
     // if(betmaxInfo.betmax > betOption.maxBetmax){
@@ -1688,7 +1689,7 @@ async function init(){
     if(!flag.bet365LoginComplete) return;
     console.log("receive gamedata2");
 
-    await delay(Math.random()*2000);
+    await delay(Math.random()*1000);
 
     setData("gamedata", data);
     if(!flag.isMatching) return;
