@@ -789,7 +789,7 @@ async function userYbProcess(data){
             break;
           }
         }
-        
+
         result = await sendData("placeBet", {stake:data.bet365.stake, prevInfo:bet365Info}, PN_B365);
         if(result && result.info){
           bet365Info = result.info;
@@ -1250,6 +1250,117 @@ async function checkBetmaxProcess(data){
       checkProfit = validProfit(data.bet365.odds, data.pinnacle.odds, data.bet365.stake);
       // log(`수익: $${profit}`, checkProfit ? "info" : "danger", true);
     }
+
+    ////////////////////
+    /////// test ///////
+    if(!flag.isMatching) return;
+    activeBet365();
+    // log(`벳365 배팅시작`, "info", true);
+    let result, checkBet, isChangeOdds, isFirst = true, lakeMoney;
+    while(1){
+      if(1 || checkProfit){
+        if(isChangeOdds || isFirst){
+          isFirst = false;
+          isChangeOdds = false;
+          log(`벳365 배팅시작 <span class="text-warning">$${data.bet365.stake}</span>`, "info", true);
+        }
+
+        // BOK
+        // if(isBenEvent(data.bet365.id+data.bet365.odds)){
+        // OBOK
+        if(isBenEvent(data.bet365.eventId+data.bet365.odds)){
+          log(`제외된 배당입니다.(${data.bet365.eventId+data.bet365.odds})`, "warning", true);
+          break;
+        }
+
+        if(!checkOddsForBet365(data)){
+          benEvent(data, "OBOK", 20000, "벳삼 최소배당 미만");
+          break;
+        }
+
+        if(result){
+          checkType = await checkGameType(data, result.info, false);
+          if(!checkType){
+            //: 벳삼 타입 다름
+            log(`벳365 배팅실패: 벳삼 타입다름`, "danger", true);
+            benEvent(data, "BK", 0);
+            break;
+          }
+        }
+
+        result = await sendData("placeBet", {stake:data.bet365.stake, prevInfo:bet365Info}, PN_B365);
+        if(result && result.info){
+          bet365Info = result.info;
+        }
+        console.log("bet365 betting..", result);
+        if(result === undefined || result === null){
+          log("벳365 배팅실패: 응답없음.", "danger", true);
+          break;
+        }
+
+        // 배팅완료한뒤에는 체크하지 말자.
+        // checkType = await checkGameType(data, result.info);
+        // if(!checkType){
+        //   log(`배팅취소: 벳삼 타입 다름`, "danger", true);
+        //   benEvent(data, "BK", 0);
+        //   if(result.status == "success"){
+        //     log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", "danger", true);
+        //     log(`벳365 배팅완료 후 타입바뀜!`, "danger", true);
+        //     stopMatch(true);
+        //   }
+        //   break;
+        // }
+        if(result.status == "notEnoughFunds"){
+          log(`벳365 배팅실패: ${result.message}`, "danger", true);
+          stopMatch(true);
+          break;
+        }
+
+        if(result.status == "acceptChange"){
+          isChangeOdds = changeOddsBet365Process(data, result.info.odds);
+          if(isChangeOdds){
+            updateBet365Stake(data);
+            checkProfit = profitAllValidation(data);
+          }
+        }else if(result.status == "lakeMoney"){
+          log(`벳365 잔액부족 stake:$${result.stake}, money:$${result.money}`, "danger", true);
+          changeOddsBet365Process(data, result.info.odds);
+          data.bet365.stake = result.money;
+          updatePncStake(data);
+          checkProfit = profitAllValidation(data);
+          lakeMoney = true;
+        }else if(result.status == "success"){
+          if(result.info.market == ""){
+            log(`배팅취소: 배팅카트 사라짐`, "danger", true);
+          }else{
+            log(`벳365 배팅완료!`, "success", true);
+            checkBet = true;
+          }
+          break;
+        }else{
+          log(`벳365 배팅실패: ${result.message}`, "danger", true);
+          if(result.status == "restriction"){
+            stopMatch(true);
+          }
+          break;
+        }
+      }else{
+        log(`배팅취소`, 'danger', true);
+        break;
+      }
+    }
+    activeMain();
+    console.log("bet365 bet complete", result);
+
+    if(checkBet){
+      log("TEST: 벳삼배팅완료", "success", true);
+    }else{
+      log("TEST: 벳삼배팅실패", "danger", true);
+    }
+    return;
+    ////////////////////
+    ////////////////////
+
 
     console.error("##", line);
     if(checkProfit){
