@@ -584,7 +584,7 @@ function updateBet365Stake(data){
   // 유저 양빵단계의 벳삼 배당 변동시에는 벳삼 stake를 다시 계산해주고 판단한다.
   data.bet365.stake = round(calc.stakeB(data.pinnacle.odds, data.bet365.odds, data.pinnacle.stake), 2);
   if(data.bet365.stake > betOption.maxBetmax){
-    data.bet365.stake = betOption.maxBetmax * (Math.random()*0.1+0.9);
+    data.bet365.stake = round(betOption.maxBetmax * (Math.random()*0.1+0.9), 2);
     updatePncStake(data);
   }
 }
