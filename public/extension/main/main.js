@@ -822,7 +822,7 @@ async function userYbProcess(data){
           //   log(`betmax 제한값 초과. 절삭: $${betOption.maxBetmax}`, null, true);
           //   betmax = betOption.maxBetmax;
           // }
-          data.bet365.stake = betmax;
+          data.bet365.stake = result.betmax;
           updatePncStake(data);
           changeOddsBet365Process(data, result.info.odds);
           updateBet365Stake(data);
