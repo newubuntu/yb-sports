@@ -14,6 +14,7 @@ const betDataSchema = new mongoose.Schema({
 
   betId: {type: Number},
   sportName: {type: String},
+  eventName: {type: String},
 
   //site(pinnacle) odds
   siteOdds: {type: Number},
@@ -42,6 +43,8 @@ const betDataSchema = new mongoose.Schema({
 },{
   timestamps: true
 })
+
+
 
 // autoIncrement.initialize(mongoose.connection);
 // betDataSchema.plugin(autoIncrement.plugin, {

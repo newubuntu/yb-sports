@@ -44,6 +44,7 @@ let Vapp;
       betId: null,
       accountId: null,
       status: null,
+      eventName: null,
       result: {},
       accounts: []
       // statusClassMap:{
@@ -140,6 +141,10 @@ let Vapp;
         this.betId = $('.search-betid').val().trim();
       },
 
+      changeSearchEventName(){
+        this.eventName = $('.search-event').val().trim();
+      },
+
       setData(data){
         console.log(data);
         this.list = data.list;
@@ -158,7 +163,12 @@ let Vapp;
       },
 
       reload(){
-        this.loadList(this.curPage, this.tab, {accountId:this.accountId, status:this.status, betId:this.betId});
+        this.loadList(this.curPage, this.tab, {
+          accountId:this.accountId,
+          status:this.status,
+          betId:this.betId,
+          eventName: this.eventName
+        });
       },
 
       resetReload(){
@@ -167,7 +177,7 @@ let Vapp;
 
       async loadList(curPage=0, tab=0, opt={}){
         // accountId = accountId||this.accountId;
-        let {accountId, status, betId} = opt;
+        let {accountId, status, betId, eventName} = opt;
         this.accountId = accountId;
         this.status = status;
         this.betId = betId;
@@ -175,7 +185,7 @@ let Vapp;
         range.end = new Date(range.end.getTime() + (1000*60*60*24 - 1000));
         // this.accountId = accountId;
         // console.log("loadList page", curPage);
-        let query = {curPage, accountId, status, range, betId};
+        let query = {curPage, accountId, status, range, betId, eventName};
         switch(tab){
           case 0: // 전체
           break;

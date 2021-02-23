@@ -80,6 +80,7 @@ let Vapp;
       email: null,
       status: null,
       betId: null,
+      eventName: null,
       result: {},
       users: [],
       forms: [],
@@ -210,6 +211,19 @@ let Vapp;
         this.status = $('.search-status').val().trim();
       },
 
+      changeSearchEventName(){
+        this.eventName = $('.search-event').val().trim();
+      },
+
+      getSide(item, who){
+        let obj = item.event.betburger[who];
+        if(obj.side){
+          return `${obj.side} ${obj.handicap}`;
+        }else{
+          return `${obj[obj.homeAway]} (${obj.team})`;
+        }
+      },
+
       setData(data){
         // console.log(data);
         this.list = data.list;
@@ -237,7 +251,13 @@ let Vapp;
       },
 
       reload(){
-        this.loadList(this.curPage, this.tab, {accountId:this.accountId, email:this.email, status:this.status, betId:this.betId});
+        this.loadList(this.curPage, this.tab, {
+          accountId:this.accountId,
+          email:this.email,
+          status:this.status,
+          betId:this.betId,
+          eventName: this.eventName
+        });
       },
 
       resetReload(){
@@ -246,16 +266,17 @@ let Vapp;
 
       async loadList(curPage=0, tab=0, opt={}){//accountId){
         // accountId = accountId||this.accountId;
-        let {accountId, email, status, betId} = opt;
+        let {accountId, email, status, betId, eventName} = opt;
         this.accountId = accountId;
         this.email = email;
         this.status = status;
         this.betId = betId;
+        this.eventName = eventName;
         let range = startPicker.getRange();
         range.end = new Date(range.end.getTime() + (1000*60*60*24 - 1000));
         // console.log("date range", range);
         // console.log("loadList page", curPage);
-        let query = {curPage, accountId, email, status, range, betId};
+        let query = {curPage, accountId, email, status, range, betId, eventName};
         switch(tab){
           case 0: // 전체
           break;

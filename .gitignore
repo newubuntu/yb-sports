@@ -1,4 +1,5 @@
 node_modules
 sessions
 download
+backup_db
 *.log

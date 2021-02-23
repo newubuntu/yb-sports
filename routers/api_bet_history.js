@@ -70,9 +70,9 @@ module.exports = MD=>{
 
   router.post("/get_bets", task(async (req, res)=>{
     let {
-      ids, offset, limit, curPage, sportName, accountId, admin, email, status, range, betId
+      ids, offset, limit, curPage, sportName, accountId, admin, email, status, range, betId, eventName
     } = req.body;
-    let query = {user:req.user._id, event:{$ne:null}, sportName, betId};
+    let query = {user:req.user._id, event:{$ne:null}, sportName};
 
 
     let user;
@@ -111,7 +111,7 @@ module.exports = MD=>{
       }
     }
 
-    let limitCount = 40;
+    let limitCount = 50;
 
     if(curPage !== undefined){
       // 페이지가 설정되었으면, 그에 맞춰서 limit, offset 계산
@@ -148,7 +148,10 @@ module.exports = MD=>{
       path: 'event',
       model: Event
     }
-    populateObjList.push(eventPopulateObj)
+
+
+
+    populateObjList.push(eventPopulateObj);
     //
     // console.error("?", sports);
     // if(sportName){
@@ -159,6 +162,18 @@ module.exports = MD=>{
 
     // console.error("range", range);
 
+    // if(eventName){
+      // 특문을 완전히 처리할게 아니라면 아래는 쓰면 안된다.
+      // query.eventName = {$regex: '.*' + eventName + '.*'};
+    // }
+    if(betId){
+      query.betId = betId;
+    }
+
+    if(eventName){
+      query.eventName = eventName;
+    }
+
     if(range){
       query.createdAt= {
         $gte: new Date(range.start),
@@ -166,7 +181,7 @@ module.exports = MD=>{
       }
     }
 
-    console.log("query", query);
+    console.log("query", query, {offset, limit});
 
     // 전체숫자는 limit되지 않은숫자여야하므로 이 count방법을 유지한다.
     let count = await BetData.countDocuments(query);
@@ -183,6 +198,8 @@ module.exports = MD=>{
     .skip(offset)
     .populate(populateObjList)
     .lean();
+
+
 
     let totalMoney = 0;
     // list.reduce((r,v)=>r+v.user.money, 0);
@@ -214,84 +231,50 @@ module.exports = MD=>{
 
 
     let resultObj;
-    // if(admin){
-      resultObj = await BetData.aggregate()
-      .match(query)
-      .group({
-        _id: 'null',
-        result: {
-          $accumulator: {
-            init: function(){
-              return {betSum:0, returnSum:0, resultSum:0, profit:0, notYetprofit:0};
-            },
-            accumulate: function(state, siteOdds, siteStake, bookmakerStake, betStatus){
-              state.betSum += siteStake;
-              let rt = 0;
-              if(betStatus == "WON"){
-                rt = siteOdds * siteStake;
-              }else if(betStatus == "REFUNDED" || betStatus == "CANCELLED"){
-                rt = siteStake;
-              }
-              if(betStatus == "ACCEPTED"){
-                state.notYetprofit += siteOdds * siteStake - (siteStake + bookmakerStake);
-              }else if(betStatus == "WON" || betStatus == "LOSE"){
-                state.profit += siteOdds * siteStake - (siteStake + bookmakerStake);
-              }
-              state.returnSum += rt;
-              state.resultSum += siteStake - rt;
-              return state;
-            },
-            accumulateArgs: ["$siteOdds", "$siteStake", "$bookmakerStake", "$betStatus"],
-            merge: function(state1, state2){
-              return {
-                betSum: state1.betSum + state2.betSum,
-                returnSum: state1.returnSum + state2.returnSum,
-                resultSum: state1.resultSum + state2.resultSum,
-                profit: state1.profit + state2.profit,
-                notYetprofit: state1.notYetprofit + state2.notYetprofit
-              }
-            },
-            finalize: function(state) {
-              return state;
-            },
-            lang: "js"
-          }
+
+    resultObj = await BetData.aggregate()
+    .match(query)
+    .group({
+      _id: 'null',
+      result: {
+        $accumulator: {
+          init: function(){
+            return {betSum:0, returnSum:0, resultSum:0, profit:0, notYetprofit:0};
+          },
+          accumulate: function(state, siteOdds, siteStake, bookmakerStake, betStatus){
+            state.betSum += siteStake;
+            let rt = 0;
+            if(betStatus == "WON"){
+              rt = siteOdds * siteStake;
+            }else if(betStatus == "REFUNDED" || betStatus == "CANCELLED"){
+              rt = siteStake;
+            }
+            if(betStatus == "ACCEPTED"){
+              state.notYetprofit += siteOdds * siteStake - (siteStake + bookmakerStake);
+            }else if(betStatus == "WON" || betStatus == "LOSE"){
+              state.profit += siteOdds * siteStake - (siteStake + bookmakerStake);
+            }
+            state.returnSum += rt;
+            state.resultSum += siteStake - rt;
+            return state;
+          },
+          accumulateArgs: ["$siteOdds", "$siteStake", "$bookmakerStake", "$betStatus"],
+          merge: function(state1, state2){
+            return {
+              betSum: state1.betSum + state2.betSum,
+              returnSum: state1.returnSum + state2.returnSum,
+              resultSum: state1.resultSum + state2.resultSum,
+              profit: state1.profit + state2.profit,
+              notYetprofit: state1.notYetprofit + state2.notYetprofit
+            }
+          },
+          finalize: function(state) {
+            return state;
+          },
+          lang: "js"
         }
-      });
-    // }else{
-      // 일반유저의 배팅기록에 사용할 양빵수익 취합정보
-    //   resultObj = await BetData.aggregate()
-    //   .match(query)
-    //   .group({
-    //     _id: 'null',
-    //     result: {
-    //       $accumulator: {
-    //         init: function(){
-    //           return {profit:0, notYetprofit:0};
-    //         },
-    //         accumulate: function(state, siteOdds, siteStake, bookmakerStake, betStatus){
-    //           if(betStatus == "ACCEPTED"){
-    //             state.notYetprofit += siteOdds * siteStake - (siteStake + bookmakerStake);
-    //           }else if(betStatus == "WON" || betStatus == "LOSE"){
-    //             state.profit += siteOdds * siteStake - (siteStake + bookmakerStake);
-    //           }
-    //           return state;
-    //         },
-    //         accumulateArgs: ["$siteOdds", "$siteStake", "$bookmakerStake", "$betStatus"],
-    //         merge: function(state1, state2){
-    //           return {
-    //             profit: state1.profit + state2.profit,
-    //             notYetprofit: state1.notYetprofit + state2.notYetprofit
-    //           }
-    //         },
-    //         finalize: function(state) {
-    //           return state;
-    //         },
-    //         lang: "js"
-    //       }
-    //     }
-    //   });
-    // }
+      }
+    });
 
     let result = resultObj[0] ? resultObj[0].result : {};
     result.totalMoney = totalMoney;

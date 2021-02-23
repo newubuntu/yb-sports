@@ -77,9 +77,12 @@ approvalSchema.methods.cancel = async function(){
   // }
   // this.account = null;
   if(this.child){
-    if(this.child instanceof mongoose.Types.ObjectId){
-      this.child = await mongoose.models.Approval.findOne({_id:this.child});
+    if(!this.populated('child')){
+      await this.populate('child');
     }
+    // if(this.child instanceof mongoose.Types.ObjectId){
+    //   this.child = await mongoose.models.Approval.findOne({_id:this.child});
+    // }
     return this.child.cancel();
   }
   // if(this.parent){
@@ -94,9 +97,12 @@ approvalSchema.methods.cancel = async function(){
 approvalSchema.methods.approval = async function(taskCallback){
   if(this.status == 'open'){
     if(this.parent){
-      if(this.parent instanceof mongoose.Types.ObjectId){
-        this.parent = await mongoose.models.Approval.findOne({_id:this.parent}).populate("account");
+      if(!this.populated('parent')){
+        await this.populate('parent');
       }
+      // if(this.parent instanceof mongoose.Types.ObjectId){
+      //   this.parent = await mongoose.models.Approval.findOne({_id:this.parent}).populate("account");
+      // }
       await this.parent.approval(taskCallback);
     }
     this.status = 'approval';

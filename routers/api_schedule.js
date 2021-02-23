@@ -1,5 +1,10 @@
 const CronJob = require('cron').CronJob;
 const PAPI = require('./papi');
+const Backup = require("backup-mongodb");
+
+// https://github.com/SeunMatt/backup-mongodb-restorer
+// const Restore = require("backup-mongodb-restorer");
+
 let papi;
 
 
@@ -64,42 +69,21 @@ module.exports = async MD=>{
     });
     job5m.start();
 
-    let job1h = new CronJob('0 3 */24 * * *', function() {
+    let job1h = new CronJob('0 3 */1 * * *', function() {
        clearLogProcess();
     });
     job1h.start();
+
+    let job24h = new CronJob('0 7 12 * * *', function() {
+       backupProcess();
+    });
   }
+  
 
-  // 정각마다 소켓맵 청소
-  // let job1h = new CronJob('0 0 */24 * * *', async function() {
-  //   socketMapCheckProcess();
-  // })
-  // job1h.start();
-
-  // io.$.reset();
-
-  // setTimeout(socketMapCheckProcess, 5000);
-
-  // async function socketMapCheckProcess(){
-  //   console.log("-------- socketMap check --------");
-  //   let list = await io.$.list();
-  //   // console.log(list);
-  //   for(let room in list){
-  //     for(let id in list[room]){
-  //       // console.error(room, id, list[room][id]);
-  //       // console.error(io.to(id).sockets.sockets.get(id));
-  //       if(!io.to(id).sockets.sockets.get(id)){
-  //         // list[room][id]++;
-  //         // console.error("??????????");
-  //         if(list[room][id] > 5 && argv[0] == "master"){
-  //           await io.$.del(`${room}|${id}`);
-  //         }else{
-  //           await io.$.setCount(`${room}|${id}`, list[room][id]+1);
-  //         }
-  //       }
-  //     }
-  //   }
-  // }
+  async function backupProcess(){
+    console.log("-------- backup process --------");
+    new Backup(config.DB_URI, config.BACKUP_PATH).backup();
+  }
 
 
   // 1일마다 브라우져당 log에서 500개 이상일 때,
@@ -196,4 +180,37 @@ module.exports = async MD=>{
     }
     console.log("===============================================");
   }
+
+
+
+  // 정각마다 소켓맵 청소
+  // let job1h = new CronJob('0 0 */24 * * *', async function() {
+  //   socketMapCheckProcess();
+  // })
+  // job1h.start();
+
+  // io.$.reset();
+
+  // setTimeout(socketMapCheckProcess, 5000);
+
+  // async function socketMapCheckProcess(){
+  //   console.log("-------- socketMap check --------");
+  //   let list = await io.$.list();
+  //   // console.log(list);
+  //   for(let room in list){
+  //     for(let id in list[room]){
+  //       // console.error(room, id, list[room][id]);
+  //       // console.error(io.to(id).sockets.sockets.get(id));
+  //       if(!io.to(id).sockets.sockets.get(id)){
+  //         // list[room][id]++;
+  //         // console.error("??????????");
+  //         if(list[room][id] > 5 && argv[0] == "master"){
+  //           await io.$.del(`${room}|${id}`);
+  //         }else{
+  //           await io.$.setCount(`${room}|${id}`, list[room][id]+1);
+  //         }
+  //       }
+  //     }
+  //   }
+  // }
 }

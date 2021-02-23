@@ -678,6 +678,7 @@ module.exports = io=>{
       if(event.betStatus !== "ACCEPTED"){
         data.betStatus = event.betStatus;
       }
+      data.eventName = event.betburger.pinnacle.eventName;
       // data.event = await Event.findOne()
       bd = await BetData.create(data);
       // let user = await User.findOneAndUpdate({_id:req.user._id}, {$inc:{money:-data.siteStake}}, {new:true});
