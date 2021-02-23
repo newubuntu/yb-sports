@@ -339,15 +339,18 @@ module.exports = MD=>{
             obj.isLive = obj.isLive.toLowerCase() == "true";
           }
 
+
+
+          await Event.create(obj);
+          // .catch(e=>{
+          //   console.error("이벤트 저장 오류");
+          //   console.error(e);
+          // })
+
           let room = "__data_receiver2__";
           // console.log(io.sockets.clients(room));
           io.to(room).emit("gamedata2", obj);
           // io.$.emit(room, "gamedata2", obj);
-
-          Event.create(obj).catch(e=>{
-            console.error("이벤트 저장 오류");
-            console.error(e);
-          })
 
           // emitToAllPrograms("gamedata2", obj);
           // try{

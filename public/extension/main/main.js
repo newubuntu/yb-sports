@@ -1684,10 +1684,12 @@ async function init(){
     findMatch();
   })
 
-  socket.on("gamedata2", data=>{
+  socket.on("gamedata2", async data=>{
     if(!flag.bet365LoginComplete) return;
-
     console.log("receive gamedata2");
+
+    await delay(Math.random()*1000);
+
     setData("gamedata", data);
     if(!flag.isMatching) return;
     // sendData("gamedata", data, "bg");
