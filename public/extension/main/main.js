@@ -819,8 +819,10 @@ async function userYbProcess(data){
           break;
         }else if(result.status == "foundBetmax"){
           if(betOption.betmaxRatio !== undefined){
-            let nbm = round(result.betmax * betOption.betmaxRatio/100, 2);
-            log(`betmax:${result.betmax} -> ${nbm}(${betOption.betmaxRatio}%)`, null, true);
+            //ratio 90~100% random
+            let ratio = betOption.betmaxRatio * (Math.random()*0.1+0.9);
+            let nbm = round(result.betmax * ratio/100, 2);
+            log(`betmax:${result.betmax} -> ${nbm}(${round(ratio,2)}%)`, null, true);
             result.betmax = nbm;
           }
           data.bet365.stake = result.betmax;
