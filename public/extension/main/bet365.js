@@ -639,7 +639,7 @@ function bet365JS(){
             // inputWithEvent($input[0], stake);
             await delay(100);
             let btns = await findAcceptOrPlacebetOrPlaced(5000);
-            await delay(1000);
+            await delay(100);
             console.log("find btns", btns);
             let $acceptBtn = btns[0];
             let $placeBetBtn = btns[1];
@@ -721,7 +721,7 @@ function bet365JS(){
               // await inputWithEvent(".bss-StakeBox_StakeValueInput", stake);
               // await delay(100);
               await setStake(stake);
-              await delay(1000);
+              await delay(100);
 
               let info = await getBetslipInfo();
               if(prevInfo.handicap != info.handicap){
@@ -1168,7 +1168,7 @@ function bet365JS(){
 
   $(document).ready(async ()=>{
 
-    setupScreenLock();
+    // setupScreenLock();
     setupKeyLock();
     setupContextMenuLock();
     setupOnMessage();

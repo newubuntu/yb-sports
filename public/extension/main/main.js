@@ -789,7 +789,7 @@ async function userYbProcess(data){
             break;
           }
         }
-
+        
         result = await sendData("placeBet", {stake:data.bet365.stake, prevInfo:bet365Info}, PN_B365);
         if(result && result.info){
           bet365Info = result.info;
