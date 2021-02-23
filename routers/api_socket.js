@@ -314,7 +314,7 @@ module.exports = MD=>{
         // })
 
         //정재된 매칭 게임데이터
-        socket.on("inputGameData", obj=>{
+        socket.on("inputGameData", async obj=>{
           //if(argv[0] == "master"){
           console.log("inputGameData");
           // let event;
