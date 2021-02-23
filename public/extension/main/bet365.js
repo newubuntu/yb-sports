@@ -733,8 +733,8 @@ function bet365JS(){
               }
 
               $placeBetBtn.click();
-              await waitLoading();
-              // await delay(1000);
+              // await waitLoading();
+              await delay(1000);
               message = betslipMessage();
               console.error("placebet message:", message);
               if(compareMessage(message, MESSAGE.RESTRICTIONS)){
@@ -784,8 +784,8 @@ function bet365JS(){
                 await setStake(stake);
                 $acceptBtn.click();
               }
-              await waitLoading();
-              // await delay(1000);
+              // await waitLoading();
+              await delay(1000);
               message = betslipMessage();
               console.error("accept message:", message);
             }else{
