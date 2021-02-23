@@ -634,7 +634,7 @@ function bet365JS(){
       case "placeBet":
         // setInitMessage(message);
         await (async ()=>{
-          let count = 0, {stake, prevInfo} = data, lakeMoney, status = {};
+          let count = 0, {stake, prevInfo, betOption} = data, lakeMoney, status = {};
           while(1){
             // inputWithEvent($input[0], stake);
             await delay(100);
@@ -772,11 +772,15 @@ function bet365JS(){
                 break;
               }else{
                 console.log("find betmax");
-                stake = betmax;
-                // await inputWithEvent(".bss-StakeBox_StakeValueInput", stake);
-                // await delay(100);
-                await setStake(stake);
-                $acceptBtn.click();
+                resolveData = {
+                  status: "foundBetmax",
+                  betmax: betmax,
+                  info: await getBetslipInfo()
+                }
+                break;
+                // stake = betmax;
+                // await setStake(stake);
+                // $acceptBtn.click();
               }
               await delay(1000);
               message = betslipMessage();

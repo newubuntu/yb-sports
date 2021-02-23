@@ -70,17 +70,17 @@ let Vapp;
       key: "maxBetmax",
       value: 20,
       type: "number",
-      help: "체크기 옵션",
+      // help: "체크기 옵션",
       prepend: "$"
     },
-    {
-      name: "betmax 적용%",
-      key: "betmaxRatio",
-      value: 80,
-      type: "number",
-      help: "체크기 옵션",
-      append: "%"
-    },
+    // {
+    //   name: "betmax 적용%",
+    //   key: "betmaxRatio",
+    //   value: 80,
+    //   type: "number",
+    //   help: "체크기 옵션",
+    //   append: "%"
+    // },
     {
       name: "최소 수익률",
       key: "minProfitP",

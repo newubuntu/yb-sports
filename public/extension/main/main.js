@@ -790,7 +790,7 @@ async function userYbProcess(data){
           }
         }
 
-        result = await sendData("placeBet", {stake:data.bet365.stake, prevInfo:bet365Info}, PN_B365);
+        result = await sendData("placeBet", {stake:data.bet365.stake, prevInfo:bet365Info, betOption}, PN_B365);
         if(result && result.info){
           bet365Info = result.info;
         }
@@ -816,9 +816,18 @@ async function userYbProcess(data){
           log(`벳365 배팅실패: ${result.message}`, "danger", true);
           stopMatch(true);
           break;
-        }
-
-        if(result.status == "acceptChange"){
+        }else if(result.status == "foundBetmax"){
+          // let betmax = result.betmax;
+          // if(betmax > betOption.maxBetmax){
+          //   log(`betmax 제한값 초과. 절삭: $${betOption.maxBetmax}`, null, true);
+          //   betmax = betOption.maxBetmax;
+          // }
+          data.bet365.stake = betmax;
+          updatePncStake(data);
+          changeOddsBet365Process(data, result.info.odds);
+          updateBet365Stake(data);
+          checkProfit = profitAllValidation(data);
+        }else if(result.status == "acceptChange"){
           isChangeOdds = changeOddsBet365Process(data, result.info.odds);
           if(isChangeOdds){
             updateBet365Stake(data);
@@ -1222,16 +1231,21 @@ async function checkBetmaxProcess(data){
       return;
     }
 
-    if(betOption.betmaxRatio !== undefined){
-      let nbm = round(betmaxInfo.betmax * betOption.betmaxRatio/100, 2);
-      log(`betmax:${betmaxInfo.betmax} -> ${nbm}(${betOption.betmaxRatio}%)`, null, true);
-      betmaxInfo.betmax = nbm;
-    }
+    // if(betOption.betmaxRatio !== undefined){
+    //   let nbm = round(betmaxInfo.betmax * betOption.betmaxRatio/100, 2);
+    //   log(`betmax:${betmaxInfo.betmax} -> ${nbm}(${betOption.betmaxRatio}%)`, null, true);
+    //   betmaxInfo.betmax = nbm;
+    // }
 
-    if(betmaxInfo.betmax > betOption.maxBetmax){
-      log(`betmax 제한값 초과. 절삭: $${betOption.maxBetmax}`, null, true);
-      betmaxInfo.betmax = betOption.maxBetmax;
-    }
+    // 체크기에서 일부러 큰값을 보낸다. 배팅기에서 벳맥스체크를 다시 하도록 유도.
+    // 추후에는.. 체크기와 동일한 시점에 작동하도록 고민...
+    betmaxInfo.betmax = betmaxInfo.betmax * 1.2;
+
+    // 벳맥스체크에서는 원래값을 그냥보내고 배팅기에서 절삭처리하도록 변경한다.
+    // if(betmaxInfo.betmax > betOption.maxBetmax){
+    //   log(`betmax 제한값 초과. 절삭: $${betOption.maxBetmax}`, null, true);
+    //   betmaxInfo.betmax = betOption.maxBetmax;
+    // }
 
     log(`betmax: $${betmaxInfo.betmax}, odds: ${betmaxInfo.info.odds}`, null, true);
     data.bet365.stake = round(betmaxInfo.betmax, 2);
@@ -1253,111 +1267,111 @@ async function checkBetmaxProcess(data){
 
     ////////////////////
     /////// test ///////
-    if(!flag.isMatching) return;
-    activeBet365();
-    // log(`벳365 배팅시작`, "info", true);
-    let result, checkBet, isChangeOdds, isFirst = true, lakeMoney;
-    while(1){
-      if(1 || checkProfit){
-        if(isChangeOdds || isFirst){
-          isFirst = false;
-          isChangeOdds = false;
-          log(`벳365 배팅시작 <span class="text-warning">$${data.bet365.stake}</span>`, "info", true);
-        }
-
-        // BOK
-        // if(isBenEvent(data.bet365.id+data.bet365.odds)){
-        // OBOK
-        if(isBenEvent(data.bet365.eventId+data.bet365.odds)){
-          log(`제외된 배당입니다.(${data.bet365.eventId+data.bet365.odds})`, "warning", true);
-          break;
-        }
-
-        if(!checkOddsForBet365(data)){
-          benEvent(data, "OBOK", 20000, "벳삼 최소배당 미만");
-          break;
-        }
-
-        if(result){
-          checkType = await checkGameType(data, result.info, false);
-          if(!checkType){
-            //: 벳삼 타입 다름
-            log(`벳365 배팅실패: 벳삼 타입다름`, "danger", true);
-            benEvent(data, "BK", 0);
-            break;
-          }
-        }
-
-        result = await sendData("placeBet", {stake:data.bet365.stake, prevInfo:bet365Info}, PN_B365);
-        if(result && result.info){
-          bet365Info = result.info;
-        }
-        console.log("bet365 betting..", result);
-        if(result === undefined || result === null){
-          log("벳365 배팅실패: 응답없음.", "danger", true);
-          break;
-        }
-
-        // 배팅완료한뒤에는 체크하지 말자.
-        // checkType = await checkGameType(data, result.info);
-        // if(!checkType){
-        //   log(`배팅취소: 벳삼 타입 다름`, "danger", true);
-        //   benEvent(data, "BK", 0);
-        //   if(result.status == "success"){
-        //     log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", "danger", true);
-        //     log(`벳365 배팅완료 후 타입바뀜!`, "danger", true);
-        //     stopMatch(true);
-        //   }
-        //   break;
-        // }
-        if(result.status == "notEnoughFunds"){
-          log(`벳365 배팅실패: ${result.message}`, "danger", true);
-          stopMatch(true);
-          break;
-        }
-
-        if(result.status == "acceptChange"){
-          isChangeOdds = changeOddsBet365Process(data, result.info.odds);
-          if(isChangeOdds){
-            updateBet365Stake(data);
-            checkProfit = profitAllValidation(data);
-          }
-        }else if(result.status == "lakeMoney"){
-          log(`벳365 잔액부족 stake:$${result.stake}, money:$${result.money}`, "danger", true);
-          changeOddsBet365Process(data, result.info.odds);
-          data.bet365.stake = result.money;
-          updatePncStake(data);
-          checkProfit = profitAllValidation(data);
-          lakeMoney = true;
-        }else if(result.status == "success"){
-          if(result.info.market == ""){
-            log(`배팅취소: 배팅카트 사라짐`, "danger", true);
-          }else{
-            log(`벳365 배팅완료!`, "success", true);
-            checkBet = true;
-          }
-          break;
-        }else{
-          log(`벳365 배팅실패: ${result.message}`, "danger", true);
-          if(result.status == "restriction"){
-            stopMatch(true);
-          }
-          break;
-        }
-      }else{
-        log(`배팅취소`, 'danger', true);
-        break;
-      }
-    }
-    activeMain();
-    console.log("bet365 bet complete", result);
-
-    if(checkBet){
-      log("TEST: 벳삼배팅완료", "success", true);
-    }else{
-      log("TEST: 벳삼배팅실패", "danger", true);
-    }
-    return;
+    // if(!flag.isMatching) return;
+    // activeBet365();
+    // // log(`벳365 배팅시작`, "info", true);
+    // let result, checkBet, isChangeOdds, isFirst = true, lakeMoney;
+    // while(1){
+    //   if(1 || checkProfit){
+    //     if(isChangeOdds || isFirst){
+    //       isFirst = false;
+    //       isChangeOdds = false;
+    //       log(`벳365 배팅시작 <span class="text-warning">$${data.bet365.stake}</span>`, "info", true);
+    //     }
+    //
+    //     // BOK
+    //     // if(isBenEvent(data.bet365.id+data.bet365.odds)){
+    //     // OBOK
+    //     if(isBenEvent(data.bet365.eventId+data.bet365.odds)){
+    //       log(`제외된 배당입니다.(${data.bet365.eventId+data.bet365.odds})`, "warning", true);
+    //       break;
+    //     }
+    //
+    //     if(!checkOddsForBet365(data)){
+    //       benEvent(data, "OBOK", 20000, "벳삼 최소배당 미만");
+    //       break;
+    //     }
+    //
+    //     if(result){
+    //       checkType = await checkGameType(data, result.info, false);
+    //       if(!checkType){
+    //         //: 벳삼 타입 다름
+    //         log(`벳365 배팅실패: 벳삼 타입다름`, "danger", true);
+    //         benEvent(data, "BK", 0);
+    //         break;
+    //       }
+    //     }
+    //
+    //     result = await sendData("placeBet", {stake:data.bet365.stake, prevInfo:bet365Info}, PN_B365);
+    //     if(result && result.info){
+    //       bet365Info = result.info;
+    //     }
+    //     console.log("bet365 betting..", result);
+    //     if(result === undefined || result === null){
+    //       log("벳365 배팅실패: 응답없음.", "danger", true);
+    //       break;
+    //     }
+    //
+    //     // 배팅완료한뒤에는 체크하지 말자.
+    //     // checkType = await checkGameType(data, result.info);
+    //     // if(!checkType){
+    //     //   log(`배팅취소: 벳삼 타입 다름`, "danger", true);
+    //     //   benEvent(data, "BK", 0);
+    //     //   if(result.status == "success"){
+    //     //     log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", "danger", true);
+    //     //     log(`벳365 배팅완료 후 타입바뀜!`, "danger", true);
+    //     //     stopMatch(true);
+    //     //   }
+    //     //   break;
+    //     // }
+    //     if(result.status == "notEnoughFunds"){
+    //       log(`벳365 배팅실패: ${result.message}`, "danger", true);
+    //       stopMatch(true);
+    //       break;
+    //     }
+    //
+    //     if(result.status == "acceptChange"){
+    //       isChangeOdds = changeOddsBet365Process(data, result.info.odds);
+    //       if(isChangeOdds){
+    //         updateBet365Stake(data);
+    //         checkProfit = profitAllValidation(data);
+    //       }
+    //     }else if(result.status == "lakeMoney"){
+    //       log(`벳365 잔액부족 stake:$${result.stake}, money:$${result.money}`, "danger", true);
+    //       changeOddsBet365Process(data, result.info.odds);
+    //       data.bet365.stake = result.money;
+    //       updatePncStake(data);
+    //       checkProfit = profitAllValidation(data);
+    //       lakeMoney = true;
+    //     }else if(result.status == "success"){
+    //       if(result.info.market == ""){
+    //         log(`배팅취소: 배팅카트 사라짐`, "danger", true);
+    //       }else{
+    //         log(`벳365 배팅완료!`, "success", true);
+    //         checkBet = true;
+    //       }
+    //       break;
+    //     }else{
+    //       log(`벳365 배팅실패: ${result.message}`, "danger", true);
+    //       if(result.status == "restriction"){
+    //         stopMatch(true);
+    //       }
+    //       break;
+    //     }
+    //   }else{
+    //     log(`배팅취소`, 'danger', true);
+    //     break;
+    //   }
+    // }
+    // activeMain();
+    // console.log("bet365 bet complete", result);
+    //
+    // if(checkBet){
+    //   log("TEST: 벳삼배팅완료", "success", true);
+    // }else{
+    //   log("TEST: 벳삼배팅실패", "danger", true);
+    // }
+    // return;
     ////////////////////
     ////////////////////
 
