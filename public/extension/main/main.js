@@ -818,11 +818,11 @@ async function userYbProcess(data){
           stopMatch(true);
           break;
         }else if(result.status == "foundBetmax"){
-          // let betmax = result.betmax;
-          // if(betmax > betOption.maxBetmax){
-          //   log(`betmax 제한값 초과. 절삭: $${betOption.maxBetmax}`, null, true);
-          //   betmax = betOption.maxBetmax;
-          // }
+          if(betOption.betmaxRatio !== undefined){
+            let nbm = round(result.betmax * betOption.betmaxRatio/100, 2);
+            log(`betmax:${result.betmax} -> ${nbm}(${betOption.betmaxRatio}%)`, null, true);
+            result.betmax = nbm;
+          }
           data.bet365.stake = result.betmax;
           updatePncStake(data);
           changeOddsBet365Process(data, result.info.odds);
