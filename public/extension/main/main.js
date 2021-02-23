@@ -758,7 +758,7 @@ async function userYbProcess(data){
     if(!flag.isMatching) return;
     activeBet365();
     // log(`벳365 배팅시작`, "info", true);
-    let result, checkBet, isChangeOdds, isFirst = true, lakeMoney;
+    let result, checkBet, isChangeOdds, isFirst = true, lakeMoney, fixedBetmax;
     while(1){
       if(checkProfit){
         if(isChangeOdds || isFirst){
@@ -790,7 +790,8 @@ async function userYbProcess(data){
           }
         }
 
-        result = await sendData("placeBet", {stake:data.bet365.stake, prevInfo:bet365Info, betOption}, PN_B365);
+        result = await sendData("placeBet", {fixedBetmax, stake:data.bet365.stake, prevInfo:bet365Info, betOption}, PN_B365);
+        fixedBetmax = false;
         if(result && result.info){
           bet365Info = result.info;
         }
@@ -827,6 +828,7 @@ async function userYbProcess(data){
           changeOddsBet365Process(data, result.info.odds);
           updateBet365Stake(data);
           checkProfit = profitAllValidation(data);
+          fixedBetmax = true;
         }else if(result.status == "acceptChange"){
           isChangeOdds = changeOddsBet365Process(data, result.info.odds);
           if(isChangeOdds){
