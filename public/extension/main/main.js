@@ -822,8 +822,8 @@ async function userYbProcess(data){
           // if(betOption.betmaxRatio !== undefined){
             //ratio 90~100% random
             let ratio = 0.9 * (Math.random()*0.1+0.9);
-            let nbm = round(result.betmax * ratio/100, 2);
-            log(`betmax:${result.betmax} -> ${nbm}(${round(ratio,2)}%)`, null, true);
+            let nbm = round(result.betmax * ratio, 2);
+            log(`betmax:${result.betmax} -> ${nbm}(${round(ratio*100,2)}%)`, null, true);
             result.betmax = nbm;
           // }
           changeOddsBet365Process(data, result.info.odds);
