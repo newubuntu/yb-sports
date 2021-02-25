@@ -790,6 +790,24 @@ async function userYbProcess(data){
           }
         }
 
+        ////////////////////////
+        // 양빵/체크기 옵션적용이 서로 헷갈려서 고정값으로 변경
+        // if(betOption.betmaxRatio !== undefined){
+          //ratio 90~100% random
+        let ratio = 0.9 * (Math.random()*0.1+0.9);
+        let nbm = round(data.bet365.stake * ratio, 2);
+        log(`betmax:${data.bet365.stake} -> ${nbm}(${round(ratio*100,2)}%)`, null, true);
+        data.bet365.stake = nbm;
+        // }
+        // changeOddsBet365Process(data, result.info.odds);
+        // data.bet365.stake = result.betmax;
+        updatePncStake(data);
+        updateBet365Stake(data);
+        checkProfit = profitAllValidation(data);
+        ////////////////////////
+
+        if(!checkProfit) break;
+
         result = await sendData("placeBet", {fixedBetmax, stake:data.bet365.stake, prevInfo:bet365Info, betOption}, PN_B365);
         fixedBetmax = false;
         if(result && result.info){
@@ -818,19 +836,8 @@ async function userYbProcess(data){
           stopMatch(true);
           break;
         }else if(result.status == "foundBetmax"){
-          // 양빵/체크기 옵션적용이 서로 헷갈려서 고정값으로 변경
-          // if(betOption.betmaxRatio !== undefined){
-            //ratio 90~100% random
-            let ratio = 0.9 * (Math.random()*0.1+0.9);
-            let nbm = round(result.betmax * ratio, 2);
-            log(`betmax:${result.betmax} -> ${nbm}(${round(ratio*100,2)}%)`, null, true);
-            result.betmax = nbm;
-          // }
           changeOddsBet365Process(data, result.info.odds);
           data.bet365.stake = result.betmax;
-          updatePncStake(data);
-          updateBet365Stake(data);
-          checkProfit = profitAllValidation(data);
           fixedBetmax = true;
         }else if(result.status == "acceptChange"){
           isChangeOdds = changeOddsBet365Process(data, result.info.odds);
@@ -855,7 +862,10 @@ async function userYbProcess(data){
           break;
         }else{
           log(`벳365 배팅실패: ${result.message}`, "danger", true);
-          if(result.status == "restriction"){
+          if(
+            result.status == "restriction" ||
+            result.status == "needVerify"
+          ){
             stopMatch(true);
           }
           break;
@@ -1244,13 +1254,13 @@ async function checkBetmaxProcess(data){
 
     // 체크기에서 일부러 큰값을 보낸다. 배팅기에서 벳맥스체크를 다시 하도록 유도.
     // 추후에는.. 체크기와 동일한 시점에 작동하도록 고민...
-    betmaxInfo.betmax = betmaxInfo.betmax * 2;
+    // betmaxInfo.betmax = betmaxInfo.betmax * 2;
 
     // 벳맥스체크에서는 원래값을 그냥보내고 배팅기에서 절삭처리하도록 변경한다.
-    // if(betmaxInfo.betmax > betOption.maxBetmax){
-    //   log(`betmax 제한값 초과. 절삭: $${betOption.maxBetmax}`, null, true);
-    //   betmaxInfo.betmax = betOption.maxBetmax;
-    // }
+    if(betmaxInfo.betmax > betOption.maxBetmax){
+      log(`betmax 제한값 초과. 절삭: $${betOption.maxBetmax}`, null, true);
+      betmaxInfo.betmax = betOption.maxBetmax;
+    }
 
     log(`betmax: $${betmaxInfo.betmax}, odds: ${betmaxInfo.info.odds}`, null, true);
     data.bet365.stake = round(betmaxInfo.betmax, 2);

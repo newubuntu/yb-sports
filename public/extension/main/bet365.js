@@ -8,7 +8,8 @@ function bet365JS(){
   }
 
   var MESSAGE = {
-    RESTRICTIONS: "Certain restrictions may be applied to your account. If you have an account balance you can request to withdraw these funds now by going to the Withdrawal page in Members"
+    RESTRICTIONS: "Certain restrictions may be applied to your account. If you have an account balance you can request to withdraw these funds now by going to the Withdrawal page in Members",
+    NEED_VERIFY: "In accordance with licensing conditions we are required to verify your age and identity. Certain restrictions may be applied to your account until we are able to verify your details. Please go to the Know Your Customer page in Members and provide the requested information."
   }
 
   function compareMessage(str, msg){
@@ -313,6 +314,12 @@ function bet365JS(){
     switch(com){
       case "test":
         resolveData = "test!!" + data;
+      break;
+
+      case "waitTest":
+        console.error("wait btn");
+        await waitLoading();
+        console.error("wait btn complete");
       break;
 
       case "loadMoney":
@@ -639,7 +646,7 @@ function bet365JS(){
             // inputWithEvent($input[0], stake);
             await delay(100);
             let btns = await findAcceptOrPlacebetOrPlaced(5000);
-            await delay(1000);
+            await delay(100);
             console.log("find btns", btns);
             let $acceptBtn = btns[0];
             let $placeBetBtn = btns[1];
@@ -733,8 +740,8 @@ function bet365JS(){
               }
 
               $placeBetBtn.click();
-              // await waitLoading();
-              await delay(1000);
+              await waitLoading();
+              // await delay(1000);
               message = betslipMessage();
               console.error("placebet message:", message);
               if(compareMessage(message, MESSAGE.RESTRICTIONS)){
@@ -745,13 +752,22 @@ function bet365JS(){
                 break;
               }
 
-              if(compareMessage(message, MESSAGE.NOT_ENOUGH_FUNDS)){
+              if(compareMessage(message, MESSAGE.NEED_VERIFY)){
                 resolveData = {
-                  status: "notEnoughFunds",
-                  message: "잔액부족"
+                  status: "needVerify",
+                  message: "추가인증 필요"
                 }
                 break;
               }
+
+
+              // if(compareMessage(message, MESSAGE.NOT_ENOUGH_FUNDS)){
+              //   resolveData = {
+              //     status: "notEnoughFunds",
+              //     message: "잔액부족"
+              //   }
+              //   break;
+              // }
               // if(message.indexOf("sorry, you do have enough funds in your account to place this bet") > -1){
               //   // 잔액부족
               // }
@@ -784,8 +800,8 @@ function bet365JS(){
                 await setStake(stake);
                 $acceptBtn.click();
               }
-              // await waitLoading();
-              await delay(1000);
+              await waitLoading();
+              // await delay(1000);
               message = betslipMessage();
               console.error("accept message:", message);
             }else{
@@ -937,10 +953,14 @@ function bet365JS(){
   async function waitLoading(){
     // await delay(100);
     await until(()=>{
-      return $(".bss-ProcessingButton_HasInPlay:visible").length > 0;
+      let i = $(".bss-ProcessingButton").length;
+      console.log("find processing button", i);
+      return i > 0;
     });
     await until(()=>{
-      return $(".bss-ProcessingButton_HasInPlay:visible").length == 0;
+      let i = $(".bss-ProcessingButton").length;
+      console.log("wait hide processing button", i);
+      return i == 0;
     });
     await delay(100);
   }
