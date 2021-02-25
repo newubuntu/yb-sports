@@ -299,7 +299,7 @@ function bet365JS(){
   		el.value = val;
   		el.dispatchEvent(event);
   	}
-    await delay(300);
+    await delay(1000);
     return f;
   }
 
@@ -320,6 +320,24 @@ function bet365JS(){
         console.error("wait btn");
         await waitLoading();
         console.error("wait btn complete");
+      break;
+
+      case "placebetTest":
+        (async ()=>{
+          let btns = await findAcceptOrPlacebetOrPlaced(5000);
+          await delay(100);
+          console.log("find btns", btns);
+          let $acceptBtn = btns[0];
+          let $placeBetBtn = btns[1];
+          let $placed = btns[2];
+          if($placeBetBtn){
+            console.error("start bet");
+            await setStake(1.2);
+            $placeBetBtn.click();
+            await waitLoading();
+            console.error("bet complete");
+          }
+        })()
       break;
 
       case "loadMoney":
@@ -728,7 +746,7 @@ function bet365JS(){
               // await inputWithEvent(".bss-StakeBox_StakeValueInput", stake);
               // await delay(100);
               await setStake(stake);
-              await delay(100);
+              // await delay(1000);
 
               let info = await getBetslipInfo();
               if(prevInfo.handicap != info.handicap){
