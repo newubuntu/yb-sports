@@ -1,6 +1,6 @@
 console.log("main.js");
 // let socket = io(SOCKET_URL, { transports: ['websocket'] });
-
+var version = 2;
 // log.setSendFunc = sendData;
 
 
@@ -1537,7 +1537,7 @@ async function init(){
   let bgCode = bgJS.toString().replace(/^function bgJS\(\)\{/,'').replace(/}$/,'');
   // let params = getParam();
   urlParams = getUrlParams(window.location.href);
-  history.replaceState({}, "index", "http://localhost:8080/main.html");
+  history.replaceState({}, "index", "http://localhost:8080/main.html?v=" + version);
 
   // axios.get("http://lumtest.com/myip.json").then(res=>{
   //   console.error(res.data);
