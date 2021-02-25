@@ -687,7 +687,7 @@ async function reLogin(){
   return m;
 }
 
-function setBet365RandomStake(stake){
+function setBet365RandomStake(data, stake){
   let ratio = 0.95 * (Math.random()*0.05+0.95);
   let nbm = round(stake * ratio, 2);
   log(`stake rand: ${stake} -> ${nbm}(${round(ratio*100,2)}%)`, null, true);
@@ -764,7 +764,7 @@ async function userYbProcess(data){
     return;
   }
 
-  setBet365RandomStake(data.bet365.stake);
+  setBet365RandomStake(data, data.bet365.stake);
   checkProfit = profitAllValidation(data);
 
   if(checkProfit){
@@ -834,7 +834,7 @@ async function userYbProcess(data){
           break;
         }else if(result.status == "foundBetmax"){
           changeOddsBet365Process(data, result.info.odds);
-          setBet365RandomStake(result.betmax);
+          setBet365RandomStake(data, result.betmax);
           fixedBetmax = true;
         }else if(result.status == "acceptChange"){
           isChangeOdds = changeOddsBet365Process(data, result.info.odds);
