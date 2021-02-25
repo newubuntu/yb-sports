@@ -584,7 +584,7 @@ function updateBet365Stake(data){
   // 유저 양빵단계의 벳삼 배당 변동시에는 벳삼 stake를 다시 계산해주고 판단한다.
   data.bet365.stake = round(calc.stakeB(data.pinnacle.odds, data.bet365.odds, data.pinnacle.stake), 2);
   if(data.bet365.stake > betOption.maxBetmax){
-    data.bet365.stake = round(betOption.maxBetmax * (Math.random()*0.1+0.9), 2);
+    data.bet365.stake = round(betOption.maxBetmax * (Math.random()*0.05+0.95), 2);
     updatePncStake(data);
   }
 }
@@ -687,6 +687,18 @@ async function reLogin(){
   return m;
 }
 
+function setBet365RandomStake(stake){
+  let ratio = 0.95 * (Math.random()*0.05+0.95);
+  let nbm = round(stake * ratio, 2);
+  log(`stake rand: ${stake} -> ${nbm}(${round(ratio*100,2)}%)`, null, true);
+  data.bet365.stake = nbm;
+  // }
+  // changeOddsBet365Process(data, result.info.odds);
+  // data.bet365.stake = result.betmax;
+  updatePncStake(data);
+  updateBet365Stake(data);
+}
+
 // 유저 양빵 처리
 async function userYbProcess(data){
   console.log(data);
@@ -752,6 +764,7 @@ async function userYbProcess(data){
     return;
   }
 
+  setBet365RandomStake(data.bet365.stake);
   checkProfit = profitAllValidation(data);
 
   if(checkProfit){
@@ -790,23 +803,7 @@ async function userYbProcess(data){
           }
         }
 
-        ////////////////////////
-        // 양빵/체크기 옵션적용이 서로 헷갈려서 고정값으로 변경
-        // if(betOption.betmaxRatio !== undefined){
-          //ratio 90~100% random
-        let ratio = 0.9 * (Math.random()*0.1+0.9);
-        let nbm = round(data.bet365.stake * ratio, 2);
-        log(`betmax:${data.bet365.stake} -> ${nbm}(${round(ratio*100,2)}%)`, null, true);
-        data.bet365.stake = nbm;
-        // }
-        // changeOddsBet365Process(data, result.info.odds);
-        // data.bet365.stake = result.betmax;
-        updatePncStake(data);
-        updateBet365Stake(data);
-        checkProfit = profitAllValidation(data);
-        ////////////////////////
 
-        if(!checkProfit) break;
 
         result = await sendData("placeBet", {fixedBetmax, stake:data.bet365.stake, prevInfo:bet365Info, betOption}, PN_B365);
         fixedBetmax = false;
@@ -837,7 +834,7 @@ async function userYbProcess(data){
           break;
         }else if(result.status == "foundBetmax"){
           changeOddsBet365Process(data, result.info.odds);
-          data.bet365.stake = result.betmax;
+          setBet365RandomStake(result.betmax);
           fixedBetmax = true;
         }else if(result.status == "acceptChange"){
           isChangeOdds = changeOddsBet365Process(data, result.info.odds);
