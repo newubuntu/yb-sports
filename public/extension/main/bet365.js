@@ -969,18 +969,19 @@ function bet365JS(){
   }
 
   async function waitLoading(){
-    // await delay(100);
-    await until(()=>{
-      let i = $(".bss-ProcessingButton").length;
-      console.log("find processing button", i);
-      return i > 0;
-    });
-    await until(()=>{
-      let i = $(".bss-ProcessingButton").length;
-      console.log("wait hide processing button", i);
-      return i == 0;
-    });
     await delay(100);
+    return findAcceptOrPlacebetOrPlaced(15000);
+    // await until(()=>{
+    //   let i = $(".bss-ProcessingButton").length;
+    //   console.log("find processing button", i);
+    //   return i > 0;
+    // });
+    // await until(()=>{
+    //   let i = $(".bss-ProcessingButton").length;
+    //   console.log("wait hide processing button", i);
+    //   return i == 0;
+    // });
+    // await delay(100);
   }
 
   var messagePromises = window['messagePromises']||{};
