@@ -418,8 +418,17 @@ function bet365JS(){
         }
       break;
 
+      case "setPreUrl":
+        timestamp("setPreUrl");
+        // localStorage.setItem("setPreUrl", data);
+        // window.location.href = data;
+      break;
+
       case "setUrl":
+        // 작업중0
         timestamp("setUrl");
+        // let preUrl = localStorage.getItem("setPreUrl");
+        // if(preUrl != data.betLink){
         setInitMessage(message);
         console.error("setUrl", data.betLink);
         currentData = data;

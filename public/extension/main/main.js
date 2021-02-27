@@ -1064,6 +1064,10 @@ function checkOddsForBet365(data){
   return true;
 }
 
+function openBet365EveryBrowser(data){
+  sendDataToServer("inputGameUrl", data.bet365.betLink);
+}
+
 async function checkBetmaxProcess(data){
   console.log(data);
   // let ids = getEventIds(data);
@@ -1119,6 +1123,7 @@ async function checkBetmaxProcess(data){
   let bet365Info, checkProfit, checkType, isTypeTest = false;
   // #2 벳삼열어서 배당 및 타입체크
   if(checkLine){
+    openBet365EveryBrowser(data);
     bet365Info = await openBet365AndGetInfo(data);
     if(!bet365Info){
       return;
@@ -1707,6 +1712,9 @@ async function init(){
     findMatch2(data);
   })
 
+  socket.on("gameurl", data=>{
+    sendData("setPreUrl", data, PN_B365, true);
+  })
 }
 
 init();

@@ -313,6 +313,13 @@ module.exports = MD=>{
         //   BetData.create(obj);
         // })
 
+        socket.on("inputGameUrl", obj=>{
+          console.log("inputGameUrl");
+          let room = "__data_receiver2__";
+          // console.log(io.sockets.clients(room));
+          io.to(room).emit("gameurl", obj);          
+        })
+
         //정재된 매칭 게임데이터
         socket.on("inputGameData", async obj=>{
           //if(argv[0] == "master"){
