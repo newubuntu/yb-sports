@@ -129,6 +129,15 @@ let Vapp;
         return '';
       },
 
+      getSide(item, who){
+        let obj = item.event.betburger[who];
+        if(obj.side){
+          return `${obj.side} ${obj.handicap}`;
+        }else{
+          return `${obj[obj.homeAway]} (${obj.team})`;
+        }
+      },
+
       changeSearchId(){
         this.accountId = $('.search-id').val();
       },
@@ -181,6 +190,7 @@ let Vapp;
         this.accountId = accountId;
         this.status = status;
         this.betId = betId;
+        this.eventName = eventName;
         let range = startPicker.getRange();
         range.end = new Date(range.end.getTime() + (1000*60*60*24 - 1000));
         // this.accountId = accountId;
