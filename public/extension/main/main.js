@@ -556,6 +556,7 @@ function getNextData(){
 }
 
 async function commonProcess(data, noCheckBalance){
+  let emptyObj = {};
   console.log(data);
   // let ids = getEventIds(data);
   printGame(data);
@@ -563,14 +564,14 @@ async function commonProcess(data, noCheckBalance){
   if(!noCheckBalance){
     if(!(await checkBalance())){
       stopMatch(true);
-      return;
+      return emptyObj;
     }
   }
 
   let bet365Info, checkProfit, checkType;
   bet365Info = await openBet365AndGetInfo(data);
   if(!bet365Info){
-    return;
+    return emptyObj;
   }
 
   if(bet365Info.money == null){
@@ -582,19 +583,19 @@ async function commonProcess(data, noCheckBalance){
     if(m == null){
       log("재 로그인 실패. 브라우져를 다시 켜주세요.", "danger", true);
       stopMatch(true);
-      return;
+      return emptyObj;
     }else{
       log("벳365 재로그인 완료. 링크 다시 여는중..", null, true);
       bet365Info = await openBet365AndGetInfo(data);
       if(!bet365Info){
-        return;
+        return emptyObj;
       }
     }
   }
 
   if(!checkBet365TeamName(data, bet365Info)){
     log(`배팅취소: 벳삼 팀이름 다름`, "danger", true);
-    return;
+    return emptyObj;
   }
 
   checkType = await checkGameType(data, bet365Info, false);
@@ -603,12 +604,12 @@ async function commonProcess(data, noCheckBalance){
     //: 벳삼 타입 다름
     log(`배팅취소: 벳삼 타입다름`, "danger", true);
     benEvent(data, "BK", 0);
-    return;
+    return emptyObj;
   }
 
   if(checkLakeMoney(data, bet365Info.money)){
     sendDataToSite("sound", {name:"lakeBet365Money"});
-    return;
+    return emptyObj;
   }
 
   if(changeOddsBet365Process(data, bet365Info.odds)){
@@ -618,7 +619,7 @@ async function commonProcess(data, noCheckBalance){
   if(!checkOddsForBet365(data)){
     log(`배팅취소`, "danger", true);
     benEvent(data, "OBOK", 20000, "벳삼 최소배당 미만");
-    return;
+    return emptyObj;
   }
 
   setBet365RandomStake(data, data.bet365.stake);
@@ -628,6 +629,7 @@ async function commonProcess(data, noCheckBalance){
 }
 
 async function bet365PlacebetProcess(data, bet365Info){
+  let emptyObj = {};
   activeBet365();
   // log(`벳365 배팅시작`, "info", true);
   let result, checkBet, isChangeOdds, isFirst = true, lakeMoney, fixedBetmax;
