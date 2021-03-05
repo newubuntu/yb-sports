@@ -753,6 +753,10 @@ async function userVlProcess(data){
     if(!flag.isMatching) return;
     let {checkBet, lakeMoney, result} = await bet365PlacebetProcess(data, bet365Info);
 
+    if(checkBet){
+      sendDataToSite("sound", {name:"coin1"});
+    }
+
     if(lakeMoney){
       stopMatch(true);
       sendDataToSite("sound", {name:"lakeBet365Money"});
