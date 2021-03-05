@@ -421,6 +421,7 @@ function bet365JS(){
       case "setPreUrl":
         timestamp("setPreUrl");
         // localStorage.setItem("setPreUrl", data);
+        // localStorage.setItem("setUrl", true);
         // window.location.href = data;
       break;
 
@@ -1233,8 +1234,7 @@ function bet365JS(){
   }
 
   $(document).ready(async ()=>{
-
-    // setupScreenLock();
+    setupScreenLock();
     setupKeyLock();
     setupContextMenuLock();
     setupOnMessage();
