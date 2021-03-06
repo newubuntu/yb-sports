@@ -569,7 +569,22 @@ async function commonProcess(data, noCheckBalance){
   }
 
   let bet365Info, checkProfit, checkType;
-  bet365Info = await openBet365AndGetInfo(data);
+  bet365Info = await new Promise(resolve=>{
+    let t;
+    let itv = setTimeout(()=>{
+      t = true;
+      log(`벳365 반응없음`, "danger", true);
+      resolve(null);
+    }, 30000);
+
+    openBet365AndGetInfo(data).then(info=>{
+      clearTimeout(itv);
+      if(!t){
+        resolve(info);
+      }
+    })
+  })
+  // bet365Info = await openBet365AndGetInfo(data);
   if(!bet365Info){
     return emptyObj;
   }
