@@ -1302,6 +1302,12 @@ async function checkBetmaxProcess(data){
   console.error("wait pnc balance");
   let balance = await sendData("getBalance", null, PN_BG);
   console.error("balance", balance);
+  if(balance.code === "INVALID_CREDENTIALS"){
+    log(`피나클 잔액확인 실패: ${balance.message}`, "warning", true);
+    stopMatch(true);
+    return;
+  }
+
   if(balance.availableBalance < 10){
     log(`피나클 충전이 필요합니다. ($${balance.availableBalance})`, "warning", true);
     stopMatch(true);
