@@ -1301,6 +1301,7 @@ async function checkBetmaxProcess(data){
 
   console.error("wait pnc balance");
   let balance = await sendData("getBalance", null, PN_BG);
+  console.error("balance", balance);
   if(balance.availableBalance < 10){
     log(`피나클 충전이 필요합니다. ($${balance.availableBalance})`, "warning", true);
     stopMatch(true);
