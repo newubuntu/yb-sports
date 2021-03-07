@@ -758,11 +758,12 @@ async function bet365PlacebetProcess(data, bet365Info){
   if(checkBet){
     sendDataToServer("updateMoney", result.money - result.stake);
     benEvent(data, "OBOK", 0, "배팅완료");
-    if(noChangeOddsAcceptCount >= 3){
-      // 배당이 안바뀐 accept버튼이 3회 이상 출현시 해당 이벤트를 OBOIK벤
-      // log(`벳365 배팅실패: 리밋계정 막힌 이벤트`, "danger", true);
-      benEvent(data, "OBOIK", 0, "리밋계정 막힌 이벤트");
-    }
+  }
+
+  if(noChangeOddsAcceptCount >= 3){
+    // 배당이 안바뀐 accept버튼이 3회 이상 출현시 해당 이벤트를 OBOIK벤
+    // log(`벳365 배팅실패: 리밋계정 막힌 이벤트`, "danger", true);
+    benEvent(data, "OBOIK", 0, "리밋계정 막힌 이벤트");
   }
 
   return {checkBet, lakeMoney, result};
