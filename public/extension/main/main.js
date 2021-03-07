@@ -648,7 +648,7 @@ async function bet365PlacebetProcess(data, bet365Info){
   activeBet365();
   // log(`벳365 배팅시작`, "info", true);
   let result, checkBet, isChangeOdds, isFirst = true, lakeMoney, fixedBetmax;
-  let checkProfit = true, checkType;
+  let checkProfit = true, checkType, noChangeOddsAcceptCount = 0;
   while(1){
     if(checkProfit){
       if(isChangeOdds || isFirst){
@@ -714,10 +714,18 @@ async function bet365PlacebetProcess(data, bet365Info){
         setBet365RandomStake(data, result.betmax);
         fixedBetmax = true;
       }else if(result.status == "acceptChange"){
+        // let prevOdds = data.bet365.odds;
         isChangeOdds = changeOddsBet365Process(data, result.info.odds);
         if(isChangeOdds){
           updateBet365Stake(data);
           checkProfit = profitAllValidation(data);
+        }else{
+          if(++noChangeOddsAcceptCount >= 3){
+            // 배당이 안바뀐 accept버튼이 3회 이상 출현시 해당 이벤트를 OBOIK벤
+            log(`벳365 배팅실패: 리밋계정 막힌 이벤트`, "danger", true);
+            benEvent(data, "OBOIK", 0, "");
+            break;
+          }
         }
       }else if(result.status == "lakeMoney"){
         log(`벳365 잔액부족 stake:$${result.stake}, money:$${result.money}`, "danger", true);
@@ -1013,6 +1021,8 @@ function getEventIds(data){
     BOK: data.bet365.id + data.bet365.odds,
     //origin bet365 event id + odds  key
     OBOK: data.bet365.eventId + data.bet365.odds,
+    //origin bet365 event id + odds + id  key
+    OBOIK: data.bet365.eventId + data.bet365.odds + account.id,
     // matchId: data.pinnacle.id + ':' + data.bet365.id
     EK: data.pinnacle.betburgerEventId,
     EBOK: data.pinnacle.betburgerEventId + data.bet365.odds,
@@ -1026,11 +1036,19 @@ function updateBet365Link(data){
   })
 }
 
+function randomRatio(){
+  let start = 0.5;
+  let end = 0.95;
+  // return Math.random()*0.05+0.95;
+  // return Math.random()*0.45+0.5;
+  return Math.random() * (end-start) + start;
+}
+
 function updateBet365Stake(data){
   // 유저 양빵단계의 벳삼 배당 변동시에는 벳삼 stake를 다시 계산해주고 판단한다.
   data.bet365.stake = round(calc.stakeB(data.pinnacle.odds, data.bet365.odds, data.pinnacle.stake), 2);
   if(data.bet365.stake > betOption.maxBetmax){
-    data.bet365.stake = round(betOption.maxBetmax * (Math.random()*0.05+0.95), 2);
+    data.bet365.stake = round(betOption.maxBetmax * randomRatio(), 2);
     updatePncStake(data);
   }
 }
@@ -1134,7 +1152,7 @@ async function reLogin(){
 }
 
 function setBet365RandomStake(data, stake){
-  let ratio = 0.95 * (Math.random()*0.05+0.95);
+  let ratio = 0.95 * randomRatio()
   let nbm = round(stake * ratio, 2);
   log(`stake rand: ${stake} -> ${nbm}(${round(ratio*100,2)}%)`, null, true);
   data.bet365.stake = nbm;

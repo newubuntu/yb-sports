@@ -240,41 +240,49 @@
 
 
 
-  // 중복로긴 방지
-  app.use((req, res, next) => {
-    const page = req.path || "";
-    const uri = page.replace(/\?.*/, "");
-
-    // 정적파일 요청의 경우 스킵
-    if (uri.includes(".")) {
-      next();
-      return;
-    }
-
-    // 중복 로그인 체크
-    if (req.session.user) {
-      const { user } = req.session;
-      store.all((_, sessions) => {
-        sessions.forEach( e=> {
-          // 세션에 사용자 정보가 담겨있고, 담겨있는 사용자의 아이디와 현재 세션의 사용자 아이디가 같지만
-          // 세션의 ID가 다른 경우 다른 디바이스에서 접속한걸로 간주하고 이전에 등록된 세션을 파괴한다.
-          if (e.user && e.user.email == user.email && e.id != req.session.id) {
-            console.log("중복로긴. 세션파괴", e.user.email);
-            store.destroy(e.id, error=> {
-              /* redis 오류로 인한 에러 핸들링 */
-              if(error){
-                console.error("session destroy error", error);
-                return;
-              }
-              io.to(user.email).emit("destroyedSession");
-            });
-          }
-        });
-      });
-    }
-    // console.log("!!!! next", i);
-    next();
-  })
+  // 중복로긴 방지 -> user.js login부분으로 옮김
+  // app.use((req, res, next) => {
+  //   const page = req.path || "";
+  //   const uri = page.replace(/\?.*/, "");
+  //
+  //   // 정적파일 요청의 경우 스킵
+  //   if (uri.includes(".")) {
+  //     next();
+  //     return;
+  //   }
+  //
+  //   // 중복 로그인 체크
+  //   if (req.session.user) {
+  //     const { user } = req.session;
+  //     console.log("@@@@@@@@@SESSION CHECK");
+  //     store.all((_, sessions) => {
+  //       sessions.forEach( e=> {
+  //         // 세션에 사용자 정보가 담겨있고, 담겨있는 사용자의 아이디와 현재 세션의 사용자 아이디가 같지만
+  //         // 세션의 ID가 다른 경우 다른 디바이스에서 접속한걸로 간주하고 이전에 등록된 세션을 파괴한다.
+  //         if (e.user && e.user.email == user.email && e.id != req.session.id) {
+  //           console.log("destroy session", e.user.email);
+  //           if(e.socketId){
+  //             console.log("SOCKET CLOSE!!!!", e.socketId);
+  //             if(io.sockets.sockets[e.socketId]){
+  //               io.sockets.sockets[e.socketId].close();
+  //             }
+  //             // e._socket.close();
+  //           }
+  //           store.destroy(e.id, error=> {
+  //             /* redis 오류로 인한 에러 핸들링 */
+  //             if(error){
+  //               console.error("session destroy error", error);
+  //               return;
+  //             }
+  //             io.to(user.email).emit("destroyedSession");
+  //           });
+  //         }
+  //       });
+  //     });
+  //   }
+  //   // console.log("!!!! next", i);
+  //   next();
+  // })
 
   app.disable('x-powered-by');
   app.use(compression());
@@ -369,7 +377,7 @@
   })
 
   const apiRouter = require("./routers/api")(io);
-  const userRouter = require("./routers/user")(io);
+  const userRouter = require("./routers/user")(io, store);
 
   app.use("/api", apiRouter);
   app.use("/user", userRouter);
@@ -394,7 +402,7 @@
   app.set('views', './views');
   app.set('view engine', 'pug');
 
-  
+
 
   io.use(ios(_session, {autoSave:true}));
 

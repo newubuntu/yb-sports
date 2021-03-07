@@ -60,6 +60,9 @@ module.exports = MD=>{
         return;
       }
 
+      // console.log("SOCKET SESSION", session);
+      session.socketId = socket.id;
+
       if(session.user){
         email = session.user.email;
       }else{
