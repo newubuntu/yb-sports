@@ -1037,7 +1037,7 @@ function updateBet365Link(data){
 }
 
 function randomRatio(){
-  let start = 0.5;
+  let start = 0.9;
   let end = 0.95;
   // return Math.random()*0.05+0.95;
   // return Math.random()*0.45+0.5;
