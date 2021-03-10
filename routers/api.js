@@ -926,6 +926,9 @@ module.exports = io=>{
     }
 
     let json = {};
+    json.server = setting.value["proxyServer"];
+    json.customer = setting.value["proxyCustomer"];
+    json.token = setting.value["proxyApiToken"];
     // console.log("??", code)
     if(code != "undefined" && code){
       // console.log("#$%");
@@ -935,9 +938,6 @@ module.exports = io=>{
     }else{
       // json = {};
       // console.log("!!", setting.value);
-      json.server = setting.value["proxyServer"];
-      json.customer = setting.value["proxyCustomer"];
-      json.token = setting.value["proxyApiToken"];
       let countrys = {};
       for(let o in setting.value){
         // console.log("-", o);
