@@ -125,16 +125,7 @@ let Vapp;
             }
           })
         }
-        // console.log("program", program);
-        // program.browsers.forEach(browser=>{
-        //   // console.log("browser", browser);
-        //   if(data.bids.indexOf(browser._id) > -1){
-        //     browser.isOn = true;
-        //   }else{
-        //     browser.isOn = false;
-        //     browser.ip = "";
-        //   }
-        // })
+
         Vapp.$forceUpdate();
       }
     })
@@ -143,7 +134,7 @@ let Vapp;
   Vapp = new Vue({
     el: "#app",
     data: {
-      user: user,
+      // user: user,
       programs: [],
       //money갱신시 쓰임.
       accounts: [],
@@ -155,30 +146,6 @@ let Vapp;
       console.log("wait socketReady");
       await socketReady;
       setupSocket();
-
-      // // console.log("update ip");
-      // let res = await api.getUser();
-      // if(res.status == "success"){
-      //   res.data.programs.forEach(program=>{
-      //     // connectedProgram
-      //     // receiveLivingBrowsers
-      //
-      //     program.browsers.forEach(browser=>{
-      //       // console.error("???", program._id, browser._id, "getIP")
-      //       // sendDataToBg(program._id, browser._id, "getIP");
-      //       // delay(100).then(()=>{
-      //       //   // sendDataToBg(program._id, browser._id, "getIP");
-      //       //   sendDataToBg(program._id, browser._id, "getState");
-      //       // })
-      //       // this.updateLogScroll(browser._id);
-      //       if(browser.account){
-      //         this.accounts.push(browser.account);
-      //       }
-      //     })
-      //   })
-      //
-      //   this.programs = res.data.programs;
-      // }
 
       this.load();
 
@@ -193,39 +160,8 @@ let Vapp;
       this.$nextTick(()=>{
         $(this.$el).removeClass("pre-hide");
         this.$withdrawForm = $(".withdraw-form").removeClass("pre-hide").remove();
-        // this.programs.forEach(program=>{
-        //   delay(100).then(()=>{
-        //     sendDataToProgram(program._id, "getLivingBrowsers");
-        //   })
-        // })
         appMountedResolve();
       })
-
-      // this.$nextTick(async ()=>{
-      //   for(let j=0; j<this.programs.length; j++){
-      //     let program = this.programs[j];
-      //     for(let i=0; i<program.browsers.length; i+=2){
-      //       let browsers = program.browsers.slice(i, i+2);
-      //       for(let k=0; k<browsers.length; k++){
-      //         let browser = browsers[k];
-      //         loadingLock();
-      //         let res = await api.loadLogs(browser._id);
-      //         loadingUnlock();
-      //         // await delay(1000);
-      //         if(res.status == "success"){
-      //           // console.log(browser, res.data);
-      //           browser.logs = res.data;
-      //           this.updateLogScroll(browser._id);
-      //         }
-      //       }
-      //     }
-      //   }
-        // this.programs.forEach(program=>{
-        //   delay(100).then(()=>{
-        //     sendDataToProgram(program._id, "getLivingBrowsers");
-        //   })
-        // })
-      // })
     },
 
     methods: {
@@ -265,23 +201,12 @@ let Vapp;
                   console.log("load logs", browser._id);
                   return api.loadLogs(browser._id).then(res=>{
                     if(res.status == "success"){
-                      // console.log(browser, res.data);
-                      // browser.logs = res.data.reverse();
-                      // this.updateLogScroll(browser._id);
 
                       this.setupLog(browser, res.data.reverse());
                     }
                   })
                 }))
-                // for(let k=0; k<browsers.length; k++){
-                //   let browser = browsers[k];
-                //   // let res = await api.loadLogs(browser._id);
-                //   // if(res.status == "success"){
-                //   //   // console.log(browser, res.data);
-                //   //   browser.logs = res.data.reverse();
-                //   //   this.updateLogScroll(browser._id);
-                //   // }
-                // }
+
               }
             }
             // loadingUnlock();
@@ -357,12 +282,6 @@ let Vapp;
       },
 
       async withdraw(program, browser, withdrawMoney){
-        // $(`.btn-withdraw-money[data-bid="${browser._id}"]`).prop("disabled", true);
-        // setTimeout(()=>{
-        //   refreshMoneyFlag[browser._id] = false;
-        //   $(`.btn-refresh-money[data-bid="${browser._id}"]`).prop("disabled", null);
-        // }, 1000);
-
 
 
         let money = await sendDataToMainPromise(program._id, browser._id, "withdraw", withdrawMoney);
@@ -828,25 +747,3 @@ let Vapp;
 
   appReadyResolve();
 })()
-
-//
-// function _sendData(com, data, pid, to, noResolve){
-//   let msg = {com, data, to, from:PN_B365};
-//   if(noResolve){
-//     console.log("sendData", msg);
-//     chrome.runtime.sendMessage(msg);
-//     return;
-//   }
-//   let mid = guid();
-//   let _code = com+'@'+mid;
-//   msg._code = _code;
-//
-//   console.log("sendData", msg);
-//   chrome.runtime.sendMessage(msg);
-//   return new Promise(resolve=>{
-//     messagePromises[_code] = (d)=>{
-//       delete messagePromises[_code];
-//       resolve(d);
-//     }
-//   })
-// }

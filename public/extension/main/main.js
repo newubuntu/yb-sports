@@ -680,7 +680,7 @@ async function bet365PlacebetProcess(data, bet365Info){
         }
       }
 
-      await delay(Math.random()*1000);
+      // await delay(Math.random()*1000);
 
       result = await sendData("placeBet", {fixedBetmax, stake:data.bet365.stake, prevInfo:bet365Info, betOption}, PN_B365);
       fixedBetmax = false;

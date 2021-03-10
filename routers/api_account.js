@@ -488,10 +488,16 @@ module.exports = MD=>{
 
 
   // 기본적으로 본인이 소유한 계정만 가져오도록 한다.
-  router.get("/get_linked_accounts", task(async (req, res)=>{
-    let accounts;
+  router.post("/get_linked_accounts", task(async (req, res)=>{
+    let accounts, user;
+    let targetEmail = req.body.email;
+    if(targetEmail){
+      user = await User.findOne({email:targetEmail});
+    }else{
+      user = req.user;
+    }
     accounts = await Account.find({
-      user:req.user._id,
+      user:user._id,
       trash:false,
       removed:false
       // 출금완료가 체크됐어도 요청에의해 휴지통에서 복구했을수 있기때문에

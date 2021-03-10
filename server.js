@@ -432,10 +432,6 @@
       link: "/depositHistory",
       name: "입/출금기록"
     },{
-      link: "/admin/dashboard",
-      name: "[관리자] 대시보드",
-      admin: true
-    },{
       link: "/admin/accountManager",
       name: "[관리자] 계정관리",
       admin: true
@@ -451,6 +447,11 @@
       link: "/admin/betHistory",
       name: "[관리자] 배팅기록",
       admin: true
+    },{
+      link: "/admin/dashboard",
+      name: "[마스터] 원격 대시보드",
+      admin: true,
+      master: true
     },{
       link: "/admin/memberManager",
       name: "[마스터] 회원관리",

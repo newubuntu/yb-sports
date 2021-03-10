@@ -37,8 +37,8 @@ module.exports = MD=>{
     MoneyManager
   } = MD;
 
-  let chekerSocket;
-  let chekerBid;
+  // let chekerSocket;
+  // let chekerBid;
 
   io.on('connection', socket=>{
     console.log("socket connected", socket.id);
@@ -49,6 +49,13 @@ module.exports = MD=>{
     // console.log(io);
     // console.log("socket session", socket.handshake.session);
 
+    function emit(...rest){
+      let ctx = io.to(socket._email);
+      if(socket._remoteEmail){
+        ctx = ctx.to(socket._remoteEmail);
+      }
+      ctx.emit.apply(ctx, rest);
+    }
 
     socket.on("init", async data=>{
       console.log("init", data);
@@ -69,7 +76,7 @@ module.exports = MD=>{
         let user = await User.findOne({programs:{$in:[data.pid]}});
         if(!user){
           console.error("프로그램 연결중 pid를 가진 user를 찾지못함.");
-          socket.emit("email", null);
+          emit("email", null);
           return;
         }
         email = user.email;
@@ -123,6 +130,9 @@ module.exports = MD=>{
 
         // console.error("###", email, await io.$.list('admin'), socket.id);
         // socket.join([email, data.pageCode]);
+      }else{
+        console.error("socket init no email");
+        return;
       }
 
       function emitToDashboard(...args){
@@ -160,7 +170,7 @@ module.exports = MD=>{
 
       function emitPromise(com, data){
         let uuid = uuidv4();
-        socket.emit(com, data, uuid);
+        emit(com, data, uuid);
         return new Promise(resolve=>{
           socketResolveList[uuid] = resolve;
         })
@@ -209,24 +219,26 @@ module.exports = MD=>{
         socket.on("joinChecker", async (bid)=>{
           // console.log("@@@has chekerSocket", !!chekerSocket)
           console.log("##joinChecker");
-          if(chekerSocket == socket){
-            if(chekerBid !== bid){
-              chekerSocket.emit("closeBrowser", chekerBid);
-              console.log("prev cheker close");
-            }
-            chekerBid = bid;
-          }else{
-            if(chekerSocket){
-              chekerSocket.leave("__checker__");
-              // await io.$.leave("__checker__", chekerSocket);
-              chekerSocket.emit("closeBrowser", chekerBid);
-              console.log("prev cheker close");
-            }
-            socket.join("__checker__");
-            // await io.$.join("__checker__", socket);
-            chekerSocket = socket;
-            chekerBid = bid;
-          }
+          socket.join("__checker__");
+
+          // if(chekerSocket == socket){
+          //   if(chekerBid !== bid){
+          //     chekerSocket.emit("closeBrowser", chekerBid);
+          //     console.log("prev cheker close");
+          //   }
+          //   chekerBid = bid;
+          // }else{
+          //   if(chekerSocket){
+          //     chekerSocket.leave("__checker__");
+          //     // await io.$.leave("__checker__", chekerSocket);
+          //     chekerSocket.emit("closeBrowser", chekerBid);
+          //     console.log("prev cheker close");
+          //   }
+          //   socket.join("__checker__");
+          //   // await io.$.join("__checker__", socket);
+          //   chekerSocket = socket;
+          //   chekerBid = bid;
+          // }
         })
 
         socket.on("joinDataReceiver", abid=>{
@@ -303,7 +315,7 @@ module.exports = MD=>{
           // io.to(email + ":dashboard").emit(com, data, socket._pid, bid);
           if(uuid){
             let r = await emitToDashboardPromise(com, data, socket._pid, bid);
-            socket.emit("resolve", r, uuid);
+            emit("resolve", r, uuid);
           }else{
             emitToDashboard(com, data, socket._pid, bid);
           }
@@ -380,12 +392,14 @@ module.exports = MD=>{
         socket.on("disconnect", async ()=>{
           console.log("disconnect program socket", socket._pid);
 
-          if(chekerSocket === socket){
-            chekerSocket.leave("__checker__");
-            // await io.$.leave("__checker__", chekerSocket);
-            chekerSocket = null;
-            chekerBid = null;
-          }
+          socket.leave("__checker__");
+
+          // if(chekerSocket === socket){
+          //   chekerSocket.leave("__checker__");
+          //   // await io.$.leave("__checker__", chekerSocket);
+          //   chekerSocket = null;
+          //   chekerBid = null;
+          // }
           // io.to(email+':dashboard').emit("receiveLivingBrowsers", {pid:socket._pid, bids:[]});
           emitToDashboard("receiveLivingBrowsers", {
             pid:socket._pid,
@@ -452,6 +466,26 @@ module.exports = MD=>{
         //   console.log("bet365InitData", data);
         // })
 
+        socket.on("remoteDashboardLogin", email=>{
+          if(!socket._remoteKeyList) socket._remoteKeyList = [];
+          socket._remoteKeyList.forEach(key=>{
+            socket.leave(key);
+          })
+          socket._remoteKeyList = [];
+          socket._remoteEmail = "";
+
+          if(email){
+            socket._remoteKeyList = [
+              email,
+              email + "/dashboard"
+            ]
+            socket._remoteKeyList.forEach(key=>{
+              socket.join(key);
+            })
+          }
+          socket._remoteEmail = email;
+        })
+
         socket.on("updateBet365MoneyFromSite", async ({money, aid, uid})=>{
           // let account = await Account.findOne({_id:aid}).select(["user"]);
           console.log("updateBet365MoneyFromSite", money);
@@ -478,21 +512,33 @@ module.exports = MD=>{
           }else{
             // console.log(`delivery promise`, obj, uuid);
             let r = await emitToProgramPromise(pid, data.com, data.data);
-            socket.emit("resolve", r, uuid);
+            emit("resolve", r, uuid);
           }
         })
 
+        // function emitWithOne(email, ...rest){
+        //   socket.emit.apply(socket, rest);
+        //   if(email && socket._email != email){
+        //     let ctx = io.to(email);
+        //     ctx.emit.apply(ctx, rest);
+        //   }
+        // }
+
         socket.on("addProgram", async ()=>{
           try{
-            console.log('receive addProgram', email);
-            let user = await User.findOne({email:email});
+            let em = email;
+            console.log('receive addProgram', em);
+            let user = await User.findOne({email:em});
             if(user.programs.length < user.programCount){
               // console.log('found user', user);
               let program = await user.addProgram();
               // console.log('added program', program);
-              socket.emit("addProgram", program);
+              emit("addProgram", program);
+              // 파라메터로 대상 email이 들어오고 현재 소켓접속 유저와 다르면 파라메터 이메일의 주인에게도 emit
+              // emitWithOne(targetEmail, "addProgram", program);
             }else{
-              socket.emit("modal", {
+              emit("modal", {
+              //emitWithOne(targetEmail, "modal", {
                 title: "알림",
                 body: `프로그램 생성 수량 ${user.programCount}을(를) 초과합니다. 제한 수량을 늘리려면 관리자에게 문의해주세요`
               });
@@ -502,15 +548,17 @@ module.exports = MD=>{
           }
         })
 
-        socket.on("removeProgram", async pid=>{
+        socket.on("removeProgram", async (pid)=>{
           let user;
           try{
-            console.log('receive removeProgram', email, pid);
-            user = await User.findOne({email:email});
+            let em = email;
+            console.log('receive removeProgram', em, pid);
+            user = await User.findOne({email:em});
             await user.removeProgram(pid);
             // io.to(pid).emit("exit");
             emitToProgram(pid, "exit");
-            socket.emit("removeProgram", pid);
+            emit("removeProgram", pid);
+            // emitWithOne(targetEmail, "removeProgram", pid)
           }catch(e){
             console.error(e);
           }
@@ -518,8 +566,9 @@ module.exports = MD=>{
 
         socket.on("addBrowser", async (pid)=>{
           try{
-            console.log('receive addBrowser', email, pid);
-            let user = await User.findOne({email:email}).select("email browserCount");
+            let em = email;
+            console.log('receive addBrowser', em, pid);
+            let user = await User.findOne({email:em}).select("email browserCount");
             // .populate([
             //   {
             //     path: 'programs',
@@ -540,10 +589,12 @@ module.exports = MD=>{
                 // console.log("???", browser);
                 // browser.test();
                 if(browser){
-                  socket.emit("addBrowser", pid, browser);
+                  emit("addBrowser", pid, browser);
+                  // emitWithOne(targetEmail, "addBrowser", pid, browser);
                 }
               }else{
-                socket.emit("modal", {
+                emit("modal", {
+                // emitWithOne(targetEmail, "modal", {
                   title: "알림",
                   body: `브라우져 생성 수량 ${user.browserCount}을(를) 초과합니다. 제한 수량을 늘리려면 관리자에게 문의해주세요`
                 });
@@ -557,29 +608,34 @@ module.exports = MD=>{
         socket.on("removeBrowser", async (pid, _bid)=>{
           let program;
           try{
-            console.log('receive removeBrowser', email, pid, _bid);
+            let em = email;
+            console.log('receive removeBrowser', em, pid, _bid);
             program = await Program.findOne({_id:pid});
             await program.removeBrowser(_bid);
             // io.to(pid).emit("closeBrowser", _bid);
             // emitToProgram(pid, "closeBrowser", _bid);
             closeBrowser(pid, _bid);
-            socket.emit("removeBrowser", pid, _bid);
+            emit("removeBrowser", pid, _bid);
+            // emitWithOne(targetEmail, "removeBrowser", pid, _bid);
           }catch(e){
             console.error(e);
           }
         })
 
         function closeBrowser(pid, bid){
-          if(chekerSocket === socket){
-            socket.leave("__checker__");
-            // io.$.leave("__checker__", socket);
-            chekerSocket = null;
-            chekerBid = null;
-          }
+          socket.leave("__checker__");
+
+          // if(chekerSocket === socket){
+          //   socket.leave("__checker__");
+          //   // io.$.leave("__checker__", socket);
+          //   chekerSocket = null;
+          //   chekerBid = null;
+          // }
           emitToProgram(pid, "closeBrowser", bid);
         }
 
         socket.on("openBrowser", async (pid, _bid, index)=>{//, isChecker)=>{
+          // console.log("targetEmail", targetEmail);
           let browser = await Browser.findOneAndUpdate(
             {
               _id:_bid,
@@ -609,7 +665,8 @@ module.exports = MD=>{
           .lean();
           // let exists = await Browser.exists({_id:_bid, account:{$ne:null}, option:{$ne:null}});
           if(!browser){
-            socket.emit("modal", {
+            emit("modal", {
+            // emitWithOne(targetEmail, "modal", {
               title: "알림",
               body: `브라우져의 계정연결, 옵션연결을 확인해주세요`
             });
@@ -621,7 +678,7 @@ module.exports = MD=>{
         })
 
         socket.on("openBrowserFail", msg=>{
-          socket.emit("modal", {
+          emit("modal", {
             title: "알림",
             body: `브라우져의 계정연결, 옵션연결을 확인해주세요`
           });

@@ -46,6 +46,24 @@ let Vapp;
       type: "number"
     },
     {
+      name: "PROXY_SERVER",
+      key: "proxyServer",
+      value: "",
+      type: "text"
+    },
+    {
+      name: "PROXY_CUSTOMER",
+      key: "proxyCustomer",
+      value: "",
+      type: "text"
+    },
+    {
+      name: "PROXY_API_TOKEN",
+      key: "proxyApiToken",
+      value: "",
+      type: "text"
+    },
+    {
       name: "프록시존-방글",
       key: "proxyZone-BD",
       value: "",

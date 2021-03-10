@@ -134,7 +134,7 @@ let Vapp;
             // 접속해있는 대상에게 실시간 변경 위해
             sendDataToMember(user.email, "updateMoney", data);
             modal("확인", `${displayName} 추가 완료`);
-            $input.val(0);
+            $input.val("");
           }else{
             $input.val(user[target]);
             modal("오류", `${displayName} 추가 실패<br>${res.message}`)

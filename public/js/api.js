@@ -192,8 +192,8 @@ let api = (()=>{
     },
 
     // 현재 회원과 연결된 계정을 가져옴
-    getLinkedAccounts(){
-      return ax("/get_linked_accounts");
+    getLinkedAccounts(email){
+      return ax("/get_linked_accounts", {email}, "POST");
     },
 
     getStoreAccounts(){
@@ -228,8 +228,13 @@ let api = (()=>{
       return ax("/charge_account/" + id, {money}, "POST");
     },
 
-    getUser(){
-      return ax("/get_user", null, "POST");
+    getUser(email){
+      return ax("/get_user", {email}, "POST");
+    },
+
+    // for admin
+    getEmailList(){
+      return ax("/get_user_email_list", null, "GET");
     },
 
     // master 권한만

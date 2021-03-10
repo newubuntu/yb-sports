@@ -307,10 +307,33 @@ module.exports = MD=>{
     })
   }))
 
+  router.get("/get_user_email_list", authAdmin, task(async (req, res)=>{
+    let users = await User.find({}).select("email").lean();
+    res.json({
+      status: "success",
+      data: users
+    })
+  }))
+
   router.post("/get_user", task(async (req, res)=>{
     let user;
+    let email;
+    if(req.body.email){
+      if(!req.session.admin){
+        res.json({
+          status: "fail",
+          message: "다른 계정정보 요청은 관리자권한이 필요합니다."
+        })
+        return;
+      }
+      email = req.body.email;
+      // users = await User.find({}).select("email").lean();
+    }else{
+      email = req.user.email;
+    }
+
     // console.log(11111);
-    user = await User.findOne({email:req.user.email})
+    user = await User.findOne({email:email})
     // .select(["email", "money", "programs", "programCount", "browserCount"])
     .select(["-password"])
     .populate({

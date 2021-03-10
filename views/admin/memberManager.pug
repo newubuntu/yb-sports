@@ -100,7 +100,7 @@ block view
                     .input-group
                       .input-group-prepend
                         .input-group-text ${{comma(user.money)}}
-                      input.form-control.money-input.pmoney(type="number" :data-id="user._id" value="0")
+                      input.form-control.money-input.pmoney(type="number" :data-id="user._id" placeholder="0" value="")
                       .input-group-append
                         button.btn.btn-sm.btn-primary(type="button" v-on:click="addPmoney(user)")
                           |추가
@@ -108,7 +108,7 @@ block view
                     .input-group
                       .input-group-prepend
                         .input-group-text ${{comma(user.wallet)}}
-                      input.form-control.money-input.wallet(type="number" :data-id="user._id" value="0")
+                      input.form-control.money-input.wallet(type="number" :data-id="user._id" placeholder="0" value="")
                       .input-group-append
                         button.btn.btn-sm.btn-primary(type="button" v-on:click="addWallet(user)")
                           |추가

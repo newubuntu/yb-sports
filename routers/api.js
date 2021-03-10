@@ -925,32 +925,35 @@ module.exports = io=>{
       return;
     }
 
-    let json;
+    let json = {};
     // console.log("??", code)
     if(code != "undefined" && code){
       // console.log("#$%");
-      json = {
-        zone: setting.value["proxyZone-" + code],
-        user: setting.value["proxyUser-" + code],
-        pw: setting.value["proxyPw-" + code]
-      };
+      json.zone = setting.value["proxyZone-" + code];
+      json.user = setting.value["proxyUser-" + code];
+      json.pw = setting.value["proxyPw-" + code];
     }else{
-      json = {};
+      // json = {};
       // console.log("!!", setting.value);
+      json.server = setting.value["proxyServer"];
+      json.customer = setting.value["proxyCustomer"];
+      json.token = setting.value["proxyApiToken"];
+      let countrys = {};
       for(let o in setting.value){
         // console.log("-", o);
-        if(o.indexOf("proxy") == 0){
+        if(o.match(/^proxy(Zone|User|Pw)-/)){
           let countryCode = o.split('-').pop();
           // console.log(o.replace("proxy",''));
           // console.log(o.replace("proxy",'').replace('-'+countryCode,''));
           let key = o.replace("proxy",'').replace('-'+countryCode,'').toLowerCase();
-          if(!json[countryCode]){
-            json[countryCode] = {};
+          if(!countrys[countryCode]){
+            countrys[countryCode] = {};
           }
           // console.log(countryCode, key, setting.value[o]);
-          json[countryCode][key] = setting.value[o];
+          countrys[countryCode][key] = setting.value[o];
         }
       }
+      json.countrys = countrys;
     }
 
     // for(let o in setting.value){
