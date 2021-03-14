@@ -100,6 +100,24 @@ let Vapp;
       type: "text"
     },
     {
+      name: "프록시존-중국",
+      key: "proxyZone-CN",
+      value: "",
+      type: "text"
+    },
+    {
+      name: "프록시유저-중국",
+      key: "proxyUser-CN",
+      value: "",
+      type: "text"
+    },
+    {
+      name: "프록시비번-중국",
+      key: "proxyPw-CN",
+      value: "",
+      type: "text"
+    },
+    {
       name: "국가 JSON",
       key: "countryJson",
       value: "",

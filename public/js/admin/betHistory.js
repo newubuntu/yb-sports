@@ -9,25 +9,11 @@ let Vapp;
 
   }
 
-  let days = "일,월,화,수,목,금,토".split(',');
   let startPicker, endPicker;
   function setupDatePicker(){
-    let option = {
-      id: 1,
-      customDays: ['일', '월', '화', '수', '목', '금', '토'],
-      customMonths: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'],
-      customOverlayMonths: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'],
-      overlayButton: "확인",
-      overlayPlaceholder: "년도",
-      dateSelected: new Date(),
-      formatter: (input, date, instance) => {
-        const value = date.toLocaleDateString() + " (" + days[date.getDay()] + ")";
-        input.value = value;
-      },
-      position : 'tl'
-    }
-    startPicker = datepicker('.start-date', option);
-    endPicker = datepicker('.end-date', option)
+    let datePickerOption = getDatePickerOption();
+    startPicker = datepicker('.start-date', datePickerOption);
+    endPicker = datepicker('.end-date', datePickerOption)
   }
 
   let editFormFormat = [

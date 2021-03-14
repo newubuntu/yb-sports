@@ -271,38 +271,56 @@ var Sound = {
     }
 };
 
-class _Sound {
-  static links = {
-    lakeBet365Money: "/sounds/lakeBet365Money.mp3"
-  };
-  static pool = {}
-  static play(name, loop=1){
-    let sound = this.get(name);
-    if(sound){
-      if(loop>1){
-        sound.once("end", ()=>{
-          this.play(name, loop-1);
-        })
-      }
-      sound.once('load', ()=>{
-        sound.play();
-      });
-    }
-  }
+// class _Sound {
+//   static links = {
+//     lakeBet365Money: "/sounds/lakeBet365Money.mp3"
+//   };
+//   static pool = {}
+//   static play(name, loop=1){
+//     let sound = this.get(name);
+//     if(sound){
+//       if(loop>1){
+//         sound.once("end", ()=>{
+//           this.play(name, loop-1);
+//         })
+//       }
+//       sound.once('load', ()=>{
+//         sound.play();
+//       });
+//     }
+//   }
+//
+//   static create(name){
+//     if(!this.has(name) && this.links[name]){
+//       this.pool[name] = new Howl({
+//         src: this.links[name]
+//       })
+//     }
+//   }
+//
+//   static has(name){
+//     return !!this.pool[name];
+//   }
+//
+//   static get(name){
+//     return this.pool[name];
+//   }
+// }
 
-  static create(name){
-    if(!this.has(name) && this.links[name]){
-      this.pool[name] = new Howl({
-        src: this.links[name]
-      })
-    }
-  }
-
-  static has(name){
-    return !!this.pool[name];
-  }
-
-  static get(name){
-    return this.pool[name];
+function getDatePickerOption(){
+  let days = "일,월,화,수,목,금,토".split(',');
+  return {
+    id: 1,
+    customDays: ['일', '월', '화', '수', '목', '금', '토'],
+    customMonths: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'],
+    customOverlayMonths: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'],
+    overlayButton: "확인",
+    overlayPlaceholder: "년도",
+    dateSelected: new Date(),
+    formatter: (input, date, instance) => {
+      const value = date.toLocaleDateString() + " (" + days[date.getDay()] + ")";
+      input.value = value;
+    },
+    position : 'tl'
   }
 }
