@@ -78,11 +78,16 @@ module.exports = async MD=>{
        backupProcess();
     });
   }
-  
+
 
   async function backupProcess(){
     console.log("-------- backup process --------");
-    new Backup(config.DB_URI, config.BACKUP_PATH).backup();
+    try{
+      new Backup(config.DB_URI, config.BACKUP_PATH).backup();
+    }catch(e){
+      console.error('backup error');
+      console.error(e);
+    }
   }
 
 

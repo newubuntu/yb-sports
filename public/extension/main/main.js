@@ -1110,7 +1110,7 @@ function checkLakeMoney(data, money){
 
 async function openBet365AndGetInfo(data){
   activeBet365();
-  let bet365Info = await sendData("setUrl", data.bet365, PN_B365);
+  let bet365Info = await sendData("setUrl", {data:data.bet365, betOption}, PN_B365);
   activeMain();
   if(!bet365Info){
     log(`벳365 링크열기 실패`, "danger", true);

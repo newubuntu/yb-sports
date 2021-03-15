@@ -62,7 +62,7 @@ module.exports = MD=>{
       let session = socket.handshake.session;
       let email;
       if(!session.user && data.link !== "__program__"){
-        console.error("no have session. disconnect socket");
+        console.log("no have session. disconnect socket", socket.id);
         socket.disconnect(true);
         return;
       }

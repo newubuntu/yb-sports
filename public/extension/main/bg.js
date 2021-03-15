@@ -161,7 +161,8 @@ function bgJS(){
   								betOption: browser.option.data,
   								optionName: browser.option.name
   							});
-                sendData("betOption", browser.option.data, PN_B365, true);
+                // 벳삼은 자주 새로고침된다. 처음에주는건 의미가 없으니 주석. 항상 받아서 사용하자.
+                // sendData("betOption", browser.option.data, PN_B365, true);
   							// sendDataToServer("bet365InitData", {
   							// 	money,
   							// 	limited

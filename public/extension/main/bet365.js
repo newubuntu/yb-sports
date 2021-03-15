@@ -326,9 +326,9 @@ function bet365JS(){
         console.error("wait btn complete");
       break;
 
-      case "betOption":
-        betOption = data;
-      break;
+      // case "betOption":
+      //   betOption = data;
+      // break;
 
       case "placebetTest":
         (async ()=>{
@@ -439,8 +439,9 @@ function bet365JS(){
         // let preUrl = localStorage.getItem("setPreUrl");
         // if(preUrl != data.betLink){
         setInitMessage(message);
-        console.error("setUrl", data.betLink);
-        currentData = data;
+        betOption = data.betOption;
+        console.error("setUrl", data.data.betLink);
+        currentData = data.data;
         let f = localStorage.getItem("setUrl");
         console.error('f', f);
 
@@ -452,7 +453,7 @@ function bet365JS(){
 
         if(!f){
           localStorage.setItem("setUrl", true);
-          window.location.href = data.betLink;
+          window.location.href = data.data.betLink;
           // await pause();
           resolveData = {passResolve:true};
           break;
