@@ -63,6 +63,10 @@ function log(msg, type, sendToServer){
   }
 }
 
+function round(n,p=0){
+  return Math.round(n * Math.pow(10,p))/Math.pow(10,p);
+}
+
 var flag = {
   bet365LoginComplete:false,
   isMatching:false
@@ -108,9 +112,23 @@ async function onMessage(message){
       }
 
       if(!betOption){
-        alert("옵션데이터가 없습니다.")
+        alert("옵션데이터가 없습니다.");
         return;
       }
+
+      let money = data.money;
+
+      if(betOption.useExchange == 'y'){
+        betOption.exchangeRate = await api.exchangeRate(betOption.exchangeCode1, betOption.exchangeCode2);
+        log(`환율사용 ${betOption.exchangeCode1}->${betOption.exchangeCode2} : ${betOption.exchangeRate}`, 'info', true);
+        // to usd
+        money *= betOption.exchangeRate;
+        money = round(money, 2);
+      }
+
+      log(`벳365 (${account.id}) 로그인 완료. 잔액: ${money}`, null, true);
+      sendDataToServer("updateMoney", money);
+
       flag.bet365LoginComplete = true;
       if(!flag.isMatching){
         log('매칭을 시작하려면 <span class="text-success">[매칭시작]</span>을 눌러주세요', "warning", true);
@@ -682,7 +700,7 @@ async function bet365PlacebetProcess(data, bet365Info){
 
       // await delay(Math.random()*1000);
 
-      result = await sendData("placeBet", {fixedBetmax, stake:data.bet365.stake, prevInfo:bet365Info, betOption}, PN_B365);
+      result = await sendData("placeBet", {fixedBetmax, stake:data.bet365.stake, prevInfo:bet365Info}, PN_B365);
       fixedBetmax = false;
       if(result && result.info){
         bet365Info = result.info;
@@ -1850,6 +1868,7 @@ async function init(){
     await sendData("runApiCode", {email:EMAIL, code:apiCode}, PN_BG);
     await sendData("saveBet365Account", data, PN_BG);
     await sendData("runBet365Code", bet365Code, PN_BG);
+
     api = setupAPI(EMAIL);
 
     // tabActiveSchedule();

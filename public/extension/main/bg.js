@@ -31,7 +31,7 @@ function bgJS(){
     let resolveData;
 
     switch(com){
-      case "withdrawComplete":        
+      case "withdrawComplete":
         chrome.tabs.query({ active: true }, function(tabs) {
           chrome.tabs.remove(tabs[0].id, ()=>{
             sendData("withdrawComplete", data, PN_B365, true);
@@ -152,14 +152,16 @@ function bgJS(){
   						if(money == null){
   							log('로그인 실패');
   						}else{
-  							log(`벳365 (${account.id}) 로그인 완료. 잔액: ${money}`);
-  							sendDataToServer("updateMoney", money);
+  							// log(`벳365 (${account.id}) 로그인 완료. 잔액: ${money}`);
+  							// sendDataToServer("updateMoney", money);
   							sendDataToMain("bet365LoginComplete",{
   								account,
+                  money,
   								// pinnacleId: getData("pinnacleId"),
   								betOption: browser.option.data,
   								optionName: browser.option.name
   							});
+                sendData("betOption", browser.option.data, PN_B365, true);
   							// sendDataToServer("bet365InitData", {
   							// 	money,
   							// 	limited

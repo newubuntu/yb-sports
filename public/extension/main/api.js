@@ -82,6 +82,20 @@ function setupAPI(email){
     // test(){
     //   return ax('/ip', {test:1}, "POST");
     // },
+    exchangeRate(originCode, targetCode){
+      // USD 미국 달러
+      // CNY 중국 위안
+      let u = `https://api.manana.kr/exchange/rate/${originCode}/${targetCode}.json`;
+      return axios.get(u).then(res=>{
+        let r;
+        try{
+          r = res.data[0].rate;
+        }catch(e){
+          console.error("error get exchangeRate");
+        }
+        return r;
+      })      
+    },
 
     balance(){
       return ax('/balance');

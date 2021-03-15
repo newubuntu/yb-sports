@@ -7,6 +7,8 @@ function bet365JS(){
     throw new Error("이미 코드 실행됨.")
   }
 
+  var betOption = {};
+
   var MESSAGE = {
     RESTRICTIONS: "Certain restrictions may be applied to your account. If you have an account balance you can request to withdraw these funds now by going to the Withdrawal page in Members",
     NEED_VERIFY: "In accordance with licensing conditions we are required to verify your age and identity. Certain restrictions may be applied to your account until we are able to verify your details. Please go to the Know Your Customer page in Members and provide the requested information."
@@ -120,6 +122,7 @@ function bet365JS(){
     //   // money = await getMoneyInBetslip();
     // }
     money = await getMoney();
+
 
     let handicap = $(".bss-NormalBetItem_Handicap, .qbs-NormalBetItem_Handicap").text();
     let handicap2;
@@ -291,6 +294,7 @@ function bet365JS(){
 
   async function setStake(val){
     console.error('setStake', val);
+
     let selector = '.bss-StakeBox_StakeValueInput';
     let f = await until(()=>$(selector).length>0, 2000);
 	  var el = document.querySelector(selector);
@@ -320,6 +324,10 @@ function bet365JS(){
         console.error("wait btn");
         await waitLoading();
         console.error("wait btn complete");
+      break;
+
+      case "betOption":
+        betOption = data;
       break;
 
       case "placebetTest":
@@ -655,6 +663,8 @@ function bet365JS(){
         }
         // let r = await getBetslipInfo({withMoney:true});
         let r = await getBetslipInfo();
+
+
         // r.money = await getMoney(10000);
         // let r = {
         //   title: $(".bss-NormalBetItem_Title").text(),
@@ -669,7 +679,13 @@ function bet365JS(){
       case "placeBet":
         // setInitMessage(message);
         await (async ()=>{
-          let count = 0, {stake, prevInfo, betOption, fixedBetmax} = data, lakeMoney, status = {};
+          let count = 0, {stake, prevInfo, fixedBetmax} = data, lakeMoney, status = {};
+          let exStake = stake;
+          if(betOption.useExchange == 'y'){
+            // usd to cny
+            exStake /= betOption.exchangeRate;
+            exStake = round(exStake, 2);
+          }
           while(1){
             // inputWithEvent($input[0], stake);
             await delay(100);
@@ -698,6 +714,9 @@ function bet365JS(){
 
             let money = await getMoney();
             console.log("bg money", money);
+
+
+
             lakeMoney = money < stake;
             if(lakeMoney){
               // stake = money;
@@ -755,7 +774,7 @@ function bet365JS(){
               // await until(()=>$(".bss-StakeBox_StakeValueInput").length>0);
               // await inputWithEvent(".bss-StakeBox_StakeValueInput", stake);
               // await delay(100);
-              await setStake(stake);
+              await setStake(exStake);
               // await delay(1000);
 
               let info = await getBetslipInfo();
@@ -817,6 +836,11 @@ function bet365JS(){
                 break;
               }else if(!fixedBetmax){
                 console.log("find betmax");
+                if(betOption.useExchange == 'y'){
+                  // cny to usd
+                  betmax *= betOption.exchangeRate;
+                  betmax = round(betmax, 2);
+                }
                 resolveData = {
                   status: "foundBetmax",
                   betmax: betmax,
@@ -825,7 +849,7 @@ function bet365JS(){
                 break;
               }else{
                 // stake = betmax;
-                await setStake(stake);
+                await setStake(exStake);
                 $acceptBtn.click();
               }
               await waitLoading();
@@ -1038,11 +1062,23 @@ function bet365JS(){
     chrome.runtime.sendMessage({_rcode:_code, data, to, from:PN_B365});
   }
 
+  function round(n,p=0){
+    return Math.round(n * Math.pow(10,p))/Math.pow(10,p);
+  }
+
   async function getMoney(timeout=2000){
     await until(()=>{
       return $(".hm-Balance:first").text().replace(/[^0-9]/g, '').length > 0;
     }, timeout)
-    return parseMoney($(".hm-Balance:first").text());
+    let money = parseMoney($(".hm-Balance:first").text());
+    if(betOption.useExchange == 'y'){
+      if(typeof money === "number"){
+        // cny to usd
+        money *= betOption.exchangeRate;
+        money = round(money, 2);
+      }
+    }
+    return money;
   }
 
   function parseMoney(str){
@@ -1188,6 +1224,13 @@ function bet365JS(){
       // let win = window.open(url);
       window['loadMoneyResolve_'+key] = function(money){
         delete window['loadMoneyResolve_'+key];
+        if(betOption.useExchange == 'y'){
+          if(typeof money === "number"){
+            // cny to usd
+            money *= betOption.exchangeRate;
+            money = round(money, 2);
+          }
+        }
         resolve(money);
         // win.close();
       };
