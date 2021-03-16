@@ -1,6 +1,7 @@
 const CronJob = require('cron').CronJob;
 const PAPI = require('./papi');
-const Backup = require("backup-mongodb");
+// const Backup = require("backup-mongodb");
+const backup = require('mongodb-backup-fixed');
 
 // https://github.com/SeunMatt/backup-mongodb-restorer
 // const Restore = require("backup-mongodb-restorer");
@@ -35,6 +36,8 @@ module.exports = async MD=>{
     Option,
     Approval,
     Setting,
+    Data,
+    BackupHistory,
     authAdmin,
     authMaster,
     task,
@@ -61,8 +64,35 @@ module.exports = async MD=>{
   // let cycleTime = 1000 * 60 * 60 * 1;
 
   // setInterval(process, cycleTime);
-  if(argv[0] == "master"){
-    // console.error("##MASTER");
+  if(argv[0] == "master" || process.env.NODE_ENV === undefined){
+    console.error("##MASTER");
+
+    let backupTime = 0;
+    async function backupProcess(user){
+      if(Date.now() - backupTime < 10000){
+        return;
+      }
+      backupTime = Date.now();
+      console.log("-------- backup process --------");
+      let d = new Date();
+
+      try{
+        backup({
+          uri: config.DB_URI,
+          root: config.BACKUP_PATH
+        });
+
+        await BackupHistory.create({user});
+        // new Backup(config.DB_URI, config.BACKUP_PATH).backup();
+      }catch(e){
+        console.error('backup error');
+        console.error(e);
+      }
+
+      return d.getTime();
+    }
+
+
     // 매시간 5분 마다 이벤트 결과 확인
     let job5m = new CronJob('0 */5 * * * *', function() {
        eventSettledCheckProcess();
@@ -77,18 +107,18 @@ module.exports = async MD=>{
     let job24h = new CronJob('0 7 12 * * *', function() {
        backupProcess();
     });
+
+    router.get("/backup", authMaster, task(async (req, res)=>{
+      let time = await backupProcess(req.user);
+      // console.log("/get_option_list", options);
+      res.json({
+        status: "success",
+        time: time
+      });
+    }))
   }
 
 
-  async function backupProcess(){
-    console.log("-------- backup process --------");
-    try{
-      new Backup(config.DB_URI, config.BACKUP_PATH).backup();
-    }catch(e){
-      console.error('backup error');
-      console.error(e);
-    }
-  }
 
 
   // 1일마다 브라우져당 log에서 500개 이상일 때,

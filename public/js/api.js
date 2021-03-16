@@ -332,6 +332,14 @@ let api = (()=>{
 
     updateBetdata(data){
       return ax("/update_betdata", data, "POST");
+    },
+
+    backup(){
+      return ax("/backup");
+    },
+
+    getBackupTime(){
+      return ax("/backuptime");
     }
   };
 })()

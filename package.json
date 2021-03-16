@@ -32,7 +32,6 @@
   "license": "ISC",
   "dependencies": {
     "axios": "^0.21.1",
-    "backup-mongodb": "^0.1.1",
     "bluebird": "^3.7.2",
     "body-parser": "^1.19.0",
     "compression": "^1.7.4",
@@ -46,6 +45,7 @@
     "express-subdomain": "^1.0.5",
     "forcedomain": "^2.2.2",
     "http": "0.0.1-security",
+    "mongodb-backup-fixed": "^1.7.2",
     "mongoose": "^5.11.14",
     "mongoose-auto-increment": "^5.0.1",
     "mongoose-deep-populate": "^3.2.0",

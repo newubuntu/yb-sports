@@ -151,7 +151,8 @@ let Vapp;
     data: {
       // settings: [],
       forms: [],
-      formsMap: null
+      formsMap: null,
+      backupTime: null
     },
     async created(){
       console.log("wait socketReady");
@@ -164,6 +165,11 @@ let Vapp;
       }, {});
 
       await this.load();
+
+      let res = await api.getBackupTime();
+      if(res.status == "success"){
+        this.backupTime = new Date(res.date).toLocaleString();
+      }
 
       this.$nextTick(function() {
         $(this.$el).removeClass("pre-hide");
@@ -247,6 +253,19 @@ let Vapp;
         let res = await api.setSetting(data);
         if(res.status == "success"){
           modal("알림", "설정 저장 완료");
+        }else{
+          modal("오류", res.message);
+        }
+      },
+
+      async backup(){
+        let res = await api.backup();
+        if(res.status == "success"){
+          modal("알림", "서버 백업 완료");
+          if(res.time){
+            let d = new Date(res.time);
+            this.backupTime = d.toLocaleString();
+          }
         }else{
           modal("오류", res.message);
         }

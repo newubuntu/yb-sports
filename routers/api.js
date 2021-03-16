@@ -16,6 +16,8 @@ const BetData = require('../models/BetData');
 const Event = require('../models/Event');
 const DepositLog = require('../models/DepositLog');
 const TestData = require('../models/TestData');
+const Data = require('../models/Data');
+const BackupHistory = require('../models/BackupHistory');
 const BenList = require('../models/BenList');
 const Withdraw = require('../models/Withdraw');
 
@@ -523,6 +525,8 @@ module.exports = io=>{
     Approval,
     Setting,
     DepositLog,
+    Data,
+    BackupHistory,
     authAdmin,
     authMaster,
     task,
@@ -1001,6 +1005,14 @@ module.exports = io=>{
 
     res.json({
       status: "success"
+    })
+  }))
+
+  router.get("/backuptime", task(async (req, res)=>{
+    let bh = await BackupHistory.findOne({}).sort({$natural:-1});
+    res.json({
+      status: "success",
+      date: bh.createdAt
     })
   }))
 

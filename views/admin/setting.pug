@@ -14,6 +14,9 @@ block view
         label.col-form-label 설정
         .float-right
           button.btn.btn-square.btn-info(v-on:click="save") 저장
+        .float-right
+          label(style="padding-right:5px;" v-if="backupTime" v-html="backupTime")
+          button.btn.btn-square.btn-warning(v-on:click="backup") 서버 백업
           //- .col-md-9
             input#optionName.form-control(placeholder="옵션 이름을 입력하세요" v-on:change="update" :value="optionName")
             em#optionNameValidMessage.error.invalid-feedback 옵션 이름을 입력해주세요
