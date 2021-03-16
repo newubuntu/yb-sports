@@ -1010,9 +1010,10 @@ module.exports = io=>{
 
   router.get("/backuptime", task(async (req, res)=>{
     let bh = await BackupHistory.findOne({}).sort({$natural:-1});
+
     res.json({
       status: "success",
-      date: bh.createdAt
+      date: bh?bh.createdAt:null
     })
   }))
 

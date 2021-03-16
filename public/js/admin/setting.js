@@ -168,7 +168,9 @@ let Vapp;
 
       let res = await api.getBackupTime();
       if(res.status == "success"){
-        this.backupTime = new Date(res.date).toLocaleString();
+        if(res.date){
+          this.backupTime = new Date(res.date).toLocaleString();
+        }
       }
 
       this.$nextTick(function() {
