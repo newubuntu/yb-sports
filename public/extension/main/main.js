@@ -1,6 +1,6 @@
 console.log("main.js");
 // let socket = io(SOCKET_URL, { transports: ['websocket'] });
-var version = 2;
+var version = 3;
 // log.setSendFunc = sendData;
 
 
@@ -792,6 +792,7 @@ async function bet365PlacebetProcess(data, bet365Info){
 // 유저 벨류 처리
 async function userVlProcess(data){
   let {bet365Info, checkProfit, checkType} = await commonProcess(data, true);
+  activeMain();
 
   if(checkProfit){
     if(!flag.isMatching) return;
@@ -1403,6 +1404,11 @@ async function checkBetmaxProcess(data){
   // #2 벳삼열어서 배당 및 타입체크
   if(checkLine){
     openBet365EveryBrowser(data);
+
+    /// test
+    // return;
+    ///
+
     bet365Info = await openBet365AndGetInfo(data);
     if(!bet365Info){
       return;
@@ -1983,7 +1989,7 @@ async function init(){
     if(!flag.bet365LoginComplete) return;
     console.log("receive gamedata2");
 
-    await delay(Math.random()*1000);
+    await delay(Math.random() * 3000);
 
     setData("gamedata", data);
     if(!flag.isMatching) return;
@@ -1996,6 +2002,9 @@ async function init(){
 
   socket.on("gameurl", data=>{
     console.log("receive gameurl");
+    if(!flag.bet365LoginComplete) return;
+    if(!flag.isMatching) return;
+    activeBet365();
     sendData("setPreUrl", data, PN_B365, true);
   })
 }

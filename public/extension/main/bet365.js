@@ -429,8 +429,8 @@ function bet365JS(){
       case "setPreUrl":
         timestamp("setPreUrl");
         // localStorage.setItem("setPreUrl", data);
-        // localStorage.setItem("setUrl", true);
-        // window.location.href = data;
+        localStorage.setItem("setUrl", true);
+        window.location.href = data;
       break;
 
       case "setUrl":

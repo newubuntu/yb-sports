@@ -466,6 +466,8 @@ let Vapp;
             return false;
           }
         })
+
+        this.accounts = program.browsers.map(b=>b.account);
       },
       async sk_openBrowser(pid, _bid){//, isChecker){
         let browser = this.getBrowserObj(pid, _bid);
@@ -630,6 +632,7 @@ let Vapp;
               res = await api.updateBrowser(_bid, {account: selectedAccount._id});
               if(res.status == "success"){
                 browser.account = selectedAccount;
+                this.accounts.push(selectedAccount);
                 this.$forceUpdate();
               }else{
                 modal("알림", `브라우져 업데이트 실패<br>${res.message}`);

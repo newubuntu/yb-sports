@@ -330,9 +330,8 @@ module.exports = MD=>{
 
         socket.on("inputGameUrl", obj=>{
           console.log("inputGameUrl");
-          let room = "__data_receiver2__";
           // console.log(io.sockets.clients(room));
-          io.to(room).emit("gameurl", obj);
+          io.to("__data_receiver2__").emit("gameurl", obj);
         })
 
         //정재된 매칭 게임데이터
@@ -369,9 +368,9 @@ module.exports = MD=>{
           //   console.error(e);
           // })
 
-          let room = "__data_receiver2__";
+
           // console.log(io.sockets.clients(room));
-          io.to(room).emit("gamedata2", obj);
+          io.to("__data_receiver2__").emit("gamedata2", obj);
           // io.$.emit(room, "gamedata2", obj);
 
           // emitToAllPrograms("gamedata2", obj);
@@ -585,8 +584,18 @@ module.exports = MD=>{
             if(program){
               if(program.browsers.length < user.browserCount){
                 let browser = await program.addBrowser();
-                browser = await Browser.findOne({_id: browser._id}).sort({$natural:-1});
-                // console.log("???", browser);
+                browser = await Browser.findOne({_id: browser._id})
+                .sort({$natural:-1})
+                // 새로만든건데 당연히 계정이 없지.
+                // .populate({
+                //   path: "account",
+                //   model: Account,
+                //   options: {
+                //     select: "id limited died country money"
+                //   }
+                // })
+                .lean();
+
                 // browser.test();
                 if(browser){
                   emit("addBrowser", pid, browser);
