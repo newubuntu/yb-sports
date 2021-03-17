@@ -100,6 +100,10 @@ async function onMessage(message){
       // sendDataToServer("log", data);
     break;
 
+    case "bettingFail":
+      isCheckingMatch = false;
+    break;
+
     case "bet365LoginComplete":
       // console.error("bet365LoginComplete", data);
       account = data.account;
@@ -742,6 +746,13 @@ async function bet365PlacebetProcess(data, bet365Info){
           checkProfit = profitAllValidation(data);
         }else{
           noChangeOddsAcceptCount++;
+
+          if(noChangeOddsAcceptCount >= 3){
+            // 배당이 안바뀐 accept버튼이 3회 이상 출현시 해당 이벤트를 OBOIK벤
+            log(`벳365 배팅실패: 리밋계정 막힌 이벤트`, "danger", true);
+            benEvent(data, "OBOIK", 0, "리밋계정 막힌 이벤트");
+            break;
+          }
         }
       }else if(result.status == "lakeMoney"){
         log(`벳365 잔액부족 stake:$${result.stake}, money:$${result.money}`, "danger", true);
@@ -781,11 +792,11 @@ async function bet365PlacebetProcess(data, bet365Info){
     benEvent(data, "OBOK", 0, "배팅완료");
   }
 
-  if(noChangeOddsAcceptCount >= 3){
-    // 배당이 안바뀐 accept버튼이 3회 이상 출현시 해당 이벤트를 OBOIK벤
-    // log(`벳365 배팅실패: 리밋계정 막힌 이벤트`, "danger", true);
-    benEvent(data, "OBOIK", 0, "리밋계정 막힌 이벤트");
-  }
+  // if(noChangeOddsAcceptCount >= 3){
+  //   // 배당이 안바뀐 accept버튼이 3회 이상 출현시 해당 이벤트를 OBOIK벤
+  //   // log(`벳365 배팅실패: 리밋계정 막힌 이벤트`, "danger", true);
+  //   benEvent(data, "OBOIK", 0, "리밋계정 막힌 이벤트");
+  // }
 
   return {checkBet, lakeMoney, result};
 }
@@ -821,181 +832,11 @@ async function userVlProcess(data){
 // 유저 양빵 처리
 async function userYbProcess(data){
   let {bet365Info, checkProfit, checkType} = await commonProcess(data);
-
-  // console.log(data);
-  // // let ids = getEventIds(data);
-  // printGame(data);
-  //
-  // if(!(await checkBalance())){
-  //   stopMatch(true);
-  //   return;
-  // }
-  //
-  // let bet365Info, checkProfit, checkType;
-  // bet365Info = await openBet365AndGetInfo(data);
-  // if(!bet365Info){
-  //   return;
-  // }
-  //
-  // if(bet365Info.money == null){
-  //   log("벳365 로그아웃 됨. 재 로그인 시도 중..", "danger", true);
-  //   // activeBet365();
-  //   // let m = await sendData("reLogin", null, PN_B365);
-  //   // activeMain();
-  //   let m = await reLogin();
-  //   if(m == null){
-  //     log("재 로그인 실패. 브라우져를 다시 켜주세요.", "danger", true);
-  //     stopMatch(true);
-  //     return;
-  //   }else{
-  //     log("벳365 재로그인 완료. 링크 다시 여는중..", null, true);
-  //     bet365Info = await openBet365AndGetInfo(data);
-  //     if(!bet365Info){
-  //       return;
-  //     }
-  //   }
-  // }
-  //
-  // if(!checkBet365TeamName(data, bet365Info)){
-  //   log(`배팅취소: 벳삼 팀이름 다름`, "danger", true);
-  //   return;
-  // }
-  //
-  // checkType = await checkGameType(data, bet365Info, false);
-  //
-  // if(!checkType){
-  //   //: 벳삼 타입 다름
-  //   log(`배팅취소: 벳삼 타입다름`, "danger", true);
-  //   benEvent(data, "BK", 0);
-  //   return;
-  // }
-  //
-  // if(checkLakeMoney(data, bet365Info.money)){
-  //   sendDataToSite("sound", {name:"lakeBet365Money"});
-  //   return;
-  // }
-  //
-  // if(changeOddsBet365Process(data, bet365Info.odds)){
-  //   updateBet365Stake(data);
-  // }
-  //
-  // if(!checkOddsForBet365(data)){
-  //   log(`배팅취소`, "danger", true);
-  //   benEvent(data, "OBOK", 20000, "벳삼 최소배당 미만");
-  //   return;
-  // }
-  //
-  // setBet365RandomStake(data, data.bet365.stake);
-  // checkProfit = profitAllValidation(data);
+  activeMain();
 
   if(checkProfit){
     if(!flag.isMatching) return;
     let {checkBet, lakeMoney, result} = await bet365PlacebetProcess(data, bet365Info);
-    // activeBet365();
-    // // log(`벳365 배팅시작`, "info", true);
-    // let result, checkBet, isChangeOdds, isFirst = true, lakeMoney, fixedBetmax;
-    // while(1){
-    //   if(checkProfit){
-    //     if(isChangeOdds || isFirst){
-    //       isFirst = false;
-    //       isChangeOdds = false;
-    //       log(`벳365 배팅시작 <span class="text-warning">$${data.bet365.stake}</span>`, "info", true);
-    //     }
-    //
-    //     // BOK
-    //     // if(isBenEvent(data.bet365.id+data.bet365.odds)){
-    //     // OBOK
-    //     if(isBenEvent(data.bet365.eventId+data.bet365.odds)){
-    //       log(`제외된 배당입니다.(${data.bet365.eventId+data.bet365.odds})`, "warning", true);
-    //       break;
-    //     }
-    //
-    //     if(!checkOddsForBet365(data)){
-    //       benEvent(data, "OBOK", 20000, "벳삼 최소배당 미만");
-    //       break;
-    //     }
-    //
-    //     if(result){
-    //       checkType = await checkGameType(data, result.info, false);
-    //       if(!checkType){
-    //         //: 벳삼 타입 다름
-    //         log(`벳365 배팅실패: 벳삼 타입다름`, "danger", true);
-    //         benEvent(data, "BK", 0);
-    //         break;
-    //       }
-    //     }
-    //
-    //
-    //
-    //     result = await sendData("placeBet", {fixedBetmax, stake:data.bet365.stake, prevInfo:bet365Info, betOption}, PN_B365);
-    //     fixedBetmax = false;
-    //     if(result && result.info){
-    //       bet365Info = result.info;
-    //     }
-    //     console.log("bet365 betting..", result);
-    //     if(result === undefined || result === null){
-    //       log("벳365 배팅실패: 응답없음.", "danger", true);
-    //       break;
-    //     }
-    //
-    //     // 배팅완료한뒤에는 체크하지 말자.
-    //     // checkType = await checkGameType(data, result.info);
-    //     // if(!checkType){
-    //     //   log(`배팅취소: 벳삼 타입 다름`, "danger", true);
-    //     //   benEvent(data, "BK", 0);
-    //     //   if(result.status == "success"){
-    //     //     log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", "danger", true);
-    //     //     log(`벳365 배팅완료 후 타입바뀜!`, "danger", true);
-    //     //     stopMatch(true);
-    //     //   }
-    //     //   break;
-    //     // }
-    //     if(result.status == "notEnoughFunds"){
-    //       log(`벳365 배팅실패: ${result.message}`, "danger", true);
-    //       stopMatch(true);
-    //       break;
-    //     }else if(result.status == "foundBetmax"){
-    //       changeOddsBet365Process(data, result.info.odds);
-    //       setBet365RandomStake(data, result.betmax);
-    //       fixedBetmax = true;
-    //     }else if(result.status == "acceptChange"){
-    //       isChangeOdds = changeOddsBet365Process(data, result.info.odds);
-    //       if(isChangeOdds){
-    //         updateBet365Stake(data);
-    //         checkProfit = profitAllValidation(data);
-    //       }
-    //     }else if(result.status == "lakeMoney"){
-    //       log(`벳365 잔액부족 stake:$${result.stake}, money:$${result.money}`, "danger", true);
-    //       changeOddsBet365Process(data, result.info.odds);
-    //       data.bet365.stake = result.money;
-    //       updatePncStake(data);
-    //       checkProfit = profitAllValidation(data);
-    //       lakeMoney = true;
-    //     }else if(result.status == "success"){
-    //       if(result.info.market == ""){
-    //         log(`배팅취소: 배팅카트 사라짐`, "danger", true);
-    //       }else{
-    //         log(`벳365 배팅완료!`, "success", true);
-    //         checkBet = true;
-    //       }
-    //       break;
-    //     }else{
-    //       log(`벳365 배팅실패: ${result.message}`, "danger", true);
-    //       if(
-    //         result.status == "restriction" ||
-    //         result.status == "needVerify"
-    //       ){
-    //         stopMatch(true);
-    //       }
-    //       break;
-    //     }
-    //   }else{
-    //     log(`배팅취소`, 'danger', true);
-    //     break;
-    //   }
-    // }
-    // activeMain();
-    // console.log("bet365 bet complete", result);
 
     if(checkBet){
       sendDataToServer("updateMoney", result.money - result.stake);
@@ -1997,7 +1838,7 @@ async function init(){
     if(!flag.bet365LoginComplete) return;
     console.log("receive gamedata2");
 
-    await delay(Math.random() * 3000);
+    await delay(Math.random() * 5000);
 
     setData("gamedata", data);
     if(!flag.isMatching) return;
@@ -2009,11 +1850,12 @@ async function init(){
   })
 
   socket.on("gameurl", data=>{
-    console.log("receive gameurl");
     if(!flag.bet365LoginComplete) return;
     if(!flag.isMatching) return;
     if(isCheckingMatch) return;
-    
+
+    console.log("receive gameurl");
+
     if(!data){
       activeMain();
     }else{

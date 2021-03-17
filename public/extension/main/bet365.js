@@ -679,6 +679,7 @@ function bet365JS(){
 
       case "placeBet":
         // setInitMessage(message);
+        localStorage.setItem("betting", true);
         await (async ()=>{
           let count = 0, {stake, prevInfo, fixedBetmax} = data, lakeMoney, status = {};
           let exStake = stake;
@@ -888,6 +889,7 @@ function bet365JS(){
             }
           }
         })()
+        localStorage.removeItem("betting");
         // setInitMessage(null);
       break;
 
@@ -1291,6 +1293,16 @@ function bet365JS(){
       document.title = id;
     }
 
-    sendData("readyBet365", null, PN_BG);
+    // sendData("readyBet365", null, PN_BG);
+
+    // 배팅중에 새로고침 된거라면..
+    let f = localStorage.getItem("betting");
+    if(f){
+      localStorage.removeItem("betting");
+      sendData("bettingFail", null, PN_MAIN, true);
+    }else{
+      sendData("readyBet365", null, PN_BG, true);
+    }
+
   })
 }
