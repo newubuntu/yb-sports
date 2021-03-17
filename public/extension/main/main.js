@@ -494,7 +494,10 @@ async function findMatch(){
   if(data){
     isCheckingMatch = true;
     if(betOption.action == "checkBetmax"){
-      await checkBetmaxProcess(data);
+      let f = await checkBetmaxProcess(data);
+      if(!f){
+        activeMainEveryBrowser();
+      }
     }else if(betOption.action == "vl"){
       // 고정 betmax로 벨류
       // await vlProcess(data);
@@ -1341,6 +1344,10 @@ function openBet365EveryBrowser(data){
   sendDataToServer("inputGameUrl", data.bet365.betLink);
 }
 
+function activeMainEveryBrowser(){
+  sendDataToServer("inputGameUrl", null);
+}
+
 async function checkBetmaxProcess(data){
   console.log(data);
   // let ids = getEventIds(data);
@@ -1694,6 +1701,7 @@ async function checkBetmaxProcess(data){
       sendDataToServer("inputGameData", betResult.data);
       // benEvent(data, "BOK", 0, "데이터 수집");
       benEvent(data, "OBOK", 0, "데이터 수집");
+      return true;
     }else{
       log(`배팅취소`, 'danger', true);
     }
@@ -2004,8 +2012,12 @@ async function init(){
     console.log("receive gameurl");
     if(!flag.bet365LoginComplete) return;
     if(!flag.isMatching) return;
-    activeBet365();
-    sendData("setPreUrl", data, PN_B365, true);
+    if(!data){
+      activeMain();
+    }else{
+      activeBet365();
+      sendData("setPreUrl", data, PN_B365, true);
+    }
   })
 }
 
