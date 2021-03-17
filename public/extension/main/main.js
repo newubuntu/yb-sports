@@ -2012,6 +2012,8 @@ async function init(){
     console.log("receive gameurl");
     if(!flag.bet365LoginComplete) return;
     if(!flag.isMatching) return;
+    if(isCheckingMatch) return;
+    
     if(!data){
       activeMain();
     }else{
