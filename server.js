@@ -385,19 +385,20 @@
   // app.use("/api", subdomain('www', apiRouter));
   // app.use("/user", subdomain('www', userRouter));
 
-  if(useForceDomain && (process.cwd()||'').indexOf("C:") == -1 && process.env.NODE_ENV == "production"){
-    app.use(forceDomain({
-      hostname: 'www.surebet.vip'
-      // excludeRule: {
-      //   test: function(hostname){
-      //     ///^api\..*/
-      //     console.log("hostname", hostname);
-      //     return true;
-      //   }
-      // }
-      // protocol: 'https'
-    }));
-  }
+  // 
+  // if(useForceDomain && (process.cwd()||'').indexOf("C:") == -1 && process.env.NODE_ENV == "production"){
+  //   app.use(forceDomain({
+  //     hostname: 'www.surebet.vip'
+  //     // excludeRule: {
+  //     //   test: function(hostname){
+  //     //     ///^api\..*/
+  //     //     console.log("hostname", hostname);
+  //     //     return true;
+  //     //   }
+  //     // }
+  //     // protocol: 'https'
+  //   }));
+  // }
 
   app.set('views', './views');
   app.set('view engine', 'pug');
