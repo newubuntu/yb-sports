@@ -42,6 +42,13 @@ module.exports = MD=>{
     if(editTarget == 1){
       betDatas = await BetData.find({_id});//, betStatus:{$ne:"ACCEPTED"}});
     }else if(editTarget == 2){
+      if(!betId){
+        res.json({
+          status: "fail",
+          message: "betId가 없는 배팅기록은 전체수정 될 수 없습니다."
+        });
+        return;
+      }
       betDatas = await BetData.find({betId});//, betStatus:{$ne:"ACCEPTED"}});
     }
 
