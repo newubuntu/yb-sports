@@ -1578,7 +1578,7 @@ async function checkBetmaxProcess(data){
         <div class="text-success">벳365: $${data.bet365.stake} (${data.bet365.odds})</div>
       `, null, true);
 
-      let bdata = {};
+      let bdata = betResult.data;
       bdata.pncLine = line.lineData;
       bdata.betburger = data;
       bdata._id = betResult.data.uniqueRequestId;
