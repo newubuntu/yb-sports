@@ -384,6 +384,17 @@ async function placeBet(line){
 
           // checkCount방식일때만
           case "PENDING_ACCEPTANCE":
+            if(betOption.pncBetCheckType == "half"){
+              chk = true;
+              console.error("피나클 배팅성공", bets.betData.straightBet);
+              if(bets.betData.straightBet.price){
+                log(`피나클 배팅성공. odds: ${bets.betData.straightBet.price}, betId:${bets.betData.straightBet.betId}`, "success", true);
+              }else{
+                log(`피나클 배팅성공.`, "success", true);
+              }
+            }
+          break;
+
           case "ACCEPTED":
             chk = true;
             console.error("피나클 배팅성공", bets.betData.straightBet);
