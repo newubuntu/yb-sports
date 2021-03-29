@@ -25,6 +25,8 @@ function bgJS(){
   //   );
   // }
 
+  let betData = {};
+  let betHeaders = {};
 
   window._onBgMessage = async function _onBgMessage(message){
     let {com, data, from} = message;
@@ -100,6 +102,14 @@ function bgJS(){
   			// DATA.setBet365InitMessage = data;
   			setData("setBet365InitMessage", data);
   		break;
+
+      case "getBetData":
+        resolveData = betData[tabInfos.bet365.id];
+      break;
+
+      case "getBetHeaders":
+        resolveData = betHeaders[tabInfos.bet365.id];
+      break;
 
   		case "readyBet365":
   			// data.bid, data.email
@@ -222,5 +232,47 @@ function bgJS(){
     return resolveData;
   }
 
+
+
+
+  chrome.webRequest.onBeforeRequest.addListener(function (details) {
+		// console.error("onBeforeRequest", details);
+    let str = decodeURIComponent(String.fromCharCode.apply(null, new Uint8Array(details.requestBody.raw[0].bytes)));
+    let data = str.split('&').reduce((r,kv)=>{
+      if(kv){
+        let arr = kv.split('=');
+        r[arr.shift()] = arr.join('=');
+      }
+      return r;
+    },{});
+    betData[details.tabId] = {
+      data
+    };
+    console.error("betData", betData);
+    // return {
+    //   requestHeaders: details.requestHeaders
+    // };
+	}, {
+		"urls": ["https://www.bet365.com/BetsWebAPI/placebet*"],
+		"types": ["xmlhttprequest"]
+	}, ["extraHeaders", "requestBody"]);
+
+
+  chrome.webRequest.onBeforeSendHeaders.addListener(function (details) {
+    console.error("onBeforeSendHeaders", details);
+    // betData.url = details.url;
+    let xnst = details.requestHeaders.find(h=>h.name=="X-Net-Sync-Term");
+    // let ctype = details.requestHeaders.find(h=>h.name=="Content-type");
+    betHeaders[details.tabId] = {
+      "X-Net-Sync-Term": xnst.value,
+      'Content-Type': 'application/x-www-form-urlencoded'
+      // "Content-type": ctype.value
+    }
+    console.error("betHeaders", betHeaders);
+  }, {
+    "urls": ["https://www.bet365.com/BetsWebAPI/refreshslip"],
+		"types": ["xmlhttprequest"]
+  }, ["requestHeaders"]);
+  //"requestHeaders"
   //https://members.bet365.com/he/Authenticated/Bank/Balances/?hostedBy=MEMBERS_HOST&mh=1
 }

@@ -115,6 +115,56 @@ function bet365JS(){
     await delay(200);
   }
 
+  function odToOdds(od){
+    if(od.indexOf('/') > -1){
+      let a = od.split('/').map(n=>parseInt(n));
+      return round(1+a[0]/a[1], 3);
+    }else{
+      return parseFloat(od);
+    }
+  }
+
+  async function getBetslipInfoForAPI(refreshData){
+    let info = await getBetslipInfo();
+    if(!refreshData){
+      refreshData = await refreshslip();
+      // refreshData = localStorage.getItem('refreshData');
+    }
+
+
+
+    // let money;
+    // money = await getMoney();
+    // if(!refreshData){
+    //   refreshData = await refreshslip();
+    // }
+    //
+    if(refreshData){
+      let bt = refreshData.bt[0];
+      let pt = bt.pt[0];
+
+      info.odds = odToOdds(bt.od);
+      info.od = bt.od;
+      if(info.market !== "Draw No Bet"){
+        info.handicap = pt.hd?pt.hd:"";
+      }
+
+      // return {
+      //   title: pt.bd,
+      //   handicap: pt.hd?pt.hd:"0",
+      //   market: pt.md,
+      //   odds: odToOdds(bt.od),
+      //   od: bt.od,
+      //   desc: bt.fd,
+      //   money
+      // }
+    }
+    return info;
+    // else{
+    //   return null;
+    // }
+  }
+
   async function getBetslipInfo(opt){
     let money;
     // if(opt && opt.withMoney){
@@ -307,6 +357,47 @@ function bet365JS(){
     return f;
   }
 
+  async function refreshslip(){
+    let $dummyEl;
+    localStorage.removeItem('refreshData');
+    await until(()=>{
+      return $(".gl-ParticipantOddsOnly:not(.gl-ParticipantOddsOnly_Suspended):not(.gl-ParticipantOddsOnly_Highlighted)").length>0;
+    }, 2000);
+
+    $dummyEl = $(".gl-ParticipantOddsOnly:not(.gl-ParticipantOddsOnly_Suspended):not(.gl-ParticipantOddsOnly_Highlighted)").eq(0).click();
+    if($dummyEl.length == 0){
+      $dummyEl = $(".gl-ParticipantCentered").eq(0).click();
+    }
+
+    console.error("dummyEl 클릭", $dummyEl[0]);
+
+
+
+    $betSlip = await findEl(".bss-DefaultContent", 2000);
+
+    if($betSlip){
+      console.error("betslip 클릭");
+      await delay(100);
+      $dummyEl.click();
+      await delay(100);
+      $betSlip.click();
+      // await delay(200);
+
+      await until(()=>{
+        return !!localStorage.getItem('refreshData');
+      }, 10000);
+
+      let obj;
+      try{
+        obj = JSON.parse(localStorage.getItem('refreshData'));
+        console.error("refreshData", obj);
+      }catch(e){
+        console.error("refreshData parse error");
+      }
+      return obj;
+    }
+  }
+
   var currentData;
   var placedCompareMessage = "Please check My Bets for confirmation that your bet has been successfully placed.";
   async function onMessage(message){
@@ -428,22 +519,30 @@ function bet365JS(){
 
       case "setPreUrl":
         timestamp("setPreUrl");
-        // localStorage.setItem("setPreUrl", data);
+        // localStorage.setItem("setPreUrl", true);
         localStorage.setItem("setUrl", true);
         window.location.href = data;
       break;
 
       case "setUrl":
+        /// test
+        // break;
+        ///
+
         // 작업중0
         timestamp("setUrl");
         // let preUrl = localStorage.getItem("setPreUrl");
         // if(preUrl != data.betLink){
         setInitMessage(message);
         betOption = data.betOption;
-        console.error("setUrl", data.data.betLink);
+        console.error("setUrl", data.data.betLink, "forApi:", data.forApi);
         currentData = data.data;
+        // let pf = localStorage.getItem("setPreUrl");
         let f = localStorage.getItem("setUrl");
         console.error('f', f);
+
+        // let isLoading = $(".bl-Preloader:visible").length>0;
+        // console.error("isLoading", isLoading);
 
         if($("body>p").eq(0).text().trim() == "The current page may have been removed, changed or is temporarily unavailable."){
         // if($("#header>h1").text().trim() == "Server Error"){
@@ -451,7 +550,9 @@ function bet365JS(){
           break;
         }
 
+        // if(!f || (pf && isLoading)){
         if(!f){
+          console.error("set href");
           localStorage.setItem("setUrl", true);
           window.location.href = data.data.betLink;
           // await pause();
@@ -459,211 +560,198 @@ function bet365JS(){
           break;
         }
         localStorage.removeItem("setUrl");
+        // localStorage.removeItem("setPreUrl");
 
+        let r;
 
+        if(!data.forApi){
 
-        //   localStorage.setItem("setUrl", true);
-        // }else{
-        //   localStorage.removeItem("setUrl", true);
-        // }
+          let timeout = 20 * 1000;
 
-        // await delay(4000);
+          timestamp("QuickBetslip 찾는중");
+          // console.error("QuickBetslip 찾는중");
+          // let $betslip = await findEl(".bss-DefaultContent", 2000);
+          // let $betslip = await findEl(".qbs-QuickBetslip", 2000);
+          let $betslip = await findElAll([".bss-DefaultContent:visible", ".qbs-QuickBetslip:visible"], timeout);
+          // let $betslip = await findEl(".qbs-QuickBetslip", 2000);
+          console.error("$betslip", $betslip);
 
-        // let startTime = Date.now();
-        let timeout = 20 * 1000;
-        // let overTimeout;
+          // await delay(5000);
+          $(".svm-StickyVideoManager_Video").remove();
 
-        // console.error("check", ".bss-NormalBetItem_Title");
-
-        // let m = await getMoney(timeout);
-
-        timestamp("QuickBetslip 찾는중");
-        // console.error("QuickBetslip 찾는중");
-        // let $betslip = await findEl(".bss-DefaultContent", 2000);
-        // let $betslip = await findEl(".qbs-QuickBetslip", 2000);
-        let $betslip = await findElAll([".bss-DefaultContent:visible", ".qbs-QuickBetslip:visible"], timeout);
-        // let $betslip = await findEl(".qbs-QuickBetslip", 2000);
-        console.error("$betslip", $betslip);
-
-        // await delay(5000);
-        $(".svm-StickyVideoManager_Video").remove();
-
-        // if($betslip){
-        if(!$betslip[0] || $betslip[1]){
-          timestamp("betslip없음, Highlighted element 찾는 중");
-          // await delay(200);
-          await until(()=>{
-            return $(".sip-MarketGroupButton").length>0
-          }, 2000);
-
-          let openGroupItv = setInterval(()=>{
-            console.error("open click interval")
-            $(".sip-MarketGroupButton:not(.sip-MarketGroup_Open)").click();
-            console.error('marketGroupButton', $(".sip-MarketGroupButton:not(.sip-MarketGroup_Open)"));
-            // let $market = await findEl(".qbs-NormalBetItem_Market", 1000);
-            console.error('market', $(".qbs-NormalBetItem_Market").text())
-            if($(".qbs-NormalBetItem_Market").text().indexOf("3-Way") > -1){
-              click3Way();
-            }
-          }, 500)
-
-          // let $market = await findEl(".qbs-NormalBetItem_Market", 1000);
-          // if($market){
-          //   if($market.text().indexOf("3-Way") > -1){
-          //     await click3Way();
-          //   }
-          // }
-          // delay(1000).then(()=>{
-          //   $(".sip-MarketGroupButton:not(.sip-MarketGroup_Open)").click();
-          // })
-
-          // let openGroupItv = setTimeout(()=>{
-          //   $(".sip-MarketGroupButton:not(.sip-MarketGroup_Open)").click();
-          // }, 4000);
-
-          let cancelObj = {};
-          let found = await until(()=>{
-            // if(Date.now() - startTime > timeout){
-            //   overTimeout = true;
-            //   return true;
-            // }
-            // return $(".bss-DefaultContent_TitleText").text().length > 0;
-            // return $(":regex(class, .*_Highlighted)").length > 0;
-            return findHighlighted()
-          }, 10000, cancelObj);
-
-          clearTimeout(openGroupItv);
-
-          let $selectEl = findHighlighted();
-          // let $selectEl = $(":regex(class, .*_Highlighted)");
-          // found = $selectEl.length > 0;
-
-          timestamp("찾기결과");
-          console.error("Highlighted element", $selectEl);
-
-          if(!$selectEl){
-            console.error("선택된 이벤트가 없음.");
-            cancelObj.cancel();
-            resolveData = {
-              status: "fail",
-              type: "notFoundSelectedItem"
-            };
-            break;
-          }
-
-          await delay(100);
-
-
-          let findNext;
-
-
-          let $dummyEl;
-
-          await until(()=>{
-            return $(".gl-ParticipantOddsOnly:not(.gl-ParticipantOddsOnly_Suspended):not(.gl-ParticipantOddsOnly_Highlighted)").length>0;
-          }, 2000);
-
-          $dummyEl = $(".gl-ParticipantOddsOnly:not(.gl-ParticipantOddsOnly_Suspended):not(.gl-ParticipantOddsOnly_Highlighted)").eq(0).click();
-          if($dummyEl.length == 0){
-            $dummyEl = $(".gl-ParticipantCentered").eq(0).click();
-          }
-
-          // if($selectEl.hasClass("gl-ParticipantOddsOnly_Highlighted")){
-          //   if($selectEl.next(".gl-ParticipantOddsOnly").length){
-          //     findNext = true;
-          //     $dummyEl = $selectEl.next(".gl-ParticipantOddsOnly").eq(0).click();
-          //   }else if($selectEl.prev(".gl-ParticipantOddsOnly").length){
-          //     $dummyEl = $selectEl.prev(".gl-ParticipantOddsOnly").eq(0).click();
-          //   }else{
-          //     if($selectEl.parent().next().length){
-          //       findNext = true;
-          //       $dummyEl = $selectEl.parent().next().find(".gl-ParticipantOddsOnly").eq(0).click();
-          //     }else{
-          //       $dummyEl = $selectEl.parent().prev().find(".gl-ParticipantOddsOnly").eq(0).click();
-          //     }
-          //   }
-          // }else if($selectEl.hasClass("gl-ParticipantCentered_Highlighted")){
-          //   if($selectEl.parent().next().length){
-          //     findNext = true;
-          //     $dummyEl = $selectEl.parent().next().find(".gl-ParticipantCentered").eq(0).click();
-          //   }else{
-          //     $dummyEl = $selectEl.parent().prev().find(".gl-ParticipantCentered").eq(0).click();
-          //   }
-          // }else{
-          //   if($selectEl.next().length){
-          //     findNext = true;
-          //     $dummyEl = $selectEl.next().click();
-          //   }else{
-          //     $dummyEl = $selectEl.prev().click();
-          //   }
-          // }
-
-          console.error("dummyEl 클릭", $dummyEl[0]);
-
-          // if(findNext){
-          //   console.error("우");
-          // }else{
-          //   console.error("좌");
-          // }
-
-
-
-          $betSlip = await findEl(".bss-DefaultContent", 2000);
-
-          if($betSlip){
-            console.error("betslip 클릭");
-            await delay(200);
-            $dummyEl.click();
-            await delay(200);
-            $betSlip.click();
-
-            await delay(200);
-            // let $removeItemBtns = await findEl(".bss-NormalBetItem_Remove", 2000);
-            // $removeItemBtns.last().click();
-            console.error("betslip remove 클릭");
-            let removeComplete = await until(()=>{
-              return $(".bss-NormalBetItem_Remove").length == 1;// &&
-              // return $(":regex(class, .*_Highlighted)").length == 1;
+          // if($betslip){
+          if(!$betslip[0] || $betslip[1]){
+            timestamp("betslip없음, Highlighted element 찾는 중");
+            // await delay(200);
+            await until(()=>{
+              return $(".sip-MarketGroupButton").length>0
             }, 2000);
-            await delay(200);
 
-            if(!removeComplete){
-              console.error("Highlighted 클릭처리 실패");
+            let openGroupItv = setInterval(()=>{
+              console.error("open click interval")
+              $(".sip-MarketGroupButton:not(.sip-MarketGroup_Open)").click();
+              console.error('marketGroupButton', $(".sip-MarketGroupButton:not(.sip-MarketGroup_Open)"));
+              // let $market = await findEl(".qbs-NormalBetItem_Market", 1000);
+              console.error('market', $(".qbs-NormalBetItem_Market").text())
+              if($(".qbs-NormalBetItem_Market").text().indexOf("3-Way") > -1){
+                click3Way();
+              }
+            }, 500)
+
+            // let $market = await findEl(".qbs-NormalBetItem_Market", 1000);
+            // if($market){
+            //   if($market.text().indexOf("3-Way") > -1){
+            //     await click3Way();
+            //   }
+            // }
+            // delay(1000).then(()=>{
+            //   $(".sip-MarketGroupButton:not(.sip-MarketGroup_Open)").click();
+            // })
+
+            // let openGroupItv = setTimeout(()=>{
+            //   $(".sip-MarketGroupButton:not(.sip-MarketGroup_Open)").click();
+            // }, 4000);
+
+            let cancelObj = {};
+            let found = await until(()=>{
+              // if(Date.now() - startTime > timeout){
+              //   overTimeout = true;
+              //   return true;
+              // }
+              // return $(".bss-DefaultContent_TitleText").text().length > 0;
+              // return $(":regex(class, .*_Highlighted)").length > 0;
+              return findHighlighted()
+            }, 10000, cancelObj);
+
+            clearTimeout(openGroupItv);
+
+            let $selectEl = findHighlighted();
+            // let $selectEl = $(":regex(class, .*_Highlighted)");
+            // found = $selectEl.length > 0;
+
+            timestamp("찾기결과");
+            console.error("Highlighted element", $selectEl);
+
+            if(!$selectEl){
+              console.error("선택된 이벤트가 없음.");
+              cancelObj.cancel();
+              resolveData = {
+                status: "fail",
+                type: "notFoundSelectedItem"
+              };
+              break;
+            }
+
+            await delay(100);
+
+
+            let findNext;
+
+
+            let $dummyEl;
+
+            await until(()=>{
+              return $(".gl-ParticipantOddsOnly:not(.gl-ParticipantOddsOnly_Suspended):not(.gl-ParticipantOddsOnly_Highlighted)").length>0;
+            }, 2000);
+
+            $dummyEl = $(".gl-ParticipantOddsOnly:not(.gl-ParticipantOddsOnly_Suspended):not(.gl-ParticipantOddsOnly_Highlighted)").eq(0).click();
+            if($dummyEl.length == 0){
+              $dummyEl = $(".gl-ParticipantCentered").eq(0).click();
+            }
+
+            console.error("dummyEl 클릭", $dummyEl[0]);
+
+
+
+            $betSlip = await findEl(".bss-DefaultContent", 2000);
+
+            if($betSlip){
+              console.error("betslip 클릭");
+              await delay(200);
+              $dummyEl.click();
+              await delay(200);
+              $betSlip.click();
+
+              await delay(200);
+              // let $removeItemBtns = await findEl(".bss-NormalBetItem_Remove", 2000);
+              // $removeItemBtns.last().click();
+              console.error("betslip remove 클릭");
+              let removeComplete = await until(()=>{
+                return $(".bss-NormalBetItem_Remove").length == 1;// &&
+                // return $(":regex(class, .*_Highlighted)").length == 1;
+              }, 2000);
+              await delay(200);
+
+              if(!removeComplete){
+                console.error("Highlighted 클릭처리 실패");
+                return null;
+              }
+
+              console.error("betslip standard 상태로 전환 완료.");
+            }else{
+              console.error("betslip 못찾음");
               return null;
             }
-
-            console.error("betslip standard 상태로 전환 완료.");
           }else{
+            let found = await until(()=>{
+              // if(Date.now() - startTime > timeout){
+              //   overTimeout = true;
+              //   return true;
+              // }
+              return $(".bss-DefaultContent_TitleText").text().length > 0;
+            }, timeout, cancelObj);
+          }
+          // await delay(500);
+
+
+
+          // let betslipMoney = await getMoneyInBetslip();
+          // console.log({betslipMoney});
+
+          let findBetslipTitle = await until(()=>{
+            return $(".bss-NormalBetItem_Title").text().length > 0;
+          }, 5000);
+
+          if(!findBetslipTitle){
             console.error("betslip 못찾음");
             return null;
           }
+          // let r = await getBetslipInfo({withMoney:true});
+          r = await getBetslipInfo();
         }else{
-          let found = await until(()=>{
-            // if(Date.now() - startTime > timeout){
-            //   overTimeout = true;
-            //   return true;
-            // }
-            return $(".bss-DefaultContent_TitleText").text().length > 0;
-          }, timeout, cancelObj);
+          r = await getBetslipInfoForAPI();
         }
-        // await delay(500);
+
+        console.error("bet365 bet info", r);
+
+
+        if(r.title == "" && r.market == ""){
+          let count = localStorage.getItem('loadingCount') || 0;
+
+          if(count == 0){
+            console.error("벳365 로딩중 멈춤. 다시시도.");
+            log("벳365 로딩중 멈춤. 다시시도.", "danger", true);
+            localStorage.setItem("setUrl", true);
+            localStorage.setItem('loadingCount', 1);
+            window.location.href = data.data.betLink;
+            // await pause();
+            resolveData = {passResolve:true};
+            break;
+          }else{
+            console.error("페이지 먹통");
+            cancelObj.cancel();
+            resolveData = {
+              status: "fail",
+              type: "loadingFail"
+            };
+          }
+        }else{
+          resolveData = r;
+        }
+        localStorage.removeItem('loadingCount');
 
         setInitMessage(null);
         removeModal();
-
-        // let betslipMoney = await getMoneyInBetslip();
-        // console.log({betslipMoney});
-
-        let findBetslipTitle = await until(()=>{
-          return $(".bss-NormalBetItem_Title").text().length > 0;
-        }, 5000);
-
-        if(!findBetslipTitle){
-          console.error("betslip 못찾음");
-          return null;
-        }
-        // let r = await getBetslipInfo({withMoney:true});
-        let r = await getBetslipInfo();
 
 
         // r.money = await getMoney(10000);
@@ -673,8 +761,72 @@ function bet365JS(){
         //   market: $(".bss-NormalBetItem_Market").text(),
         //   odds: parseFloat($(".bs-OddsLabel>span:first").text())
         // }
-        console.error("bet365 bet info", r);
-        resolveData = r;
+
+
+      break;
+
+      case "placeBetDirect":
+        await (async ()=>{
+          let {betData, stake, odds} = data;
+
+          await refreshslip();
+
+          console.error("placeBetTest", betData);
+          let betGuid = localStorage.getItem('betGuid');
+          console.error("betGuid", betGuid);
+          // let refreshData = localStorage.getItem('refreshData');
+          // console.error("refreshData", refreshData);
+          if(!betGuid){
+            return;
+          }
+
+          const params = new URLSearchParams();
+          for(let o in betData.data){
+            params.append(o, betData.data[o]);
+          }
+          // var bodyFormData = new FormData();
+          // for(let o in data.data){
+          //   bodyFormData.append(o, data.data[o]);
+          // }
+          let headers = await sendData("getBetHeaders", null, PN_BG);
+          console.error("bet headers", headers);
+          let res = await axios({
+            method: "post",
+            url: "https://www.bet365.com/BetsWebAPI/placebet?betGuid=" + betGuid,
+            data: params,
+            headers: headers
+          })
+          console.error("res", res);
+
+          let info;
+          info = await getBetslipInfoForAPI();
+          let _result = {stake, money:info.money};
+          if(res.data.mi == "selections_changed"){
+            _result.status = "acceptChange";
+            let od = res.data.bt[0].od;
+            console.error("od", od);
+            _result.info = info;
+            if(od){
+              info.od = od;
+              info.odds = odToOdds(od);
+            }
+          }else{
+
+            _result.info = info;
+            if(res.data.mi == "stakes_above_max_stake"){
+              _result.status = "foundBetmax";
+              _result.betmax = res.data.bt[0].ms;
+            }else if(res.data.br){
+              _result.status = "success";
+            }else{
+              _result.status = "noReturn";
+            }
+          }
+
+          _result.data = res.data;
+          resolveData = _result;
+        })()
+
       break;
 
       case "placeBet":
@@ -977,8 +1129,9 @@ function bet365JS(){
                 console.log("complete");
                 balance = parseMoney($(".bs-Balance_Value").text());
                 info = await getBetslipInfo();
+                let betData = await sendData("getBetData", null, PN_BG);
                 resolveData = {
-                  balance, betmax, info
+                  balance, betmax, info, betData
                 }
                 break;
               }
@@ -1070,10 +1223,22 @@ function bet365JS(){
   }
 
   async function getMoney(timeout=2000){
-    await until(()=>{
-      return $(".hm-Balance:first").text().replace(/[^0-9]/g, '').length > 0;
-    }, timeout)
-    let money = parseMoney($(".hm-Balance:first").text());
+    // await until(()=>{
+    //   return $(".hm-Balance:first").text().replace(/[^0-9]/g, '').length > 0;
+    // }, timeout);
+    //
+    // let $pbt = $(".hm-MainHeaderMembersNarrow_MembersWrapper");
+    // $pbt.click();
+    // await delay(100);
+    // $(".um-BalanceRefreshButton").get(0).click();
+    // await delay(100);
+    // $pbt.click();
+    // await until(()=>{
+    //   return $(".hm-Balance:first").text().replace(/[^0-9]/g, '').length > 0;
+    // }, timeout);
+    // let money = parseMoney($(".hm-Balance:first").text());
+
+    let money = await loadMoney();
     if(betOption.useExchange == 'y'){
       if(typeof money === "number"){
         // cny to usd
@@ -1194,6 +1359,19 @@ function bet365JS(){
     .appendTo(document.body)
   }
 
+  function addStyleTag(style){
+    let s = document.createElement('style');
+    s.innerHTML = style;
+    document.body.appendChild(s);
+  }
+
+  function setupVideoDisable(){
+    let css = `.svm-StickyVideoManager_Video{
+      display: none !important;
+    }`;
+    addStyleTag(css);
+  }
+
   function setupKeyLock(){
     window.addEventListener("keydown", e=>{
       e.preventDefault();
@@ -1287,6 +1465,7 @@ function bet365JS(){
     setupMoneyIframe();
     // setupWithdrawIframe();
     setupOnMoneyMessage();
+    setupVideoDisable();
 
     let id = localStorage.getItem("id");
     if(id){

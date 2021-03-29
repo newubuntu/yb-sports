@@ -56,6 +56,22 @@ let Vapp;
       type: "select"
     },
     {
+      name: "체크기 피나클 배팅확인 방식",
+      key: "pncBetCheckType",
+      value: "full",
+      list: [
+        {
+          name: "끝까지 확인",
+          value: "full"
+        },
+        {
+          name: "초반만 확인",
+          value: "half"
+        }
+      ],
+      type: "select"
+    },
+    {
       type: "hr"
     },
     {
