@@ -306,7 +306,7 @@ block view
                   span.sr-only Previous
               li.page-item(v-for="i in pages" :class="curPage==i?'active':''")
                 a.page-link(v-if="curPage==i") {{i+1}}
-                a.page-link(v-else href="#" v-on:click="loadList(i, tab, {accountId, email, status, betId})") {{i+1}}
+                a.page-link(v-else href="#" v-on:click="loadList(i, tab, {accountId, email, status, betId, eventName})") {{i+1}}
               li.page-item
                 a.page-link(v-if="maxPage>endPage" href="#" aria-label="Next" v-on:click="loadList(endPage+1, tab, {accountId, email, status, betId, eventName})")
                   span(aria-hidden="true") »

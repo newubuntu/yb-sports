@@ -92,9 +92,9 @@ block view
               | 전체 매칭시작
             button.btn.btn-square.btn-warning(type="button" v-on:click="stopMatchAllBrowser(program)")
               | 전체 매칭중지
-            button.btn.btn-square.btn-info(type="button" v-on:click="closeBrowserAll(program)")
+            button.btn.btn-square.btn-info(type="button" v-on:click="openBrowserAll(program)")
               | 전체 켜기
-            button.btn.btn-square.btn-secondary(type="button" v-on:click="openBrowserAll(program)")
+            button.btn.btn-square.btn-secondary(type="button" v-on:click="closeBrowserAll(program)")
               | 전체 끄기            
           .btn-group(role="group")
             button.btn.btn-square.btn-behance(type="button" v-on:click="sk_addBrowser(program._id)")

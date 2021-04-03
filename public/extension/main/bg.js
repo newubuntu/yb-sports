@@ -27,6 +27,7 @@ function bgJS(){
 
   let betData = {};
   let betHeaders = {};
+  let betslipData = {};
 
   window._onBgMessage = async function _onBgMessage(message){
     let {com, data, from} = message;
@@ -104,11 +105,24 @@ function bgJS(){
   		break;
 
       case "getBetData":
-        resolveData = betData[tabInfos.bet365.id];
+        // resolveData = betData[tabInfos.bet365.id];
+        try{
+          resolveData = JSON.parse(JSON.stringify(betData[tabInfos.bet365.id]));
+        }catch(e){
+          resolveData = undefined
+        }
       break;
 
       case "getBetHeaders":
         resolveData = betHeaders[tabInfos.bet365.id];
+      break;
+
+      case "getBetslipData":
+        try{
+          resolveData = JSON.parse(JSON.stringify(betslipData[tabInfos.bet365.id]));
+        }catch(e){
+          resolveData = undefined
+        }
       break;
 
   		case "readyBet365":
@@ -233,27 +247,62 @@ function bgJS(){
   }
 
 
-
+  function buf2str(buf){
+    return decodeURIComponent(String.fromCharCode.apply(null, new Uint8Array(buf)));
+  }
 
   chrome.webRequest.onBeforeRequest.addListener(function (details) {
 		// console.error("onBeforeRequest", details);
-    let str = decodeURIComponent(String.fromCharCode.apply(null, new Uint8Array(details.requestBody.raw[0].bytes)));
-    let data = str.split('&').reduce((r,kv)=>{
-      if(kv){
-        let arr = kv.split('=');
-        r[arr.shift()] = arr.join('=');
-      }
-      return r;
-    },{});
-    betData[details.tabId] = {
-      data
-    };
-    console.error("betData", betData);
+    // let str = decodeURIComponent(String.fromCharCode.apply(null, new Uint8Array(details.requestBody.raw[0].bytes)));
+    if(details.requestBody.raw){
+      let str = buf2str(details.requestBody.raw[0].bytes);
+      let data = str.split('&').reduce((r,kv)=>{
+        if(kv){
+          let arr = kv.split('=');
+          r[arr.shift()] = arr.join('=');
+        }
+        return r;
+      },{});
+      betData[details.tabId] = {
+        data
+      };
+      console.error("betData", betData);
+    }
     // return {
     //   requestHeaders: details.requestHeaders
     // };
 	}, {
 		"urls": ["https://www.bet365.com/BetsWebAPI/placebet*"],
+		"types": ["xmlhttprequest"]
+	}, ["extraHeaders", "requestBody"]);
+
+
+
+  chrome.webRequest.onBeforeRequest.addListener(function (details) {
+		// console.error("onBeforeRequest", details);
+    // let str = decodeURIComponent(String.fromCharCode.apply(null, new Uint8Array(details.requestBody.raw[0].bytes)));
+    if(details.requestBody.raw){
+      let str = buf2str(details.requestBody.raw[0].bytes);
+      let data = str.split('&').reduce((r,kv)=>{
+        if(kv){
+          let arr = kv.split('=');
+          r[arr.shift()] = arr.join('=');
+        }
+        return r;
+      },{});
+
+      betslipData[details.tabId] = {
+        data
+      };
+      try{
+        console.error("betslipData", JSON.parse(JSON.stringify(betslipData)));
+      }catch(e){}
+    }
+    // return {
+    //   requestHeaders: details.requestHeaders
+    // };
+	}, {
+		"urls": ["https://www.bet365.com/BetsWebAPI/refreshslip"],
 		"types": ["xmlhttprequest"]
 	}, ["extraHeaders", "requestBody"]);
 
@@ -270,7 +319,12 @@ function bgJS(){
     }
     console.error("betHeaders", betHeaders);
   }, {
-    "urls": ["https://www.bet365.com/BetsWebAPI/refreshslip"],
+    "urls": [
+      "https://www.bet365.com/BetsWebAPI/refreshslip",
+      "https://www.bet365.com/BetsWebAPI/placebet*",
+      "https://www.bet365.com/BetsWebAPI/addbet",
+      "https://www.bet365.com/BetsWebAPI/removebet"
+    ],
 		"types": ["xmlhttprequest"]
   }, ["requestHeaders"]);
   //"requestHeaders"

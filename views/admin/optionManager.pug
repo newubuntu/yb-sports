@@ -58,10 +58,12 @@ block view
             .form-check(v-for="opt in form.list")
               input.form-check-input(v-on:change="update" :id="form.key+'_'+opt.value" type="radio" :checked="opt.value == form.value" :value="opt.value" :name="form.key")
               label.form-check-label(:for="form.key+'_'+opt.value") {{opt.name}}
+            span.help-block(v-if="form.help") {{form.help}}
           .col-md-9.col-form-label(v-else-if="form.type=='checkbox'")
             .form-check.checkbox(v-for="opt in form.list")
               input.form-check-input(v-on:change="update" :id="form.key+'_'+opt.value" type="checkbox" :checked="form.value[opt.value]")
               label.form-check-label(:for="form.key+'_'+opt.value") {{opt.name}}
+            span.help-block(v-if="form.help") {{form.help}}
     
     .row
       .button-group.btn-option(v-for="option in options")

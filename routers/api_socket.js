@@ -295,8 +295,10 @@ module.exports = MD=>{
             c_log = await Log.findOne({browser: bid}).sort({$natural:-1});//{'created_at' : -1 });
             // c_log = await Log.find({browser: bid, bet365Id: browser.account?browser.account.id:"unknown"}).limit(1).sort({$natural:-1});
             // c_log = c_log[0];
-            c_log.data = data;
-            await c_log.save();
+            if(c_log){
+              c_log.data = data;
+              await c_log.save();
+            }
           }
 
           if(!c_log){

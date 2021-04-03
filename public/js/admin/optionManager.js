@@ -99,6 +99,22 @@ let Vapp;
       type: "hr"
     },
     {
+      name: "벳365 소수점 제거",
+      key: "useRoundStake",
+      list: ['y', 'n'],
+      value: "y",
+      type: "radio",
+      help: "(수신기 전용)"
+    },
+    {
+      name: "stake 증폭",
+      key: "stakeRatioP",
+      value: 100,
+      type: "number",
+      append: "%",
+      help: "(수신기 전용)"
+    },
+    {
       name: "벨류 고정 betmax",
       key: "customBetmax",
       value: 20,

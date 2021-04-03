@@ -202,7 +202,11 @@ let Vapp;
                   return api.loadLogs(browser._id).then(res=>{
                     if(res.status == "success"){
 
-                      this.setupLog(browser, res.data.reverse());
+                      this.setupLog(browser, res.data.reverse().sort((a,b)=>{
+                        let at = a.data.time ? a.data.time : new Date(a.data.updatedAt).getTime();
+                        let bt = b.data.time ? b.data.time : new Date(b.data.updatedAt).getTime();
+                        return at - bt;
+                      }));
                     }
                   })
                 }))
@@ -217,7 +221,7 @@ let Vapp;
 
       logToHtml(log){
         // console.log(Date.now(), log);
-        let d = new Date(log.updatedAt);
+        let d = new Date(log.data.time||log.updatedAt);
         let ds = (d.getMonth()+1)+'/'+d.getDate() + ' ' + d.toTimeString().split(' ')[0];
         let dateStr = '<span class="text-white-50">['+ds+']</span>';
         return dateStr + ' ' + '<span>' + log.data.msg + '</span>';
@@ -533,13 +537,14 @@ let Vapp;
           let $con = $(`.${_bid}>.browser-logger`);
           // console.error("!", $con.scrollTop() + $con.prop("offsetHeight") + 20, $con.prop("scrollHeight"));
           let isBottom = $con.scrollTop() + $con.prop("offsetHeight") + 20 >= $con.prop("scrollHeight");
+          let updatedAt = data.time?new Date(data.time):new Date();
           if(data.isSame){
-            browser.logs[browser.logs.length-1] = {data, updatedAt:new Date()};
+            browser.logs[browser.logs.length-1] = {data, updatedAt};
           }else{
             if(browser.logs.length < MAX_LOG_LENGTH){
-              browser.logs.push({data, updatedAt:new Date()});
+              browser.logs.push({data, updatedAt});
             }else{
-              browser.logs = browser.logs.slice(-(MAX_LOG_LENGTH-1)).concat({data, updatedAt:new Date()});
+              browser.logs = browser.logs.slice(-(MAX_LOG_LENGTH-1)).concat({data, updatedAt});
             }
           }
           if(!browser.$loggerUl){
