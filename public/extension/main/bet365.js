@@ -499,10 +499,16 @@ function bet365JS(){
     })
   }
 
-  async function placeBetDirect({betData, stake, odds, od}){
+  async function placeBetDirect({betData, stake, odds, od, account}){
     // await refreshslip();
 
+    let originStake = stake;
+    if(betOption.useExchange == 'y'){
+      // usd to cny
+      stake /= betOption.exchangeRate;
+    }
     stake = round(stake, 2);
+
     let rt = round(stake * odds, 2);
     if(od){
       betData.data.ns = betData.data.ns.replace(/#o=((\d+\/\d+)|(\d+(\.\d+))?)/, function(f,m){
@@ -531,6 +537,16 @@ function bet365JS(){
     // }
     let headers = await sendData("getBetHeaders", null, PN_BG);
     console.error("bet headers", headers);
+
+    if(account){
+      if(account.limited){
+        log("리밋계정 랜덤 딜레이 적용", "warning", true);
+        await delay(Math.random() * 5000);
+      }
+    }else{
+      console.error("계정정보 없음.");
+    }
+
     let res = await axios({
       method: "post",
       url: "https://www.bet365.com/BetsWebAPI/placebet?betGuid=" + betGuid,
@@ -540,7 +556,7 @@ function bet365JS(){
     console.error("res", res);
 
     let info;
-    let _result = {stake};
+    let _result = {stake:originStake};
     if(res.data.mi == "selections_changed"){
       _result.status = "acceptChange";
       let od = res.data.bt[0].od;
@@ -558,7 +574,13 @@ function bet365JS(){
       _result.info = info;
       if(res.data.mi == "stakes_above_max_stake"){
         _result.status = "foundBetmax";
-        _result.betmax = res.data.bt[0].ms;
+        if(betOption.useExchange == 'y'){
+          // cny to usd
+          _result.betmax = res.data.bt[0].ms * betOption.exchangeRate;
+          _result.betmax = round(_result.betmax, 2);
+        }else{
+          _result.betmax = res.data.bt[0].ms;
+        }
       }else if(res.data.br){
         _result.status = "success";
         _result.money = await loadMoney();
@@ -1506,13 +1528,13 @@ function bet365JS(){
     // let money = parseMoney($(".hm-Balance:first").text());
 
     let money = await loadMoney();
-    if(betOption.useExchange == 'y'){
-      if(typeof money === "number"){
-        // cny to usd
-        money *= betOption.exchangeRate;
-        money = round(money, 2);
-      }
-    }
+    // if(betOption.useExchange == 'y'){
+    //   if(typeof money === "number"){
+    //     // cny to usd
+    //     money *= betOption.exchangeRate;
+    //     money = round(money, 2);
+    //   }
+    // }
     return money;
   }
 

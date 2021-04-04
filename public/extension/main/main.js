@@ -72,7 +72,7 @@ var flag = {
   isMatching:false
 };
 let betOption, optionName;
-var account;
+var account, accountInfo;
 //from injection.js (by bg)
 async function onMessage(message){
   let {com, data} = message;
@@ -736,22 +736,31 @@ async function commonProcess(data, noCheckBalance){
     return emptyObj;
   }
 
-  let stakeRatio = 1;
-  if(betOption.stakeRatioP !== undefined){
-    try{
-      stakeRatio = betOption.stakeRatioP / 100;
-    }catch(e){
-      console.error(e);
-    }
+  let res = await api.loadAccountInfo(account.id);
+  if(res.status == "success"){
+    accountInfo = res.data.account;
   }
-  log(`stake 증폭: ${round(data.bet365.stake, 2)}->${round(data.bet365.stake*stakeRatio, 2)} (${round(stakeRatio*100)}%)`, null, true);
 
-  if(betOption.useRoundStake == "y"){
-    data.bet365.stake = round(data.bet365.stake * stakeRatio);
+  let stakeRatio = 1;
+  if(!accountInfo.limited){
+    if(betOption.stakeRatioP !== undefined){
+      try{
+        stakeRatio = betOption.stakeRatioP / 100;
+      }catch(e){
+        console.error(e);
+      }
+    }
+    log(`stake 증폭: ${round(data.bet365.stake, 2)}->${round(data.bet365.stake*stakeRatio, 2)} (${round(stakeRatio*100)}%)`, null, true);
+
+    if(betOption.useRoundStake == "y"){
+      data.bet365.stake = round(data.bet365.stake * stakeRatio);
+    }else{
+      data.bet365.stake = round(data.bet365.stake * stakeRatio, 2);
+    }
+    updatePncStake(data);
   }else{
-    data.bet365.stake = round(data.bet365.stake * stakeRatio, 2);
+    log("리밋계정 증폭적용 X", "warning", true);
   }
-  updatePncStake(data);
 
   if(changeOddsBet365Process(data, bet365Info.odds)){
     updateBet365Stake(data);
@@ -850,7 +859,13 @@ async function bet365PlacebetProcess(data, bet365Info){
         stake = round(data.bet365.stake);
       }
 
-      result = await sendData("placeBetDirect", {stake, odds:data.bet365.odds, betData, od}, PN_B365);
+      // let accountInfo;
+      // let res = await api.loadAccountInfo(account.id);
+      // if(res.status == "success"){
+      //   accountInfo = res.data.account;
+      // }
+
+      result = await sendData("placeBetDirect", {stake, odds:data.bet365.odds, betData, od, account:accountInfo}, PN_B365);
       console.log("result", result);
 
       // result = await sendData("placeBet", {fixedBetmax, stake:data.bet365.stake, prevInfo:bet365Info}, PN_B365);
@@ -895,6 +910,8 @@ async function bet365PlacebetProcess(data, bet365Info){
         changeOddsBet365Process(data, result.info.odds);
         setBet365RandomStake(data, result.betmax);
         fixedBetmax = true;
+        log("벳365 계정 짤림", "danger", true);
+        api.limitAccount(account.id);
       }else if(result.status == "acceptChange"){
         // let prevOdds = data.bet365.odds;
         noReturnCount = 0;
@@ -916,7 +933,7 @@ async function bet365PlacebetProcess(data, bet365Info){
               break;
             }else{
               log(`벳365 같은배당 acceptChange. 다시시도(${noChangeOddsAcceptCount})`, "danger", true);
-              await delay(200);
+              await delay(1000);
             }
           }
         }else{
@@ -939,10 +956,11 @@ async function bet365PlacebetProcess(data, bet365Info){
         break;
       }else{
         log(`벳365 배팅실패: ${result.message}`, "danger", true);
-        if(
-          result.status == "restriction" ||
-          result.status == "needVerify"
-        ){
+        if(result.status == "restriction"){
+          api.dieAccount(account.id);
+          sendDataToSite("sound", {name:"closureAccount"});
+          stopMatch(true);
+        }else if(result.status == "needVerify"){
           stopMatch(true);
         }
         break;
@@ -952,6 +970,12 @@ async function bet365PlacebetProcess(data, bet365Info){
       break;
     }
   }
+
+  if(fixedBetmax){
+    sendDataToSite("sound", {name:"limitAccount"});
+    stopMatch(true);
+  }
+
   activeMain();
   console.log("bet365 bet result", result);
 

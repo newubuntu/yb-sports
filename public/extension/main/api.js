@@ -94,7 +94,7 @@ function setupAPI(email){
           console.error("error get exchangeRate");
         }
         return r;
-      })      
+      })
     },
 
     balance(){
@@ -123,6 +123,20 @@ function setupAPI(email){
 
     saveTestData(data){
       return ax("/input_test_data", data, "POST");
+    },
+
+    limitAccount(id){
+      if(!id) return Promise.reject();
+      return ax("/limit_account/" + id);
+    },
+
+    dieAccount(id){
+      if(!id) return Promise.reject();
+      return ax("/die_account/" + id);
+    },
+
+    loadAccountInfo(id){
+      return ax("/load_account/" + id);
     }
   }
 }

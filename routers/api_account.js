@@ -31,13 +31,38 @@ module.exports = MD=>{
     MoneyManager
   } = MD;
 
+  router.get("/load_account/:id", task(async (req, res)=>{
+    let account = await Account.findOne({user:req.user._id, id:req.params.id})
+    .select(["-skrillId", "-skrillPw", "-skrillCode", "-digit4", "-skrillEmail"])
+    .lean();
+
+    res.json({
+      status: "success",
+      data: {account}
+    })
+  }))
+
+  router.get("/limit_account/:id", task(async (req, res)=>{
+    await Account.updateOne({user:req.user._id, id:req.params.id}, {limited:true});
+    res.json({
+      status: "success"
+    })
+  }))
+
+  router.get("/die_account/:id", task(async (req, res)=>{
+    await Account.updateOne({user:req.user._id, id:req.params.id}, {died:true});
+    res.json({
+      status: "success"
+    })
+  }))
+
   router.get("/buy_account/:id", task(async (req, res)=>{
     let id = req.params.id;
     let user = await User.findOne({email:req.user.email}).select(["email", "money", "wallet", "bet365Money"]);
     let account = await Account.findOne({_id:id, trash:false, removed:false, firstCharged:true})
     // .select("id")
     // .select(["id", "user", "died", "limited", "browser", "number", "money"])
-    .select(["-skrillId", "-skrillPw", "-skrillCode"])
+    .select(["-skrillId", "-skrillPw", "-skrillCode", "-digit4", "-skrillEmail"])
     .populate({
       path: "user",
       model: User,

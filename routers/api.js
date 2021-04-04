@@ -624,6 +624,9 @@ module.exports = io=>{
     res.send('1');
   })
 
+
+  
+
   router.post("/input_bet", task(async (req, res)=>{
     let data = req.body;
     data.user = req.user._id;
