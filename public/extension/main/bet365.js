@@ -1332,15 +1332,15 @@ function bet365JS(){
                 if(status.afterPlaceBetCount == undefined) status.afterPlaceBetCount = 0;
                 status.afterPlaceBetCount++;
                 console.error("placebet", status.afterPlaceBetCount);
-                if(status.afterPlaceBetCount > 5){
-                  if($(".lms-StandardLogin_Username").length){
+                // if(status.afterPlaceBetCount > 5){
+                  if($(".lms-StandardLogin_Username:visible").length){
                     console.error("로긴창 발견");
                     resolveData = {
                       status: "logouted"
                     }
                     break;
                   }
-                }
+                // }
                 if(status.afterPlaceBetCount > 3){
                   console.error("placebet 많이 반복됨");
                   resolveData = {
