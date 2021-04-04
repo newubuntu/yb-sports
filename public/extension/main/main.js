@@ -756,8 +756,8 @@ async function commonProcess(data, noCheckBalance){
     stakeRatio = 0.9;
   }
 
-  if(betOption.useRoundStake == "y"){
-    data.bet365.stake = round(data.bet365.stake * stakeRatio);
+  if(betOption.useFloorStake == "y"){
+    data.bet365.stake = Math.floor(data.bet365.stake * stakeRatio);
   }else{
     data.bet365.stake = round(data.bet365.stake * stakeRatio, 2);
   }

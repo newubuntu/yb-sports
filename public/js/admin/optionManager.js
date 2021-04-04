@@ -100,7 +100,7 @@ let Vapp;
     },
     {
       name: "벳365 소수점 제거",
-      key: "useRoundStake",
+      key: "useFloorStake",
       list: ['y', 'n'],
       value: "y",
       type: "radio",
