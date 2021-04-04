@@ -749,18 +749,19 @@ async function commonProcess(data, noCheckBalance){
       }catch(e){
         console.error(e);
       }
+      log(`stake 증폭: ${round(data.bet365.stake, 2)}->${round(data.bet365.stake*stakeRatio, 2)} (${round(stakeRatio*100)}%)`, null, true);
     }
-    log(`stake 증폭: ${round(data.bet365.stake, 2)}->${round(data.bet365.stake*stakeRatio, 2)} (${round(stakeRatio*100)}%)`, null, true);
-
-    if(betOption.useRoundStake == "y"){
-      data.bet365.stake = round(data.bet365.stake * stakeRatio);
-    }else{
-      data.bet365.stake = round(data.bet365.stake * stakeRatio, 2);
-    }
-    updatePncStake(data);
   }else{
     log("리밋계정 증폭적용 X", "warning", true);
+    stakeRatio = 0.9;
   }
+
+  if(betOption.useRoundStake == "y"){
+    data.bet365.stake = round(data.bet365.stake * stakeRatio);
+  }else{
+    data.bet365.stake = round(data.bet365.stake * stakeRatio, 2);
+  }
+  updatePncStake(data);
 
   if(changeOddsBet365Process(data, bet365Info.odds)){
     updateBet365Stake(data);
@@ -806,7 +807,7 @@ async function bet365PlacebetProcess(data, bet365Info){
   ///
 
   // log(`벳365 배팅시작`, "info", true);
-  let result, checkBet, isChangeOdds, isFirst = true, lakeMoney, fixedBetmax;
+  let result, checkBet, isChangeOdds, isFirst = true, lakeMoney, fixedBetmax, everBeenFixedBetmax;
   let checkProfit = true, checkType, noChangeOddsAcceptCount = 0, noReturnCount = 0;
   while(1){
     if(checkProfit){
@@ -909,9 +910,10 @@ async function bet365PlacebetProcess(data, bet365Info){
       }else if(result.status == "foundBetmax"){
         changeOddsBet365Process(data, result.info.odds);
         setBet365RandomStake(data, result.betmax);
-        fixedBetmax = true;
-        log("벳365 계정 짤림", "danger", true);
-        api.limitAccount(account.id);
+        everBeenFixedBetmax = fixedBetmax = true;
+
+        // api.limitAccount(account.id);
+        sendDataToServer("updateAccountState", {id:account.id, state:"limited"});
       }else if(result.status == "acceptChange"){
         // let prevOdds = data.bet365.odds;
         noReturnCount = 0;
@@ -957,7 +959,8 @@ async function bet365PlacebetProcess(data, bet365Info){
       }else{
         log(`벳365 배팅실패: ${result.message}`, "danger", true);
         if(result.status == "restriction"){
-          api.dieAccount(account.id);
+          // api.dieAccount(account.id);
+          sendDataToServer("updateAccountState", {id:account.id, state:"died"});
           sendDataToSite("sound", {name:"closureAccount"});
           stopMatch(true);
         }else if(result.status == "needVerify"){
@@ -971,7 +974,8 @@ async function bet365PlacebetProcess(data, bet365Info){
     }
   }
 
-  if(fixedBetmax){
+  if(everBeenFixedBetmax){
+    log("벳365 계정 짤림", "danger", true);
     sendDataToSite("sound", {name:"limitAccount"});
     stopMatch(true);
   }

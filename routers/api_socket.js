@@ -410,6 +410,13 @@ module.exports = MD=>{
         })
 
 
+        socket.on("updateAccountState", async (data, bid)=>{
+          let {id, state} = data;
+          let updateData = {};
+          updateData[state] = true;
+          await Account.updateOne({user:session.user._id, id}, updateData);
+          emitToDashboard("updateAccountState", {id, state, bid});
+        })
 
         // from extension bg
         // let updateMoneyCallTimes = redisClient.get('updateMoneyCallTimes');

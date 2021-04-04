@@ -108,7 +108,7 @@ block view
       .card-body
         .row
           .col-sm-6.col-md-4(v-for="browser in program.browsers")
-            .card.border-primary.browser(:class="browser._id")
+            .card.browser(:class="browserClass(browser)")
               header.card-header
                 .btn-toolbar.justify-content-between
                   .b-header.btn-group(role="group")

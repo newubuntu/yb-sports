@@ -46,6 +46,16 @@ let Vapp;
       }
     })
 
+    socket.on("updateAccountState", ({id, state, bid})=>{
+      console.log("updateAccountState", id, state, bid);
+      let browser = Vapp.getBrowserObj(bid);
+      if(browser){
+        if(browser.account){
+          browser.account[state] = true;
+        }
+      }
+    })
+
     socket.on("log", (data, pid, bid)=>{
       console.log("log", data);
       Vapp.updateLog(pid, bid, data);
@@ -217,6 +227,23 @@ let Vapp;
             // stopLoading();
           })
         }
+      },
+
+      browserClass(browser){
+        let obj = {};
+        obj[browser._id] = true;
+        if(browser.account){
+          if(browser.account.limited){
+            obj['border-warning'] = true;
+          }else if(browser.account.died){
+            obj['border-danger'] = true;
+          }else{
+            obj['border-success'] = true;
+          }
+        }else{
+          obj['border-primary'] = true;
+        }
+        return obj;
       },
 
       logToHtml(log){

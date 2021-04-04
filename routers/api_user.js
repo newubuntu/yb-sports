@@ -354,7 +354,8 @@ module.exports = MD=>{
             path: 'account',
             model: Account,
             options: {
-              select: 'id money country'
+              // select: 'id money country'
+              select: "id pw limited died country money"
             }
           },
           {

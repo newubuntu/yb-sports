@@ -541,7 +541,7 @@ function bet365JS(){
     if(account){
       if(account.limited){
         log("리밋계정 랜덤 딜레이 적용", "warning", true);
-        await delay(Math.random() * 5000);
+        await delay(Math.random() * 3000);
       }
     }else{
       console.error("계정정보 없음.");
