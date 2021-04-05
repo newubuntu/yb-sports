@@ -313,6 +313,7 @@ module.exports = MD=>{
         socket.on("delivery", async (obj, bid, uuid)=>{
           // let {com, data, bid} = obj;
           let {com, data} = obj;
+          // console.log("socket delivery(program)", obj, bid);
           // console.log(`delivery ${event}`, data);
           // io.to(email + ":dashboard").emit(com, data, socket._pid, bid);
           if(uuid){
@@ -525,6 +526,7 @@ module.exports = MD=>{
 
         socket.on("delivery", async (obj, uuid)=>{
           let {data, pid} = obj;
+          // console.log("socket delivery(site)", obj);
           // console.log(`delivery`, data);
           // io.to(pid).emit(data.com, data.data);
           if(!uuid){

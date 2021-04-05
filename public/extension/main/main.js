@@ -1046,9 +1046,7 @@ async function userYbProcess(data){
     if(!flag.isMatching) return;
     let {checkBet, lakeMoney, result} = await bet365PlacebetProcess(data, bet365Info);
 
-    if(checkBet){
-      sendDataToServer("updateMoney", result.money - result.stake);
-      await delay(100);
+    if(checkBet){      
       // 사이트 배팅
       log(`피나클 배팅시작 <span class="text-warning">$${data.pinnacle.stake}</span>`, "info", true);
       // 배팅정보 저장

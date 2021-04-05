@@ -241,6 +241,7 @@ module.exports = io=>{
 
       clearTimeout(refreshMoneyItvs[user.email]);
       refreshMoneyItvs[user.email] = setTimeout(()=>{
+        // console.trace("@@ send updateMoney");
         emitToMember(user.email, "updateMoney", obj);
       }, 100)
       // console.log("######refreshMoney", user);
@@ -291,6 +292,7 @@ module.exports = io=>{
   }
 
   async function refreshTab(user, links){
+    console.log("refreshTab", user, links);
     user = await getUser(user);
     if(user){
       emitToMember(user.email, "refreshTab", {
@@ -331,9 +333,12 @@ module.exports = io=>{
   }
 
   async function getUser(user){
+    // console.log("getUser", user);
     if(user instanceof mongoose.Types.ObjectId || typeof user === "string"){
+      // console.log("---find1");
       user = await User.findOne({_id:user}).select('-password');
     }else if(user && !user.email){
+      // console.log("---find2");
       user = await User.findOne({_id:user._id}).select('-password');
     }
     return user;
@@ -363,6 +368,7 @@ module.exports = io=>{
     await user.save();
     // await User.updateOne({_id:browser.user}, {bet365Money:result[0].money});
     if(sync){
+      user = await User.findOne({_id:user._id}).select('-password');
       await refreshBet365TotalMoney(user);
       // emitToMember(user.email, "updateMoney", {bet365Money:totalMoney});
     }
@@ -1009,6 +1015,7 @@ module.exports = io=>{
     };
 
     // io.$.emit(user.email, "updateMoney", data);
+    // console.trace("@@@@ send updateMoney");
     io.to(user.email).emit("updateMoney", data);
 
     res.json({

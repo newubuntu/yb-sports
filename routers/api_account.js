@@ -326,7 +326,7 @@ module.exports = MD=>{
       //   await account.save();
       // }
 
-      // console.log("update account", data);
+      console.log("update account", data);
       await refreshBet365Money(account);
       await updateBet365TotalMoney(account.user, true);
     }

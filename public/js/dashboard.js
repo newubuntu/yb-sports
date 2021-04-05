@@ -248,7 +248,7 @@ let Vapp;
 
       calcProfit(browser){
         if(browser.account && browser.account.startMoney){
-          return round(browser.account.money - browser.account.startMoney, 2);
+          return browser.account.money - browser.account.startMoney;
         }else{
           return 0;
         }
@@ -293,15 +293,20 @@ let Vapp;
         }
       },
 
+      round(n, p){
+        return round(n, p)
+      },
+
       printSumHtml(program){
-        let pf = this.sumProfit(program);
+        let sum = round(this.sumMoney(program), 2);
+        let pf = round(this.sumProfit(program), 2);
         let color = pf>0?'text-success':pf<0?'text-danger':'';
-        return `합계: $${this.sumMoney(program)} (<span class="${color}">$${pf}</span>)`;
+        return `합계: $${sum} (<span class="${color}">$${pf}</span>)`;
       },
 
       printSumHtmlAll(programs){
-        let sum = programs.reduce((r,program)=>r+this.sumMoney(program),0);
-        let pf = programs.reduce((r,program)=>r+this.sumProfit(program),0);
+        let sum = round(programs.reduce((r,program)=>r+this.sumMoney(program),0) ,2);
+        let pf = round(programs.reduce((r,program)=>r+this.sumProfit(program),0), 2);
         let color = pf>0?'text-success':pf<0?'text-danger':'';
         return `합계: $${sum} (<span class="${color}">$${pf}</span>)`;
       },
@@ -513,9 +518,12 @@ let Vapp;
         })
       },
       async startMatch(program, browser){
+        // console.error("startMatch", browser);
         // sendDataToMain(program._id, browser._id, "startMatch");
         if(!browser.isMatching){
+          // console.error("--try!");
           let data = await sendDataToMainPromise(program._id, browser._id, "startMatch");
+          // console.error("--receive!");
           // console.log("??? after startMatch", data);
           browser.isMatching = data;
           this.$forceUpdate();

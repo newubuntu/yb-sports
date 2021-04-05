@@ -22,7 +22,7 @@ block styles
     }
     .m-info {
       position: relative;
-      left: -40px;
+      left: -52px;
       top: -16px;
     }
     
@@ -128,7 +128,7 @@ block view
                       | {{browser.option ? browser.option.name : "옵션선택"}}
                     span.b-money ${{browser.account ? Math.floor(browser.account.money) : 0}}                      
                     span.m-info(:class="profitClass(browser)" title="수익계산")
-                      span (${{calcProfit(browser)}})
+                      span (${{round(calcProfit(browser),2)}})
                       button.btn.btn-square.btn-primary.btn-refresh-startMoney(:class="browser._id" type="button" title="수익계산 초기화" style="transform: scale(0.5); position:absolute; top:-8px;" v-on:click="updateStartMoney(browser)")
                         svg.c-icon.c-icon-lg
                           use(xlink:href="/vendors/@coreui/icons/sprites/solid.svg#cis-reload")
