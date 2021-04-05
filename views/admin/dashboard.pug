@@ -139,8 +139,8 @@ block view
                     button.btn.btn.btn-square(:class="(browser.option && browser.option.permission=='admin') ? 'btn-ghost-info' : 'btn-ghost-warning'" type="button" v-on:click="openOptionModal(program._id, browser._id)")
                       | {{browser.option ? browser.option.name : "옵션선택"}}
                     span.b-money ${{browser.account ? Math.floor(browser.account.money) : 0}}
-                    span.m-info(:class="profitClass(browser)" title="수익계산")
-                      span (${{round(calcProfit(browser), 2)}})
+                    span.m-info(title="수익계산")
+                      span(v-html="printProfitHtml(browser)")
                       button.btn.btn-square.btn-primary.btn-refresh-startMoney(:class="browser._id" type="button" title="수익계산 초기화" style="transform: scale(0.5); position:absolute; top:-8px;" v-on:click="updateStartMoney(browser)")
                         svg.c-icon.c-icon-lg
                           use(xlink:href="/vendors/@coreui/icons/sprites/solid.svg#cis-reload")

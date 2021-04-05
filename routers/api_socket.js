@@ -478,7 +478,7 @@ module.exports = MD=>{
         // })
 
         socket.on("updateStartMoney", async ({id}, uuid)=>{
-          console.error("updateStartMoney", id);
+          console.log("updateStartMoney", id);
           let account = await Account.findOne({id}).select("startMoney money");
           if(account){
             account.startMoney = account.money;

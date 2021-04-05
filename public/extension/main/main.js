@@ -1046,7 +1046,7 @@ async function userYbProcess(data){
     if(!flag.isMatching) return;
     let {checkBet, lakeMoney, result} = await bet365PlacebetProcess(data, bet365Info);
 
-    if(checkBet){      
+    if(checkBet){
       // 사이트 배팅
       log(`피나클 배팅시작 <span class="text-warning">$${data.pinnacle.stake}</span>`, "info", true);
       // 배팅정보 저장
@@ -1236,7 +1236,12 @@ async function reLogin(){
 
 function setBet365RandomStake(data, stake){
   let ratio = randomRatio();
-  let nbm = round(stake * ratio, 2);
+  let nbm;
+  if(betOption.useFloorStake == "y"){
+    nbm = Math.floor(stake * ratio);
+  }else{
+    nbm = round(stake * ratio, 2);
+  }
   log(`stake rand: ${stake} -> ${nbm}(${round(ratio*100,2)}%)`, null, true);
   data.bet365.stake = nbm;
   // }

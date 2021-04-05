@@ -276,20 +276,27 @@ let Vapp;
         }
       },
 
-      profitClass(browser){
-        if(browser.account && browser.account.startMoney){
-          let c = browser.account.money - browser.account.startMoney;
-          if(c > 0){
-            return 'text-success';
-          }else if(c < 0){
-            return 'text-danger';
-          }else{
-            return '';
-          }
-        }else{
-          return '';
-        }
+      printProfitHtml(browser){
+        let pf = round(this.calcProfit(browser), 2);
+        let color = pf>0?'text-success':pf<0?'text-danger':'';
+        let b = pf>0?'+':'';
+        return `(<span class="${color}">${b}$${pf}</span>)`;
       },
+
+      // profitClass(browser){
+      //   if(browser.account && browser.account.startMoney){
+      //     let c = browser.account.money - browser.account.startMoney;
+      //     if(c > 0){
+      //       return 'text-success';
+      //     }else if(c < 0){
+      //       return 'text-danger';
+      //     }else{
+      //       return '';
+      //     }
+      //   }else{
+      //     return '';
+      //   }
+      // },
 
       sumMoney(program){
         if(program){
@@ -323,14 +330,16 @@ let Vapp;
         let sum = round(this.sumMoney(program), 2);
         let pf = round(this.sumProfit(program), 2);
         let color = pf>0?'text-success':pf<0?'text-danger':'';
-        return `합계: $${sum} (<span class="${color}">$${pf}</span>)`;
+        let b = pf>0?'+':'';
+        return `합계: $${sum} (<span class="${color}">${b}$${pf}</span>)`;
       },
 
       printSumHtmlAll(programs){
         let sum = round(programs.reduce((r,program)=>r+this.sumMoney(program),0) ,2);
         let pf = round(programs.reduce((r,program)=>r+this.sumProfit(program),0), 2);
         let color = pf>0?'text-success':pf<0?'text-danger':'';
-        return `합계: $${sum} (<span class="${color}">$${pf}</span>)`;
+        let b = pf>0?'+':'';
+        return `합계: $${sum} (<span class="${color}">${b}$${pf}</span>)`;
       },
 
       async updateStartMoney(browser){
