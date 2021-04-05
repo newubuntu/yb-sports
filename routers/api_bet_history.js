@@ -246,7 +246,7 @@ module.exports = MD=>{
       result: {
         $accumulator: {
           init: function(){
-            return {betSum:0, returnSum:0, resultSum:0, profit:0, notYetprofit:0};
+            return {notYetBetSum:0, betSum:0, returnSum:0, resultSum:0, profit:0, notYetprofit:0};
           },
           accumulate: function(state, siteOdds, siteStake, bookmakerStake, betStatus){
             state.betSum += siteStake;
@@ -258,6 +258,7 @@ module.exports = MD=>{
             }
             if(betStatus == "ACCEPTED"){
               state.notYetprofit += siteOdds * siteStake - (siteStake + bookmakerStake);
+              state.notYetBetSum += siteStake;
             }else if(betStatus == "WON" || betStatus == "LOSE"){
               state.profit += siteOdds * siteStake - (siteStake + bookmakerStake);
             }
@@ -269,6 +270,7 @@ module.exports = MD=>{
           merge: function(state1, state2){
             return {
               betSum: state1.betSum + state2.betSum,
+              notYetBetSum: state1.notYetBetSum + state2.notYetBetSum,
               returnSum: state1.returnSum + state2.returnSum,
               resultSum: state1.resultSum + state2.resultSum,
               profit: state1.profit + state2.profit,

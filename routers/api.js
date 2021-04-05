@@ -318,6 +318,10 @@ module.exports = io=>{
     account = await getAccount(account);
     if(account){
       account.money = money;// Math.floor(money);
+      //startMoney가 0인데 money update라면 startMoney 입력
+      if(!account.startMoney){
+        account.startMoney = account.money;
+      }
       await account.save();
       if(sync){
         account = await Account.findOne({_id:account._id});
@@ -625,7 +629,7 @@ module.exports = io=>{
   })
 
 
-  
+
 
   router.post("/input_bet", task(async (req, res)=>{
     let data = req.body;

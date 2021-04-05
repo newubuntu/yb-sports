@@ -146,7 +146,11 @@ let Vapp;
       },
 
       round(n,p=0){
-        return Math.round(n * Math.pow(10,p))/Math.pow(10,p);
+        if(typeof n === "number"){
+          return Math.round(n * Math.pow(10,p))/Math.pow(10,p);
+        }else{
+          return 0;
+        }
       },
 
       printPercent(n){

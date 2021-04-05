@@ -84,14 +84,24 @@ module.exports = MD=>{
     console.log("update_browser", bid);
     let originBrowser = await Browser.findOne({_id:bid});//.select("-logs");
 
+    // 계정연결 요청이면
     if(browser.account !== undefined){
+      // 해당 브라우져에 연결된 계정이 있다면 그 계정에 브라우져 정보 제거
       if(originBrowser.account){
         await Account.updateOne({_id:originBrowser.account}, {browser:null});
       }
 
-      // 브라우져에 계정을 연결하는 업데이트라면
       // 해당 계정에 브라우져 정보를 입력
-      await Account.updateOne({_id:browser.account}, {browser:bid});
+      // await Account.updateOne({_id:browser.account}, {browser:bid});
+
+      // 해당 계정에 브라우져 정보를 입력
+      // 브라우져 연결시마다 startMoney를 저장
+      let account = await Account.findOne({_id:browser.account});
+      account.browser = bid;
+      if(account.money){
+        account.startMoney = account.money;
+      }
+      await account.save();
     }
 
     await Browser.updateOne({_id:bid}, browser);
@@ -101,8 +111,7 @@ module.exports = MD=>{
     //   else{
     //   originBrowser.account = null;
     // }
-
-    await originBrowser.save();
+    // await originBrowser.save();
 
     res.json({
       status: "success"
@@ -127,7 +136,7 @@ module.exports = MD=>{
         path: "account",
         model: Account,
         options: {
-          select: "id pw limited died country money"
+          select: "id pw limited died country money startMoney"
         }
       },
       {

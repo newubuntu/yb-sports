@@ -41,6 +41,14 @@ block view
           .col-md-9(v-if="form.type=='text'")
             input.form-control(v-on:change="update" :id="form.key" type="text" :name="form.key" :placeholder="form.placeholder?form.placeholder:''" :value="form.value")
             span.help-block(v-if="form.help") {{form.help}}
+          .col-md-9(v-if="form.type=='number'")
+            .input-group
+              .input-group-prepend(v-if="form.prepend")
+                span.input-group-text(v-html="form.prepend")
+              input.form-control(v-on:change="update" :id="form.key" type="number" :name="form.key" :placeholder="form.placeholder?form.placeholder:''" :value="form.value")
+              .input-group-append(v-if="form.append")
+                span.input-group-text(v-html="form.append")
+            span.help-block(v-if="form.help") {{form.help}}
           .col-md-9(v-else-if="form.type=='select'")
             select.form-control(v-on:change="update" :id="form.key" :name="form.key")          
               option(v-for="opt in form.list" :value="opt.value" :selected="opt.value == form.value" v-html="opt.name")
@@ -69,13 +77,35 @@ block view
             a.nav-link(href="#4" v-on:click="loadTrashList(0)" :class="tab==4?'active':''") 휴지통
         .card
           .card-header
-            | 계정 목록 ({{count}})
+            div
+              span 계정 목록 ({{count}})
+              span(style="margin-left:10px")
+                .btn-group
+                  button.btn.btn-sm.btn-secondary(type="button" v-on:click="resetReload")
+                    |검색조건 초기화
+              span.float-right
+                .form-inline
+                  .form-group
+                    .input-group
+                      .input-group-prepend
+                        .input-group-text ID
+                      input.form-control.search-id(type="text" :value="searchId?searchId:''" v-on:change="changeSearchId")
+                  .form-group
+                    .input-group
+                      .input-group-prepend
+                        .input-group-text 유저
+                      select.form-control.search-email(v-on:change="changeSearchEmail" :value="email?email:''")
+                        option(value="") --------
+                        option(v-if="!!user" v-for="user in users" :value="user.email") {{user.email}}
+                  .form-group
+                    button.btn.btn-primary(type="button" v-on:click="loadList(curPage, tab, {searchId, email})") 찾기
           .card-body.table-responsive
             table.table.table-sm.table-responsive-sm.table-striped.table-hover.table-bordered
               thead
                 tr
                   th #
                   th 등록번호
+                  th 국가
                   th 아이디
                   th 비밀번호
                   th 계정등록일
@@ -94,13 +124,18 @@ block view
                 tr(v-for="account, i in accounts")
                   td {{i+1}}
                   td {{account.number}}
-                  td {{account.id}}
+                  td 
+                    svg.icon-svg(style="margin-top: -2px; width: 30px;height: 17px; margin-right:4px;")
+                      use(:xlink:href="'/vendors/@coreui/icons/sprites/flag.svg#cif-'+account.country.toLowerCase()")
+                    | {{countryName(account.country)}}
+                  td
+                    span(:class="account.limited?'text-warning':account.died?'text-danger':'text-success'") {{account.id}}
                   td {{account.pw}}
                   td {{(new Date(account.createdAt)).toLocaleDateString()}}
                   td(v-if="tab==3") {{(new Date(account.depositDate)).toLocaleString()}}
                   td(v-if="tab==0")
                     .input-group
-                      input.account-money-input.form-control(:value="account.money" :data-id="account._id")
+                      input.account-money-input.form-control(type="number" placeholder='0' :value="account.money?account.money:''" :data-id="account._id")
                       span.input-group-append
                         button.btn.btn-sm.btn-primary(type="button" v-on:click="doChargeComplete(account._id)")
                           |충전완료

@@ -72,7 +72,23 @@ let Vapp;
       name: "bet365 money",
       key: "money",
       value: "",
-      type: "text"
+      type: "number"
+    },
+    {
+      name: "리밋 여부",
+      key: "limited",
+      list: ["true", "false"],
+      value: "false",
+      isBoolean: true,
+      type: "radio"
+    },
+    {
+      name: "폐쇄 여부",
+      key: "died",
+      list: ["true", "false"],
+      value: "false",
+      isBoolean: true,
+      type: "radio"
     }
   ]
 
@@ -109,8 +125,10 @@ let Vapp;
       pages: [],
       tab: 0,
       accountId: "",
+      searchId: "",
       accounts: [],
-      forms: []
+      forms: [],
+      users: []
     },
     async created(){
       console.log("wait socketReady");
@@ -169,8 +187,9 @@ let Vapp;
         this.$form = $(".account-form").remove();
         this.$depositInputWrap = $(".deposit-input-wrap").removeClass("pre-hide").remove();
         this.$depositInput = this.$depositInputWrap.find("#depositInput");
-        setupMoneyInput(this.$depositInput[0]);
-        setupMoneyInput(this.$form.find("#money")[0]);
+        // setupMoneyInput(this.$depositInput[0]);
+        // setupMoneyInput(this.$form.find("#money")[0]);
+
         // for(let key in this.formsMap){
         //   Object.defineProperty(this.formsMap[key], "$el", {
         //     value: $('.account-form').find(key)
@@ -181,15 +200,20 @@ let Vapp;
     },
     updated(){
       // console.error("?");
-      $(".account-money-input").each((i,el)=>{
-        setupMoneyInput(el);
-      }).on("input", e=>{
-        $(e.target).addClass('text-warning');
-      })
+      // $(".account-money-input").each((i,el)=>{
+      //   setupMoneyInput(el);
+      // }).on("input", e=>{
+      //   $(e.target).addClass('text-warning');
+      // })
     },
     methods: {
       comma(n){
         return comma(Math.floor(n));
+      },
+
+      countryName(code){
+        // console.error("code", code, countryObj[code]);
+        return countryObj[code];
       },
 
       reload(){
@@ -200,20 +224,22 @@ let Vapp;
         let data = this.getAccountData();
         // console.log("validation", data);
         let spaceTestExp = / /;
-        let numTestExp = /[^0-9]/;
+        // let numTestExp = /[^0-9]/;
         let spcTestExp = expgen("[&sb]").unwrap();
         let textList = [
           data.id, data.pw, data.skrillId, data.skrillPw, data.skrillCode
         ];
+        textList = textList.map(str=>str.trim());
         let spaceTest = textList.some(str=>spaceTestExp.test(str));
-        let numTest = numTestExp.test(data.money);
+        // let numTest = numTestExp.test(data.money);
         if( spaceTest ){
           alert('공백이 포함됐습니다. 공백을 제거해주세요');
           return false;
-        }else if( numTest ){
-          alert('bet365 money에는 숫자만 입력해주세요');
-          return false;
         }
+        // else if( numTest ){
+        //   alert('bet365 money에는 숫자만 입력해주세요');
+        //   return false;
+        // }
         return true;
       },
 
@@ -225,6 +251,7 @@ let Vapp;
         this.endPage = data.endPage;
         this.maxPage = data.maxPage;
         this.count = data.count;
+        this.users = data.users;
 
         let pages = [];
         for(let i=this.startPage; i<=this.endPage; i++){
@@ -233,12 +260,15 @@ let Vapp;
         this.pages = pages;
       },
 
-      async loadList(curPage=0, tab=0, email){
+      async loadList(curPage=0, tab=0, opt={}){
+        let {email, searchId} = opt;
+        this.searchId = searchId;
+        this.email = email;
         // console.log("loadList page", curPage);
         // tab 0 => no used list
         // tab 1 => used list
         // tab 2 => trash list
-        let query = {};
+        let query = {email, searchId};
         switch(tab){
           case 0: // 등록완료된 리스트
             query.used = false;
@@ -271,10 +301,10 @@ let Vapp;
             query.curPage = curPage;
           break;
         }
-        this.email = email;
-        if(email){
-          query.email = email;
-        }
+
+        // if(email){
+        //   query.email = email;
+        // }
         let res = await api.getAccounts(query);
         this.tab = tab;
         if(res.status == "success"){
@@ -290,28 +320,47 @@ let Vapp;
         }
       },
 
+      resetReload(){
+        this.loadList(this.curPage, this.tab);
+      },
+
       loadListTo(email){
-        return this.loadList(0, 2, email);
+        return this.loadList(0, 2, {email});
+      },
+
+      changeSearchId(){
+        this.searchId = $('.search-id').val().trim();
+      },
+
+      changeSearchEmail(){
+        this.email = $('.search-email').val().trim();
+      },
+
+      getCurrentSearchInfo(){
+        return {
+          email: this.email,
+          searchId: this.searchId
+        }
       },
 
       loadChargedList(curPage=0){
         // charged list
-        this.loadList(curPage, 1);
+        this.loadList(curPage, 1, this.getCurrentSearchInfo());
       },
 
       loadUseList(curPage=0){
         // used list
-        this.loadList(curPage, 2);
+        this.loadList(curPage, 2, this.getCurrentSearchInfo());
       },
 
       loadRequestList(curPage=0){
         // 입/출금 리스트
-        this.loadList(curPage, 3);
+        this.loadList(curPage, 3, this.getCurrentSearchInfo());
       },
 
       loadTrashList(curPage=0){
         // trash list
-        this.loadList(curPage, 4);
+        this.loadList(curPage, 4, this.getCurrentSearchInfo());
       },
 
       getAccountForm(){
@@ -475,7 +524,15 @@ let Vapp;
       getAccountData(){
         let opt = {};
         for(let key in this.formsMap){
-          opt[key] = this.formsMap[key].value;
+          if(this.formsMap[key].isBoolean){
+            try{
+              opt[key] = JSON.parse(this.formsMap[key].value);
+            }catch(e){
+              opt[key] = false;
+            }
+          }else{
+            opt[key] = this.formsMap[key].value;
+          }
         }
         opt._id = this.accountId;
         return JSON.parse(JSON.stringify(opt));
@@ -487,7 +544,11 @@ let Vapp;
         for(let key in this.formsMap){
           // console.log(key, this.formsMap[key], account[key]);
           if(this.formsMap[key]){
-            this.formsMap[key].value = account[key] || "";
+            if(this.formsMap[key].isBoolean){
+              this.formsMap[key].value = account[key] ? account[key].toString() : "false";
+            }else{
+              this.formsMap[key].value = account[key] || "";
+            }
           }
         }
         // this.$forceUpdate();

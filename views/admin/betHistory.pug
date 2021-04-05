@@ -8,6 +8,9 @@ block append styles
     .pmoney, .wallet {
       text-align: right;
     }
+    .input-group>input {
+      width: 130px !important;
+    }
 
 block scripts
   script(src='/js/admin/betHistory.js')
@@ -199,22 +202,27 @@ block view
                     .input-group
                       .input-group-prepend
                         .input-group-text 피나클 총액
-                      input.form-control.total-bet(type="text" :value="round(result.totalMoney,2)" readOnly)
+                      input.form-control.total-pmoney(type="text" :value="round(result.totalMoney,2)" readOnly)
                   .form-group
                     .input-group
                       .input-group-prepend
                         .input-group-text 미처리 수익
-                      input.form-control.total-nybet(type="text" :value="round(result.notYetprofit,2)" readOnly)
+                      input.form-control.total-nyprofit(type="text" :value="round(result.notYetprofit,2)" readOnly)
                   .form-group
                     .input-group
                       .input-group-prepend
                         .input-group-text 완료된 수익
-                      input.form-control.total-bet(type="text" :value="round(result.profit,2)" readOnly)
+                      input.form-control.total-profit(type="text" :value="round(result.profit,2)" readOnly)
                   .form-group
                     .input-group
                       .input-group-prepend
                         .input-group-text 총배팅금액
                       input.form-control.total-bet(type="text" :value="round(result.betSum,2)" readOnly)
+                  .form-group
+                    .input-group
+                      .input-group-prepend
+                        .input-group-text 배팅진행중
+                      input.form-control.total-nybet(type="text" :value="round(result.notYetBetSum,2)" readOnly)
                   .form-group
                     .input-group
                       .input-group-prepend

@@ -2,6 +2,19 @@ function reverse(str){
   return str.split('').reverse().join('');
 }
 
+let timeLimitList = {};
+function timeLimit(key, time){
+  if(timeLimitList[key] === undefined){
+    timeLimitList[key] = 0;
+  }
+
+  if(Date.now() - timeLimitList[key] < time){
+    return true;
+  }
+  timeLimitList[key] = Date.now();
+  return false;
+}
+
 function comma(n){
   // if(n === undefined) return "0";
   // n = n.toString();

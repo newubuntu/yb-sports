@@ -418,6 +418,8 @@ module.exports = MD=>{
           emitToDashboard("updateAccountState", {id, state, bid});
         })
 
+
+
         // from extension bg
         // let updateMoneyCallTimes = redisClient.get('updateMoneyCallTimes');
 
@@ -473,6 +475,16 @@ module.exports = MD=>{
         //   let {money, limited} = data;
         //   console.log("bet365InitData", data);
         // })
+
+        socket.on("updateStartMoney", async ({id}, uuid)=>{
+          console.error("updateStartMoney", id);
+          let account = await Account.findOne({id}).select("startMoney money");
+          if(account){
+            account.startMoney = account.money;
+            await account.save();
+            emit("resolve", account.money, uuid);
+          }
+        })
 
         socket.on("remoteDashboardLogin", email=>{
           if(!socket._remoteKeyList) socket._remoteKeyList = [];

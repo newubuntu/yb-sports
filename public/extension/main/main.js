@@ -655,6 +655,18 @@ function getNextData(){
   return data;
 }
 
+function getStakeRatio(){
+  let stakeRatio = 1;
+  if(betOption.stakeRatioP !== undefined){
+    try{
+      stakeRatio = betOption.stakeRatioP / 100;
+    }catch(e){
+      console.error(e);
+    }
+  }
+  return stakeRatio;
+}
+
 async function commonProcess(data, noCheckBalance){
   let emptyObj = {};
   console.log(data);
@@ -744,11 +756,7 @@ async function commonProcess(data, noCheckBalance){
   let stakeRatio = 1;
   if(!accountInfo.limited){
     if(betOption.stakeRatioP !== undefined){
-      try{
-        stakeRatio = betOption.stakeRatioP / 100;
-      }catch(e){
-        console.error(e);
-      }
+      stakeRatio = getStakeRatio();
       log(`stake 증폭: ${round(data.bet365.stake, 2)}->${round(data.bet365.stake*stakeRatio, 2)} (${round(stakeRatio*100)}%)`, null, true);
     }
   }else{
@@ -1111,8 +1119,9 @@ function randomRatio(){
 function updateBet365Stake(data){
   // 유저 양빵단계의 벳삼 배당 변동시에는 벳삼 stake를 다시 계산해주고 판단한다.
   data.bet365.stake = round(calc.stakeB(data.pinnacle.odds, data.bet365.odds, data.pinnacle.stake), 2);
-  if(data.bet365.stake > betOption.maxBetmax){
-    data.bet365.stake = round(betOption.maxBetmax * randomRatio(), 2);
+  let stakeRatio = getStakeRatio();
+  if(data.bet365.stake > betOption.maxBetmax * stakeRatio){
+    data.bet365.stake = round(betOption.maxBetmax * stakeRatio * randomRatio(), 2);
     updatePncStake(data);
   }
 }

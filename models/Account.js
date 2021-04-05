@@ -24,6 +24,9 @@ const accountSchema = new mongoose.Schema({
   // 계정을 소유한 회원을 연결
   user: {type: Schema.Types.ObjectId, ref: 'User'},
   memo: {type: String},
+
+  // 브라우져 연결시 설정할것, 0으로 설정됐다면 첫 머니 갱신시 재설정 할것
+  startMoney: {type: Number, default: 0},
   money: {type: Number, default: 0},
   // 짤짤이
   limited: {type: Boolean, default: false},

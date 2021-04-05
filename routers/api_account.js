@@ -176,7 +176,7 @@ module.exports = MD=>{
 
     // console.log(req.body);
     let {
-      ids, used, trash, firstCharged, withSkrill,
+      ids, used, trash, firstCharged, withSkrill, searchId,
       offset, limit, curPage, email, requestedDeposit
     } = req.body;
 
@@ -216,6 +216,10 @@ module.exports = MD=>{
       withoutSkrillField = [];
     }
 
+    if(searchId){
+      query.id = { $regex: '.*' + searchId + '.*' };
+    }
+
     if(curPage !== undefined){
       // 페이지가 설정되었으면, 그에 맞춰서 limit, offset 계산
       limit = config.ACCOUNT_LIST_COUNT_PER_PAGE;
@@ -246,6 +250,7 @@ module.exports = MD=>{
       query.user = user._id;
     }
 
+
     console.log("query", query);
     // console.log("@@@populateObj", populateObj);
 
@@ -269,7 +274,9 @@ module.exports = MD=>{
     if(used == true){
       accounts = accounts.filter(account=>!!account.user);
     }
-    // console.log("@@@@@", accounts);
+
+    // console.log("@@@@@ count", count);
+    // console.log("@@@@@ accounts", accounts);
 
     // let r = Account.find(query)
     // .select(withoutSkrillField)
@@ -286,9 +293,11 @@ module.exports = MD=>{
     // account = await r.populate(populateObj);
     // let {countryJson} = await getSetting(["countryJson"]);
 
+    let users = await User.find({}).select("email").lean();
+
     res.json({
       status: "success",
-      data: {accounts, curPage, startPage, endPage, maxPage, count, pageCount:config.PAGE_COUNT}
+      data: {accounts, users, curPage, startPage, endPage, maxPage, count, pageCount:config.PAGE_COUNT}
     });
   }))
 
@@ -309,8 +318,14 @@ module.exports = MD=>{
     // delete option._id;
     await Account.updateOne({_id:id}, data);
     let account = await Account.findOne({_id:id});
-
     if(account.user && data.money !== undefined){
+
+      // console.error("@@@@!", account);
+      // if(!account.startMoney){
+      //   account.startMoney = account.money;
+      //   await account.save();
+      // }
+
       // console.log("update account", data);
       await refreshBet365Money(account);
       await updateBet365TotalMoney(account.user, true);

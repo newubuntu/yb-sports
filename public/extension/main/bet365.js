@@ -577,7 +577,7 @@ function bet365JS(){
         if(betOption.useExchange == 'y'){
           // cny to usd
           _result.betmax = res.data.bt[0].ms * betOption.exchangeRate;
-          _result.betmax = round(_result.betmax, 2);
+          //_result.betmax = round(_result.betmax, 2);
         }else{
           _result.betmax = res.data.bt[0].ms;
         }
