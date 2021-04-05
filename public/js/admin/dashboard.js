@@ -46,6 +46,16 @@ let Vapp;
       }
     })
 
+    socket.on("updateAccountState", ({id, state, bid})=>{
+      console.log("updateAccountState", id, state, bid);
+      let browser = Vapp.getBrowserObj(bid);
+      if(browser){
+        if(browser.account){
+          browser.account[state] = true;
+        }
+      }
+    })
+
     socket.on("log", (data, pid, bid)=>{
       console.log("log", data);
       Vapp.updateLog(pid, bid, data);
@@ -224,7 +234,11 @@ let Vapp;
                   return api.loadLogs(browser._id).then(res=>{
                     if(res.status == "success"){
 
-                      this.setupLog(browser, res.data.reverse());
+                      this.setupLog(browser, res.data.reverse().sort((a,b)=>{
+                        let at = a.data.time ? a.data.time : new Date(a.data.updatedAt).getTime();
+                        let bt = b.data.time ? b.data.time : new Date(b.data.updatedAt).getTime();
+                        return at - bt;
+                      }));
                     }
                   })
                 }))
@@ -237,9 +251,102 @@ let Vapp;
         }
       },
 
+      browserClass(browser){
+        let obj = {};
+        obj[browser._id] = true;
+        if(browser.account){
+          if(browser.account.limited){
+            obj['border-warning'] = true;
+          }else if(browser.account.died){
+            obj['border-danger'] = true;
+          }else{
+            obj['border-success'] = true;
+          }
+        }else{
+          obj['border-primary'] = true;
+        }
+        return obj;
+      },
+
+      calcProfit(browser){
+        if(browser.account && browser.account.startMoney){
+          return round(browser.account.money - browser.account.startMoney, 2);
+        }else{
+          return 0;
+        }
+      },
+
+      profitClass(browser){
+        if(browser.account && browser.account.startMoney){
+          let c = browser.account.money - browser.account.startMoney;
+          if(c > 0){
+            return 'text-success';
+          }else if(c < 0){
+            return 'text-danger';
+          }else{
+            return '';
+          }
+        }else{
+          return '';
+        }
+      },
+
+      sumMoney(program){
+        if(program){
+          return program.browsers.reduce((r,b)=>{
+            if(b.account){
+              return r + b.account.money;
+            }else{
+              return 0;
+            }
+          }, 0)
+        }
+      },
+
+      sumProfit(program){
+        if(program){
+          return program.browsers.reduce((r,b)=>{
+            if(b.account){
+              return r + this.calcProfit(b)
+            }else{
+              return 0;
+            }
+          }, 0)
+        }
+      },
+
+      printSumHtml(program){
+        let pf = this.sumProfit(program);
+        let color = pf>0?'text-success':pf<0?'text-danger':'';
+        return `합계: $${this.sumMoney(program)} (<span class="${color}">$${pf}</span>)`;
+      },
+
+      printSumHtmlAll(programs){
+        let sum = programs.reduce((r,program)=>r+this.sumMoney(program),0);
+        let pf = programs.reduce((r,program)=>r+this.sumProfit(program),0);
+        let color = pf>0?'text-success':pf<0?'text-danger':'';
+        return `합계: $${sum} (<span class="${color}">$${pf}</span>)`;
+      },
+
+      async updateStartMoney(browser){
+        if(timeLimit("updateStartMoney", 200)){
+          return;
+        }
+        $(`.${browser._id}.btn-refresh-startMoney`).prop("disabled", true);
+        let smoney = await emitPromise("updateStartMoney", {id:browser.account.id});
+        if(smoney == null){
+          console.error("브라우져가 통신가능한 상태가 아닙니다.");
+        }else{
+          browser.account.startMoney = smoney;
+        }
+        console.log("updateStartMoney", smoney);
+        await delay(1000);
+        $(`.${browser._id}.btn-refresh-startMoney`).prop("disabled", false);
+      },
+
       logToHtml(log){
         // console.log(Date.now(), log);
-        let d = new Date(log.updatedAt);
+        let d = new Date(log.data.time||log.updatedAt);
         let ds = (d.getMonth()+1)+'/'+d.getDate() + ' ' + d.toTimeString().split(' ')[0];
         let dateStr = '<span class="text-white-50">['+ds+']</span>';
         return dateStr + ' ' + '<span>' + log.data.msg + '</span>';

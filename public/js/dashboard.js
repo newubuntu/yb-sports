@@ -269,6 +269,59 @@ let Vapp;
         }
       },
 
+      sumMoney(program){
+        if(program){
+          return program.browsers.reduce((r,b)=>{
+            if(b.account){
+              return r + b.account.money;
+            }else{
+              return 0;
+            }
+          }, 0)
+        }
+      },
+
+      sumProfit(program){
+        if(program){
+          return program.browsers.reduce((r,b)=>{
+            if(b.account){
+              return r + this.calcProfit(b)
+            }else{
+              return 0;
+            }
+          }, 0)
+        }
+      },
+
+      printSumHtml(program){
+        let pf = this.sumProfit(program);
+        let color = pf>0?'text-success':pf<0?'text-danger':'';
+        return `합계: $${this.sumMoney(program)} (<span class="${color}">$${pf}</span>)`;
+      },
+
+      printSumHtmlAll(programs){
+        let sum = programs.reduce((r,program)=>r+this.sumMoney(program),0);
+        let pf = programs.reduce((r,program)=>r+this.sumProfit(program),0);
+        let color = pf>0?'text-success':pf<0?'text-danger':'';
+        return `합계: $${sum} (<span class="${color}">$${pf}</span>)`;
+      },
+
+      async updateStartMoney(browser){
+        if(timeLimit("updateStartMoney", 200)){
+          return;
+        }
+        $(`.${browser._id}.btn-refresh-startMoney`).prop("disabled", true);
+        let smoney = await emitPromise("updateStartMoney", {id:browser.account.id});
+        if(smoney == null){
+          console.error("브라우져가 통신가능한 상태가 아닙니다.");
+        }else{
+          browser.account.startMoney = smoney;
+        }
+        console.log("updateStartMoney", smoney);
+        await delay(1000);
+        $(`.${browser._id}.btn-refresh-startMoney`).prop("disabled", false);
+      },
+
       logToHtml(log){
         // console.log(Date.now(), log);
         let d = new Date(log.data.time||log.updatedAt);
@@ -317,42 +370,7 @@ let Vapp;
         }
       },
 
-      sumMoney(program){
-        if(program){
-          return program.browsers.reduce((r,b)=>{
-            if(b.account){
-              return r + b.account.money;
-            }else{
-              return 0;
-            }
-          }, 0)
-        }
-      },
 
-      sumProfit(program){
-        if(program){
-          return program.browsers.reduce((r,b)=>{
-            if(b.account){
-              return r + this.calcProfit(b)
-            }else{
-              return 0;
-            }
-          }, 0)
-        }
-      },
-
-      printSumHtml(program){
-        let pf = this.sumProfit(program);
-        let color = pf>0?'text-success':pf<0?'text-danger':'';
-        return `합계: $${this.sumMoney(program)} (<span class="${color}">$${pf}</span>)`;
-      },
-
-      printSumHtmlAll(programs){
-        let sum = programs.reduce((r,program)=>r+this.sumMoney(program),0);
-        let pf = programs.reduce((r,program)=>r+this.sumProfit(program),0);
-        let color = pf>0?'text-success':pf<0?'text-danger':'';
-        return `합계: $${sum} (<span class="${color}">$${pf}</span>)`;
-      },
 
       async requestWithdraw(account, money){
         if(account){
@@ -452,21 +470,7 @@ let Vapp;
         // this.$forceUpdate();
       },
 
-      async updateStartMoney(browser){
-        if(timeLimit("updateStartMoney", 200)){
-          return;
-        }
-        $(`.${browser._id}.btn-refresh-startMoney`).prop("disabled", true);
-        let smoney = await emitPromise("updateStartMoney", {id:browser.account.id});
-        if(smoney == null){
-          console.error("브라우져가 통신가능한 상태가 아닙니다.");
-        }else{
-          browser.account.startMoney = smoney;
-        }
-        console.log("updateStartMoney", smoney);
-        await delay(1000);
-        $(`.${browser._id}.btn-refresh-startMoney`).prop("disabled", false);
-      },
+
 
       refreshMoneyAll(program){
         let programs = program?[program]:this.programs;
