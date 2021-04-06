@@ -191,11 +191,14 @@ module.exports = MD=>{
         })
       }
 
+      // socket.on("resolve", (data, uuid, backEvent, pid, bid)=>{
       socket.on("resolve", (data, uuid)=>{
-        if(socketResolveList[uuid]){
-          socketResolveList[uuid](data);
-          delete socketResolveList[uuid];
-        }
+        // if(socketResolveList[uuid]){
+        //   socketResolveList[uuid](data);
+        //   delete socketResolveList[uuid];
+        // }
+        // console.log("??? resolve", data, uuid);
+        emit("resolve", data, uuid);
       })
 
       socket.on("memberDelivery", obj=>{
@@ -317,8 +320,9 @@ module.exports = MD=>{
           // console.log(`delivery ${event}`, data);
           // io.to(email + ":dashboard").emit(com, data, socket._pid, bid);
           if(uuid){
-            let r = await emitToDashboardPromise(com, data, socket._pid, bid);
-            emit("resolve", r, uuid);
+            // let r = await emitToDashboardPromise(com, data, socket._pid, bid);
+            // emit("resolve", r, uuid);
+            emitToDashboard(com, data, socket._pid, bid, uuid);
           }else{
             emitToDashboard(com, data, socket._pid, bid);
           }
@@ -533,8 +537,11 @@ module.exports = MD=>{
             emitToProgram(pid, data.com, data.data);
           }else{
             // console.log(`delivery promise`, obj, uuid);
-            let r = await emitToProgramPromise(pid, data.com, data.data);
-            emit("resolve", r, uuid);
+            // let r = await emitToProgramPromise(pid, data.com, data.data);
+            // emit("resolve", r, uuid);
+            // console.log("??? promise", data.com, data.data);
+            emitToProgram(pid, data.com, data.data, uuid);
+            // emitToProgramPromise(pid, data.com, data.data);
           }
         })
 

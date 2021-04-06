@@ -527,13 +527,17 @@ let Vapp;
         })
       },
       async startMatch(program, browser){
-        // console.error("startMatch", browser);
+        console.error("startMatch", browser);
         // sendDataToMain(program._id, browser._id, "startMatch");
+        // if(!browser.isMatching){
+        //   let data = await sendDataToMainPromise(program._id, browser._id, "startMatch");
+        //   browser.isMatching = data;
+        //   this.$forceUpdate();
+        // }
         if(!browser.isMatching){
           // console.error("--try!");
           let data = await sendDataToMainPromise(program._id, browser._id, "startMatch");
           // console.error("--receive!");
-          // console.log("??? after startMatch", data);
           browser.isMatching = data;
           this.$forceUpdate();
         }

@@ -25,8 +25,12 @@ var appMounted = new Promise(resolve=>{
 });
 
 var socketResolveList = {};
+// 여기서 서버로 보낸 uuid가
+// 서버가 멀티코어로 실행됐을때 uuid를 받은 프로세스에서 응답하지 않게되는 경우
+// 저장된 resolve함수가 없으므로 구현된 socket promise가 작동하지 않는다..
 function emitPromise(com, data){
   let id = uuid.v4();
+  console.error("emitPromise", {com, data, id})
   socket.emit(com, data, id);
   return new Promise(resolve=>{
     socketResolveList[id] = resolve;
@@ -83,11 +87,19 @@ $(document).ready(async ()=>{
   })
 
   socket.on("resolve", (data, uuid)=>{
+    // console.error("resolve", {data, uuid, backEvent, pid, bid});
     if(socketResolveList[uuid]){
       socketResolveList[uuid](data);
       delete socketResolveList[uuid];
     }
+
+    // switch(backEvent){
+    //   case "startMatch":
+    //
+    //   break;
+    // }
   })
+
 
   // var socket = io('ws://localhost:4500', { transports: ['websocket'] });
   // var socket = io('ws://localhost:4500');

@@ -95,16 +95,26 @@ module.exports = io=>{
     // io.$.emit(pid, ...args);
   }
 
+
+  // 멀티코어로 실행시키면 아래와 같이 메모리에 기록하는 방식은
+  // 클라이언트간에 다르게 작동할 수 있다(오작동),
+  // 게다가 저장하려는게 raw값이 아니고 function같은 객체라면
+  // redisClient로도 처리할 수 없다.
+
+  // 서버에서 클라이언트 소켓을 기다리는 promise를 만들어 쓰고있었는데
+  // 이것은 일반적인 socket.emit으로 주고받는 것으로 대체하자
+
   let socketResolveList = {};
+
   function emitToProgramPromise(pid, ...args){
     let context = io.to(pid);
     let uuid = uuidv4();
     args.push(uuid);
     context.emit.apply(context, args);
     // io.$.emit(pid, ...args);
-    return new Promise(resolve=>{
-      socketResolveList[uuid] = resolve;
-    })
+    // return new Promise(resolve=>{
+    //   socketResolveList[uuid] = resolve;
+    // })
   }
 
 
