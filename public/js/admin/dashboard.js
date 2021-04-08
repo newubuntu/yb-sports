@@ -191,7 +191,7 @@ let Vapp;
         appMountedResolve();
       })
 
-      
+
 
       $(document).on("click", ".browser-logger", null, e=>{
         $(e.currentTarget).removeClass("scrollLock");
@@ -203,6 +203,13 @@ let Vapp;
     },
 
     methods: {
+
+      wheelItBetter ( e ){
+      	// console.log( event, event.currentTarget )
+        if($(e.currentTarget).hasClass("scrollLock")){
+          e.preventDefault();
+        }
+      },
 
       reload(){
         this.load();
@@ -738,7 +745,7 @@ let Vapp;
             browser.$loggerUl.append(`<li><div class="log-line ${data.type?'text-'+data.type:''}">${this.logToHtml(browser.logs[browser.logs.length-1])}</div></ul>`);
           }
           // if(isBottom){
-          if(!$con.hasClass("scrollLock")){
+          if($con.hasClass("scrollLock")){
             this.updateLogScroll(_bid);
           }
           // if(isBottom){
