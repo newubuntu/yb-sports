@@ -872,8 +872,14 @@ async function bet365PlacebetProcess(data, bet365Info){
       // betData.data.ns = betData.data.ns.replace(/st=(\d+(?:\.\d+)?)/g, "st="+padEnd0(stake));
       // betData.data.ns = betData.data.ns.replace(/tr=(\d+(?:\.\d+)?)/, "tr="+padEnd0(rt));
       let stake = data.bet365.stake;
-      if(betOption.useRoundStake == "y"){
-        stake = round(data.bet365.stake);
+      if(betOption.useFloorStake == "y"){
+        stake = Math.floor(data.bet365.stake);
+        log(`소수점 절삭: ${data.bet365.stake} -> ${stake}`, null, true);
+      }
+
+      if(stake < 1){
+        log("배팅취소: stake가 1보다 작음", "danger", true);
+        break;
       }
 
       // let accountInfo;
