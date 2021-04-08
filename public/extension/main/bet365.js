@@ -1701,7 +1701,7 @@ function bet365JS(){
       window['loadMoneyResolve_'+key] = function(money){
         delete window['loadMoneyResolve_'+key];
         console.error("betOption", betOption);
-        if(betOption.useExchange == 'y'){
+        if(betOption.useExchange == 'y' && betOption.exchangeRate){
           if(typeof money === "number"){
             // cny to usd
             money *= betOption.exchangeRate;

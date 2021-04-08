@@ -125,9 +125,12 @@ async function onMessage(message){
       if(betOption.useExchange == 'y'){
         betOption.exchangeRate = await api.exchangeRate(betOption.exchangeCode1, betOption.exchangeCode2);
         log(`환율사용 ${betOption.exchangeCode1}->${betOption.exchangeCode2} : ${betOption.exchangeRate}`, 'info', true);
+
+        // 벳삼 loadMoney에 환율적용부분이 있지만, 벳삼 로긴시점에는 betOption이 없는상태라 원래 통화로온다.
+        // 여기서 바꾸자
         // // to usd
-        // money *= betOption.exchangeRate;
-        // money = round(money, 2);
+        money *= betOption.exchangeRate;
+        money = round(money, 2);
       }
 
       sendData("setBetOption", {betOption}, PN_B365, true);
