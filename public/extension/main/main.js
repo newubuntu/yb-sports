@@ -936,7 +936,9 @@ async function bet365PlacebetProcess(data, bet365Info){
         everBeenFixedBetmax = result.betmax;
 
         // api.limitAccount(account.id);
-        sendDataToServer("updateAccountState", {id:account.id, state:"limited"});
+        if(!accountInfo.limited){
+          sendDataToServer("updateAccountState", {id:account.id, state:"limited"});
+        }
       }else if(result.status == "acceptChange"){
         // let prevOdds = data.bet365.odds;
         noReturnCount = 0;
