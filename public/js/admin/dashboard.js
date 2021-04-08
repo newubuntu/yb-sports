@@ -193,23 +193,25 @@ let Vapp;
 
 
 
-      $(document).on("click", ".browser-logger", null, e=>{
-        $(e.currentTarget).removeClass("scrollLock");
+      $(document).on("click", ".browser", null, e=>{
+        // console.error("click");
+        $(e.currentTarget).find(".browser-logger").removeClass("scrollLock");
       })
 
-      $(document).on("mouseleave", ".browser-logger", null, e=>{
-        $(e.currentTarget).addClass("scrollLock");
+      $(document).on("mouseleave", ".browser", null, e=>{
+        // console.error("leave", e.currentTarget);
+        $(e.currentTarget).find(".browser-logger").addClass("scrollLock");
       })
     },
 
     methods: {
 
-      wheelItBetter ( e ){
-      	// console.log( event, event.currentTarget )
-        if($(e.currentTarget).hasClass("scrollLock")){
-          e.preventDefault();
-        }
-      },
+      // wheelItBetter ( e ){
+      // 	// console.log( event, event.currentTarget )
+      //   if($(e.currentTarget).hasClass("scrollLock")){
+      //     e.preventDefault();
+      //   }
+      // },
 
       reload(){
         this.load();

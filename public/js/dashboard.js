@@ -190,26 +190,61 @@ let Vapp;
 
       // $(document).on("wheel", ".browser-logger", null, e=>{
       //   console.error("!", e);
+      //   if($(e.currentTarget).hasClass("scrollLock")){
+      //     console.error("?");
+      //     // e.stopImmediatePropagation();
+      //     // e.stopPropagation();
+      //     e.originalEvent.preventDefault();
+      //   }
+      // })
+      //
+
+      // $(window).on("wheel", e=>{
+      //   console.error("!!", e);
+      //   e.preventDefault();
       // })
 
-      $(document).on("click", ".browser-logger", null, e=>{
-        $(e.currentTarget).removeClass("scrollLock");
+      $(document).on("click", ".browser", null, e=>{
+        // console.error("click");
+        $(e.currentTarget).find(".browser-logger").removeClass("scrollLock");
       })
 
-      $(document).on("mouseleave", ".browser-logger", null, e=>{
-        $(e.currentTarget).addClass("scrollLock");
+      $(document).on("mouseleave", ".browser", null, e=>{
+        // console.error("leave", e.currentTarget);
+        $(e.currentTarget).find(".browser-logger").addClass("scrollLock");
       })
 
     },
 
     methods: {
-
-      wheelItBetter ( e ){
-      	// console.log( event, event.currentTarget )
-        if($(e.currentTarget).hasClass("scrollLock")){
-          e.preventDefault();
-        }
-      },
+     //  scrollme( i ){
+     //     // window.scrollTo(window.scrollX, window.scrollY + i);
+     //     window.scrollBy({
+     //       top: i,
+     //       left: 0,
+     //       behavior: 'smooth'
+     //     });
+     // },
+     //
+     //  wheelItBetter ( e ){
+     //    // return;
+     //  	// console.log( event, event.currentTarget )
+     //    console.error(1);
+     //    if($(e.currentTarget).hasClass("scrollLock")){
+     //      console.error(2);
+     //      e.preventDefault();
+     //      // e.stopImmediatePropagation();
+     //      // e.stopPropagation();
+     //      // this.scrollme.call(e.currentTarget.parentElement, e.deltaY);
+     //      // console.error(e.deltaY);
+     //      // console.error('1');
+     //      // var newEvent = new WheelEvent(e.type, e);
+     //      // target.dispatchEvent(newEvent);
+     //      // if(e.currentTarget.firstElementChild){
+     //      //   e.currentTarget.firstElementChild.dispatchEvent(newEvent);
+     //      // }
+     //    }
+     //  },
 
       reload(){
         this.load();
@@ -745,7 +780,9 @@ let Vapp;
             browser.$loggerUl.append(`<li><div class="log-line ${data.type?'text-'+data.type:''}">${this.logToHtml(browser.logs[browser.logs.length-1])}</div></ul>`);
           }
           // if(isBottom){
+          // console.error($con[0], $con.hasClass("scrollLock"));
           if($con.hasClass("scrollLock")){
+            // console.error("up");
             this.updateLogScroll(_bid);
           }
           // if(isBottom){

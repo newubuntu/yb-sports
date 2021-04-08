@@ -9,9 +9,9 @@ block styles
       overflow-y: auto;
       padding: 2px;
     }
-    /* .scrollLock {
-      overflow-y: hidden !important;
-    } */
+    .scrollLock {
+      pointer-events: none;
+    }
     .browser-logger>ul {
       padding-inline-start: 5px;
     }
@@ -209,7 +209,7 @@ block view
                       svg.c-icon
                         use(xlink:href="/vendors/@coreui/icons/svg/solid.svg#cis-trash")
                       | 제거
-              .card-body.browser-logger.scroll.scrollLock(@wheel="wheelItBetter( $event )")
+              .card-body.browser-logger.scroll.scrollLock
                 ul.logger-ul
                   //-li(v-for="log in browser.logs")
                     div.log-line(:class="log.data?'text-'+log.data.type:''" v-html="logToHtml(log)")
