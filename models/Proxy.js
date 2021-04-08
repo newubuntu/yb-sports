@@ -30,9 +30,14 @@ schema.plugin(autoIncrement.plugin, {
 
 schema.methods.disconnectBrowser = async function(){
   if(this.browser){
-    if(!this.populated('browser')){
-      await this.populate('browser');
+    if(this.browser instanceof mongoose.Types.ObjectId){
+      throw new Error("'browser변수를' populate 하자");
+      // this.browser = await Browser.findOne({_id:this.browser});
     }
+    // if(!this.populated('browser')){
+    //   this.browser = await this.populate('browser');
+    //   console.log("!!", this.browser);
+    // }
 
     this.browser.proxy = null;
     await this.browser.save();

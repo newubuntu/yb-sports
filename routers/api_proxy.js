@@ -279,7 +279,7 @@ module.exports = MD=>{
   // 관리자 계정관리에서 계정 제거시.
   router.get("/remove_proxy/:_id", authAdmin, task(async (req, res)=>{
     let _id = req.params._id;
-    let proxy = await Proxy.findOne({_id});
+    let proxy = await Proxy.findOne({_id}).populate('browser');
 
     if(!proxy){
       res.json({
@@ -309,7 +309,7 @@ module.exports = MD=>{
   // 회수
   router.get("/remove_proxy_user/:_id", authAdmin, task(async (req, res)=>{
     let _id = req.params._id;
-    let proxy = await Proxy.findOne({_id});
+    let proxy = await Proxy.findOne({_id}).populate('browser');
     if(!proxy){
       res.json({
         status: "fail",
@@ -355,7 +355,7 @@ module.exports = MD=>{
     let _id = req.params._id;
     // 자신이 소유한 대상만 컨트롤가능해야한다.
     // await Account.updateOne({_id:id, user:req.user}, {trash:true});
-    let proxy = await Proxy.findOne({_id, user:req.user});
+    let proxy = await Proxy.findOne({_id, user:req.user}).populate('browser');
     if(!proxy){
       res.json({
         status: "fail",
