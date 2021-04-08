@@ -80,6 +80,9 @@ block view
                     svg.icon-svg(style="width: 30px;height: 17px;")
                       use(:xlink:href="'/vendors/@coreui/icons/sprites/flag.svg#cif-'+account.country.toLowerCase()")
                     |{{account.id}}
+              .bet-count
+                span 배팅: 
+                span.badge.badge-pill.badge-secondary {{account.betCount||0}}
               .money 잔액: ${{comma(account.money) || 0}}
               .btn-group
                 //-button.btn.btn-sm.btn-square.btn-secondary(v-if="!account.requestedDeposit" type="button" v-on:click="deposit(account._id)")

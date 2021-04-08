@@ -89,7 +89,7 @@ let Vapp;
       type: "select"
     },
     {
-      name: "환율 끝 통화",
+      name: "환율 끝 통화 (벳365 계정국가)",
       key: "exchangeCode2",
       value: "USD",
       list: exchangeContryCodeList,

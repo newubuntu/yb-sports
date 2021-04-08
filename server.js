@@ -385,7 +385,7 @@
   // app.use("/api", subdomain('www', apiRouter));
   // app.use("/user", subdomain('www', userRouter));
 
-  // 
+  //
   // if(useForceDomain && (process.cwd()||'').indexOf("C:") == -1 && process.env.NODE_ENV == "production"){
   //   app.use(forceDomain({
   //     hostname: 'www.surebet.vip'
@@ -427,6 +427,9 @@
       link: "/accountManager",
       name: "계정관리"
     },{
+      link: "/proxyManager",
+      name: "프록시관리"
+    },{
       link: "/betHistory",
       name: "배팅기록"
     },{
@@ -435,6 +438,10 @@
     },{
       link: "/admin/accountManager",
       name: "[관리자] 계정관리",
+      admin: true
+    },{
+      link: "/admin/proxyManager",
+      name: "[관리자] 프록시관리",
       admin: true
     },{
       link: "/admin/optionManager",
@@ -558,34 +565,24 @@
     // next();
   }
 
-  app.get('/dashboard', async (req, res)=>{
-    // console.log("SESSION", req.session);
-    // res.render('dashboard', { user:req.session.user, pages:req.session.pages, link:req.url, admin:req.session.admin });
-    // req.pageData.pid = process.pid;
-    res.render('dashboard', req.pageData);
-  })
-
-  app.get('/accountManager', async (req, res)=>{
-    // let accounts;
-    // try{
-    //   accounts = await Account.find({user:req.session.user._id});
-    // }catch(e){
-    //   console.error(e);
-    // }
-    res.render('accountManager', req.pageData);
-  })
-
-  // app.get('/optionManager', (req, res)=>{
-  //   res.render('optionManager', { user: req.session.user, pageIndex:3 });
+  // app.get('/dashboard', async (req, res)=>{
+  //   // console.log("SESSION", req.session);
+  //   // res.render('dashboard', { user:req.session.user, pages:req.session.pages, link:req.url, admin:req.session.admin });
+  //   // req.pageData.pid = process.pid;
+  //   res.render('dashboard', req.pageData);
   // })
-
-  app.get('/betHistory', (req, res)=>{
-    res.render('betHistory', req.pageData);
-  })
-
-  app.get('/depositHistory', (req, res)=>{
-    res.render('depositHistory', req.pageData);
-  })
+  //
+  // app.get('/accountManager', async (req, res)=>{
+  //   res.render('accountManager', req.pageData);
+  // })
+  //
+  // app.get('/betHistory', (req, res)=>{
+  //   res.render('betHistory', req.pageData);
+  // })
+  //
+  // app.get('/depositHistory', (req, res)=>{
+  //   res.render('depositHistory', req.pageData);
+  // })
 
 
   app.get('/admin', getFilteredAdminPages, (req, res)=>{
@@ -598,16 +595,24 @@
 
 
   // admin pages router
-  _pages.filter(page=>page.admin).forEach(page=>{
-    // console.log(">>", page.link);
-    app.get(page.link, getFilteredAdminPages, (req, res)=>{
-      // req.adminPages
-      if(req.session.pages.find(page=>page.link==req.url)){
+  _pages
+  //.filter(page=>page.admin)
+  .forEach(page=>{
+    if(page.admin){
+      // console.log(">>", page.link);
+      app.get(page.link, getFilteredAdminPages, (req, res)=>{
+        // req.adminPages
+        if(req.session.pages.find(page=>page.link==req.url)){
+          res.render( '.'+req.url, req.pageData );
+        }else{
+          res.redirect(req.pages[0].code);
+        }
+      })
+    }else{
+      app.get(page.link, (req, res)=>{
         res.render( '.'+req.url, req.pageData );
-      }else{
-        res.redirect(req.pages[0].code);
-      }
-    })
+      })
+    }
   })
 
   // master pages router

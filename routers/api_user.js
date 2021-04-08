@@ -1,5 +1,11 @@
 module.exports = MD=>{
   let {
+    setRedis,
+    getRedis,
+    room_checker,
+    room_bettor,
+    argv,
+    redisClient,
     io,
     mongoose,
     sendDataToMain,
@@ -19,11 +25,16 @@ module.exports = MD=>{
     BetData,
     Event,
     Log,
+    BenEvent,
+    Proxy,
+    Withdraw,
     Account,
     Option,
     Approval,
     Setting,
     DepositLog,
+    Data,
+    BackupHistory,
     authAdmin,
     authMaster,
     task,
@@ -37,7 +48,8 @@ module.exports = MD=>{
     updateBet365TotalMoney,
     getSetting,
     calc,
-    MoneyManager
+    MoneyManager,
+    uuidv4
   } = MD;
 
   // for master
@@ -112,7 +124,7 @@ module.exports = MD=>{
             path: 'account',
             model: Account,
             options: {
-              select: 'id money country'
+              select: 'id limited died country money startMoney betCount startBetCount'
             }
           },
           {
@@ -355,7 +367,7 @@ module.exports = MD=>{
             model: Account,
             options: {
               // select: 'id money country'
-              select: "id pw limited died country money startMoney"
+              select: "id pw limited died country money startMoney betCount startBetCount"
             }
           },
           {
@@ -364,6 +376,10 @@ module.exports = MD=>{
             options: {
               select: 'name permission'
             }
+          },
+          {
+            path: 'proxy',
+            model: Proxy,
           }
           // ,
           // {

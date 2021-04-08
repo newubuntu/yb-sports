@@ -123,7 +123,7 @@ module.exports = MD=>{
     }
 
     await MoneyManager.withdrawWallet(user, setting.accountPrice + account.money, "buy account");
-
+    user = await User.findOne({email:req.user.email}).select(["email", "money", "wallet", "bet365Money"]);
     // user.wallet -= setting.accountPrice + account.money;
     // await user.save();
 
@@ -150,7 +150,7 @@ module.exports = MD=>{
     accounts = await Account.find({user:null, firstCharged:true, removed:false, trash:false})
     .select(["-skrillId", "-skrillPw", "-skrillCode"])
     // .select(["id", "money"])
-    .limit(20)
+    .limit(config.ACCOUNT_LIST_COUNT_PER_PAGE)
     .sort({createdAt:1});
 
     let setting = await getSetting();

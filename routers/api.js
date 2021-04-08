@@ -2,6 +2,11 @@ const router = require("express").Router();
 const redis = require('redis');
 const redisClient = redis.createClient();
 const subdomain = require('express-subdomain');
+
+const {promisify} = require('util');
+const setRedis = promisify(redisClient.set).bind(redisClient);
+const getRedis = promisify(redisClient.get).bind(redisClient);
+
 // const session = require("express-session");
 const mongoose = require("mongoose");
 const User = require('../models/User');
@@ -18,8 +23,9 @@ const DepositLog = require('../models/DepositLog');
 const TestData = require('../models/TestData');
 const Data = require('../models/Data');
 const BackupHistory = require('../models/BackupHistory');
-const BenList = require('../models/BenList');
+const BenEvent = require('../models/BenEvent');
 const Withdraw = require('../models/Withdraw');
+const Proxy = require('../models/Proxy');
 
 let argv = process.argv.slice(2);
 
@@ -318,7 +324,8 @@ module.exports = io=>{
       emitToMember(account.user.email, "updateEachBet365Money", {
         account: {
           _id: account._id,
-          money: account.money
+          money: account.money,
+          startMoney: account.startMoney
         },
         updateTarget: ["/dashboard", "/accountManager"]
       })
@@ -515,8 +522,14 @@ module.exports = io=>{
     }
   }
 
+  let room_checker = "__data_receiver__";
+  let room_bettor = "__data_receiver2__";
 
   let MD = {
+    setRedis,
+    getRedis,
+    room_checker,
+    room_bettor,
     argv,
     redisClient,
     io,
@@ -538,7 +551,8 @@ module.exports = io=>{
     BetData,
     Event,
     Log,
-    BenList,
+    BenEvent,
+    Proxy,
     Withdraw,
     Account,
     Option,
@@ -568,6 +582,7 @@ module.exports = io=>{
   require('./api_option')(MD);
   require('./api_user')(MD);
   require('./api_account')(MD);
+  require('./api_proxy')(MD);
   require('./api_program')(MD);
   require('./api_deposit')(MD);
   require('./api_approval')(MD);
@@ -623,23 +638,32 @@ module.exports = io=>{
     })
   })
 
+
+
   // from betburger
-  router.post("/input_data", (req, res)=>{
-    console.log("receive gamedata");
-    let room = "__data_receiver__";
+  router.post("/input_data", async (req, res)=>{
+    let t = await getRedis("inputDataTime")||0;
+    if(Date.now() - t < 1000){
+      res.send('0');
+      return;
+    }
+    await setRedis("inputDataTime", Date.now());
 
-    //console.error(io.in(room).sockets);
+    console.log("receive gamedata", (new Date()).toLocaleTimeString());
+    // let room = "__data_receiver__";
 
-    // let map = io.sockets.adapter.rooms.get(room);
+    // console.error(io.in(room).sockets);
+    // console.error(io.sockets.adapter.rooms.get(room));
+
+    // let map = io.sockets.adapter.rooms.get(room_checker);
     // if(map){
-    //   console.log("found checker");
-    //   // 추후에 체크기 수량에 따라 벳버거 데이터를 분배하여 처리하도록하자
-    //   // console.log("count", map.size);
-    //   io.to(room).emit("gamedata", req.body);
-    //   // io.emit("gamedata", req.body);
+    // //   console.log("found checker");
+    // // //   // 추후에 체크기 수량에 따라 벳버거 데이터를 분배하여 처리하도록하자
+    //   console.log("count", map.size);
+    //   console.log(...map.keys());
     // }
     // io.$.emit(room, "gamedata", req.body);
-    io.to(room).emit("gamedata", req.body);
+    io.to(room_checker).emit("gamedata", req.body);
 
     res.send('1');
   })

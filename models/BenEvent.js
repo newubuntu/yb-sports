@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 //mongoose.Schema.Types.Mixed
-const benListSchema = new mongoose.Schema({
+const benEventSchema = new mongoose.Schema({
   bet365Id: {type: String},
   benId: {type: String},
   count: {type: Number, default: 0},
@@ -29,4 +29,4 @@ const benListSchema = new mongoose.Schema({
 //   return this.updateOne({_id}, data);
 // }
 
-module.exports = mongoose.models.BenList || mongoose.model("BenList", benListSchema);
+module.exports = mongoose.models.BenEvent || mongoose.model("BenEvent", benEventSchema);

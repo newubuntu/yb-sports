@@ -56,6 +56,19 @@ let Vapp;
       }
     })
 
+    socket.on("addBetCount", ({id, account, bid})=>{
+      console.log("addBetCount", id, account, bid);
+      let browser = Vapp.getBrowserObj(bid);
+      if(browser){
+        if(browser.account){
+          //betCount, startBetCount update
+          for(let o in account){
+            browser.account[o] = account[o];
+          }
+        }
+      }
+    })
+
     socket.on("log", (data, pid, bid)=>{
       console.log("log", data);
       Vapp.updateLog(pid, bid, data);
@@ -148,6 +161,7 @@ let Vapp;
       programs: [],
       //money갱신시 쓰임.
       accounts: [],
+      proxys: [],
       itvUpdateScroll: {},
       $withdrawForm: null
     },
@@ -229,6 +243,12 @@ let Vapp;
         }
       },
 
+      // proxyBtnHtml(browser){
+      //   if(browser.proxy){
+      //
+      //   }
+      // },
+
       browserClass(browser){
         let obj = {};
         obj[browser._id] = true;
@@ -258,7 +278,8 @@ let Vapp;
         let pf = round(this.calcProfit(browser), 2);
         let color = pf>0?'text-success':pf<0?'text-danger':'';
         let b = pf>0?'+':'';
-        return `(<span class="${color}">${b}$${pf}</span>)`;
+        let c = browser.account&&typeof browser.account.betCount==="number"?browser.account.betCount-browser.account.startBetCount:0;
+        return `(<span class="${color}">${b}$${pf}</span>) <span class="badge badge-pill badge-secondary">${c}</span>`;
       },
 
       // profitClass(browser){
@@ -282,7 +303,7 @@ let Vapp;
             if(b.account){
               return r + b.account.money;
             }else{
-              return 0;
+              return r;
             }
           }, 0)
         }
@@ -294,7 +315,7 @@ let Vapp;
             if(b.account){
               return r + this.calcProfit(b)
             }else{
-              return 0;
+              return r;
             }
           }, 0)
         }
@@ -320,18 +341,19 @@ let Vapp;
         return `합계: $${sum} (<span class="${color}">${b}$${pf}</span>)`;
       },
 
-      async updateStartMoney(browser){
-        if(timeLimit("updateStartMoney", 200)){
+      async resetProfitInfo(browser){
+        if(timeLimit("resetProfitInfo", 200)){
           return;
         }
         $(`.${browser._id}.btn-refresh-startMoney`).prop("disabled", true);
-        let smoney = await emitPromise("updateStartMoney", {id:browser.account.id});
-        if(smoney == null){
+        let info = await emitPromise("resetProfitInfo", {id:browser.account.id});
+        if(info == null){
           console.error("브라우져가 통신가능한 상태가 아닙니다.");
         }else{
-          browser.account.startMoney = smoney;
+          browser.account.startMoney = info.startMoney;
+          browser.account.startBetCount = info.startBetCount;
         }
-        console.log("updateStartMoney", smoney);
+        console.log("resetProfitInfo", info);
         await delay(1000);
         $(`.${browser._id}.btn-refresh-startMoney`).prop("disabled", false);
       },
@@ -348,9 +370,20 @@ let Vapp;
         return this.programs.find(v=>v._id==pid);
       },
       getBrowserObj(pid, _bid){
-        let program = this.getProgramObj(pid);
-        if(program){
-          return program.browsers.find(browser=>browser._id == _bid);
+        if(arguments.length == 1){
+          _bid = pid;
+          for(let i=0; i<this.programs.length; i++){
+            for(let j=0; j<this.programs[i].browsers.length; j++){
+              if(this.programs[i].browsers[j]._id == _bid){
+                return this.programs[i].browsers[j];
+              }
+            }
+          }
+        }else{
+          let program = this.getProgramObj(pid);
+          if(program){
+            return program.browsers.find(browser=>browser._id == _bid);
+          }
         }
       },
       getBrowserIndex(pid, _bid){
@@ -710,6 +743,106 @@ let Vapp;
           // this.$forceUpdate();
         },50);
       },
+
+      proxyBtnHtml(proxy){
+        return `<button class="btn btn-square btn-secondary btn-account" type="button">
+            <svg class="icon-svg" style="width: 30px;height: 17px;">
+              <use xlink:href="/vendors/@coreui/icons/sprites/flag.svg#cif-${proxy.country.toLowerCase()}"></use>
+            </svg>
+            [${proxy.number}] ${proxy.proxyHttp}
+          </button>`
+      },
+
+      async openProxyModal(pid, _bid){
+        let browser = this.getBrowserObj(pid, _bid);
+        if(!browser){
+          return;
+        }
+
+        let res = await api.loadBrowser(_bid);
+        if(res.status == "success"){
+          this.setBrowserObj(pid, _bid, res.data);
+          browser = res.data;
+        }else{
+          modal("오류", `브라우져 정보 로딩 실패. ${res.message}`);
+          return;
+        }
+
+        if(!browser){
+          return;
+        }
+
+        let proxys;
+        res = await api.getLinkedProxys();
+        if(res.status == "success"){
+          proxys = res.data.filter(proxy=>!proxy.browser);
+        }else{
+          modal("오류", res.message);
+          return;
+        }
+        // console.log({accounts});
+        // let browser = this.getBrowserObj(pid, _bid);
+        if(proxys.length){
+          let selectedProxy;
+          let proxyElList = proxys.map(proxy=>{
+            return $(this.proxyBtnHtml(proxy)).on("click", e=>{
+              selectedProxy = proxy;
+              modalHide();
+            })
+          })
+          let r = await modal("프록시IP 연결", proxyElList, {
+            buttons: ["닫기", "연결 끊기 (루미나티 사용)"]
+          });
+          if(r){
+            res = await api.updateBrowser(_bid, {proxy: null});
+            if(res.status == "success"){
+              browser.proxy = null;
+              this.$forceUpdate();
+            }else{
+              modal("알림", `브라우져 업데이트 실패<br>${res.message}`);
+            }
+            return;
+          }
+          console.log({selectedProxy});
+          if(selectedProxy){
+            if(browser){
+              res = await api.updateBrowser(_bid, {proxy: selectedProxy._id});
+              if(res.status == "success"){
+                console.error("!!");
+                browser.proxy = selectedProxy;
+                this.proxys.push(selectedProxy);
+                this.$forceUpdate();
+              }else{
+                modal("알림", `브라우져 업데이트 실패<br>${res.message}`);
+              }
+              // res = await api.updateAccount()
+              // console.error(selectedOption);
+            }else{
+              console.error("bid로 browser객체를 찾을 수 없습니다.");
+              modal("알림", "bid로 browser객체를 찾을 수 없습니다.")
+              return;
+            }
+          }
+        }else{
+          if(browser.proxy){
+            let r = await modal("알림", "연결 가능한 프록시IP가 없습니다.", {
+              buttons: ["닫기", "연결 끊기 (루미나티 사용)"]
+            });
+            if(r){
+              res = await api.updateBrowser(_bid, {proxy: null});
+              if(res.status == "success"){
+                browser.proxy = null;
+                this.$forceUpdate();
+              }else{
+                modal("알림", `브라우져 업데이트 실패<br>${res.message}`);
+              }
+            }
+          }else{
+            modal("알림", "연결 가능한 계정이 없습니다.");
+          }
+        }
+      },
+
       async openAccountModal(pid, _bid){
         let browser = this.getBrowserObj(pid, _bid);
         if(!browser || browser.used){

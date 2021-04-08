@@ -140,6 +140,70 @@ let api = (()=>{
       return ax("/get_approvals", opt, "POST");
     },
 
+
+    ///////////////// proxy
+    // admin, master 권한이 있는 계정만 결과를 받을 수 있는 api
+    getProxys(opt){
+      opt = Object.assign({
+        ids: undefined,
+        used: undefined,
+        trash: undefined,
+        offset: undefined,
+        limit: undefined,
+        curPage: undefined,
+        email: undefined,
+        searchIP: undefined
+      }, opt||{})
+      // console.log("!!!", opt);
+      // used == undefined -> all
+      // used == true -> used account
+      // used == false -> no used account
+      // withSkrill == true -> with skrill info
+
+      return ax("/get_proxys", opt, "POST");
+    },
+
+    getProxy(_id){
+      return ax("/get_proxy_model/" + _id);
+    },
+
+    buyProxy(id){
+      return ax("/buy_proxy/" + id);
+    },
+
+    getLinkedProxys(email){
+      return ax("/get_linked_proxys", {email}, "POST");
+    },
+
+    getStoreProxys(){
+      return ax("/get_store_proxys");
+    },
+
+    updateProxy(id, proxy){
+      return ax("/update_proxy/" + id, proxy, "POST");
+    },
+
+    registProxy(payload){
+      return ax("/regist_proxy", payload, "POST");
+    },
+
+    removeProxy(id){
+      return ax("/remove_proxy/" + id);
+    },
+
+    removeProxyUser(id){
+      return ax("/remove_proxy_user/" + id);
+    },
+
+    trashProxy(id){
+      return ax("/trash_proxy/" + id);
+    },
+
+    restoreProxy(id){
+      return ax("/restore_proxy/" + id);
+    },
+    ///////////////////////
+
     // admin, master 권한이 있는 계정만 결과를 받을 수 있는 api
     // getAccounts(ids=undefined, used=undefined, withSkrill=undefined){
     getAccounts(opt){

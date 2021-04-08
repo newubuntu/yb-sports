@@ -2,6 +2,14 @@ function reverse(str){
   return str.split('').reverse().join('');
 }
 
+function getDateString(d){
+  return [
+    d.getFullYear(),
+    (d.getMonth()+1).toString().padStart(2, '0'),
+    d.getDate().toString().padStart(2, '0')
+  ].join('-');
+}
+
 let timeLimitList = {};
 function timeLimit(key, time){
   if(timeLimitList[key] === undefined){

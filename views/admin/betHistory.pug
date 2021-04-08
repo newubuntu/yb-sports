@@ -8,8 +8,8 @@ block append styles
     .pmoney, .wallet {
       text-align: right;
     }
-    .input-group>input {
-      width: 130px !important;
+    .input-group>input:not(.date) {
+      width: 110px !important;
     }
 
 block scripts
@@ -141,12 +141,12 @@ block view
                     .input-group
                       .input-group-prepend
                         .input-group-text 시작일
-                      input.form-control.start-date(type="text" readOnly)
+                      input.form-control.date.start-date(type="text" readOnly)
                   .form-group
                     .input-group
                       .input-group-prepend
                         .input-group-text 종료일
-                      input.form-control.end-date(type="text" readOnly)
+                      input.form-control.date.end-date(type="text" readOnly)
                   .form-group
                     .input-group
                       .input-group-prepend
@@ -223,6 +223,11 @@ block view
                       .input-group-prepend
                         .input-group-text 배팅진행중
                       input.form-control.total-nybet(type="text" :value="round(result.notYetBetSum,2)" readOnly)
+                  .form-group
+                    .input-group
+                      .input-group-prepend
+                        .input-group-text 벳365배팅진행중
+                      input.form-control.total-nybet-bookmaker(type="text" :value="round(result.notYetBetSumBookmaker,2)" readOnly)
                   .form-group
                     .input-group
                       .input-group-prepend

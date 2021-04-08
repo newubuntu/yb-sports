@@ -156,15 +156,18 @@ $(document).ready(async ()=>{
     refreshTab(data.updateTarget);
     let accounts = Vapp.accounts;
 
-    // console.error("app accounts", accounts);
+    console.error("app accounts", accounts);
 
     if(Array.isArray(accounts)){
       let account = accounts.find(ac=>{
         return ac && ac._id==data.account._id;
       });
       if(account){
-        // console.error("bet365 money refresh", data.account.money);
+        console.error("bet365 money refresh", data.account.money, data.account.startMoney);
         account.money = data.account.money;
+        if(data.account.startMoney !== undefined){
+          account.startMoney = data.account.startMoney;
+        }
       }
       Vapp.$forceUpdate();
     }

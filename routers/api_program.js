@@ -1,28 +1,55 @@
 module.exports = MD=>{
   let {
+    setRedis,
+    getRedis,
+    room_checker,
+    room_bettor,
+    argv,
+    redisClient,
     io,
+    mongoose,
     sendDataToMain,
     sendDataToBg,
     sendDataToBet365,
     emitToMember,
     emitToAdmin,
     emitToProgram,
+    emitToProgramPromise,
+    socketResolveList,
     config,
     comma,
     router,
     User,
     Program,
     Browser,
+    BetData,
+    Event,
     Log,
+    BenEvent,
+    Proxy,
+    Withdraw,
     Account,
     Option,
     Approval,
+    Setting,
+    DepositLog,
+    Data,
+    BackupHistory,
     authAdmin,
     authMaster,
     task,
     deposit,
     approvalTask,
-    refreshMoney
+    refreshTab,
+    refreshMoney,
+    refreshBet365Money,
+    refreshBet365TotalMoney,
+    updateBet365Money,
+    updateBet365TotalMoney,
+    getSetting,
+    calc,
+    MoneyManager,
+    uuidv4
   } = MD;
 
   router.get("/load_program/:pid", task(async (req, res)=>{
@@ -40,21 +67,25 @@ module.exports = MD=>{
         model: Program,
         populate: {
           path: "browsers",
-          model: Browser
+          model: Browser,
           // select: "-logs",
-          // populate: [
-          //   {
-          //     path: "account",
-          //     model: Account,
-          //     options: {
-          //       select: "id pw limited died country money"
-          //     }
-          //   },
-          //   {
-          //     path: "option",
-          //     model: Option
-          //   }
-          // ]
+          populate: [
+            {
+              path: "proxy",
+              model: Proxy
+            }
+            // {
+            //   path: "account",
+            //   model: Account,
+            //   options: {
+            //     select: "id pw limited died country money"
+            //   }
+            // },
+            // {
+            //   path: "option",
+            //   model: Option
+            // }
+          ]
         }
       }
     ])
@@ -91,17 +122,27 @@ module.exports = MD=>{
         await Account.updateOne({_id:originBrowser.account}, {browser:null});
       }
 
-      // 해당 계정에 브라우져 정보를 입력
-      // await Account.updateOne({_id:browser.account}, {browser:bid});
-
-      // 해당 계정에 브라우져 정보를 입력
-      // 브라우져 연결시마다 startMoney를 저장
-      let account = await Account.findOne({_id:browser.account});
-      account.browser = bid;
-      if(account.money){
-        account.startMoney = account.money;
+      if(browser.account){
+        // 해당 계정에 브라우져 정보를 입력
+        await Account.updateOne({_id:browser.account}, {browser:bid});
       }
-      await account.save();
+
+      // // 해당 계정에 브라우져 정보를 입력
+      // let account = await Account.findOne({_id:browser.account});
+      // account.browser = bid;
+      // await account.save();
+    }
+
+    if(browser.proxy !== undefined){
+      // 해당 브라우져에 연결된 프록시가 있다면 그 프록시에 브라우져 정보 제거
+      if(originBrowser.proxy){
+        await Proxy.updateOne({_id:originBrowser.proxy}, {browser:null});
+      }
+
+      if(browser.proxy){
+        // 해당 계정에 브라우져 정보를 입력
+        await Proxy.updateOne({_id:browser.proxy}, {browser:bid});
+      }
     }
 
     await Browser.updateOne({_id:bid}, browser);
@@ -136,12 +177,16 @@ module.exports = MD=>{
         path: "account",
         model: Account,
         options: {
-          select: "id pw limited died country money startMoney"
+          select: "id pw limited died country money startMoney betCount startBetCount"
         }
       },
       {
         path: "option",
         model: Option
+      },
+      {
+        path: "proxy",
+        model: Proxy
       }
     ]).lean();
     // .deepPopulate(['account', 'option']);

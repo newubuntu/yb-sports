@@ -2,9 +2,13 @@ const {v4:uuidv4} = require('uuid');
 
 module.exports = MD=>{
   let {
+    setRedis,
+    getRedis,
+    room_checker,
+    room_bettor,
     argv,
-    io,
     redisClient,
+    io,
     mongoose,
     sendDataToMain,
     sendDataToBg,
@@ -20,21 +24,34 @@ module.exports = MD=>{
     User,
     Program,
     Browser,
+    BetData,
+    Event,
     Log,
+    BenEvent,
+    Proxy,
+    Withdraw,
     Account,
     Option,
     Approval,
-    Event,
+    Setting,
     DepositLog,
+    Data,
+    BackupHistory,
     authAdmin,
     authMaster,
     task,
     deposit,
     approvalTask,
+    refreshTab,
     refreshMoney,
+    refreshBet365Money,
+    refreshBet365TotalMoney,
     updateBet365Money,
     updateBet365TotalMoney,
-    MoneyManager
+    getSetting,
+    calc,
+    MoneyManager,
+    uuidv4
   } = MD;
 
   // let chekerSocket;
@@ -219,52 +236,52 @@ module.exports = MD=>{
           emitToDashboard("connectedProgram", data.pid);
         }, 100)
 
-        socket.on("joinChecker", async (bid)=>{
-          // console.log("@@@has chekerSocket", !!chekerSocket)
-          console.log("##joinChecker");
-          socket.join("__checker__");
+        // socket.on("joinChecker", async (bid)=>{
+        //   // console.log("@@@has chekerSocket", !!chekerSocket)
+        //   console.log("##joinChecker");
+        //   socket.join("__checker__");
+        //
+        //   // if(chekerSocket == socket){
+        //   //   if(chekerBid !== bid){
+        //   //     chekerSocket.emit("closeBrowser", chekerBid);
+        //   //     console.log("prev cheker close");
+        //   //   }
+        //   //   chekerBid = bid;
+        //   // }else{
+        //   //   if(chekerSocket){
+        //   //     chekerSocket.leave("__checker__");
+        //   //     // await io.$.leave("__checker__", chekerSocket);
+        //   //     chekerSocket.emit("closeBrowser", chekerBid);
+        //   //     console.log("prev cheker close");
+        //   //   }
+        //   //   socket.join("__checker__");
+        //   //   // await io.$.join("__checker__", socket);
+        //   //   chekerSocket = socket;
+        //   //   chekerBid = bid;
+        //   // }
+        // })
 
-          // if(chekerSocket == socket){
-          //   if(chekerBid !== bid){
-          //     chekerSocket.emit("closeBrowser", chekerBid);
-          //     console.log("prev cheker close");
-          //   }
-          //   chekerBid = bid;
-          // }else{
-          //   if(chekerSocket){
-          //     chekerSocket.leave("__checker__");
-          //     // await io.$.leave("__checker__", chekerSocket);
-          //     chekerSocket.emit("closeBrowser", chekerBid);
-          //     console.log("prev cheker close");
-          //   }
-          //   socket.join("__checker__");
-          //   // await io.$.join("__checker__", socket);
-          //   chekerSocket = socket;
-          //   chekerBid = bid;
-          // }
-        })
-
-        socket.on("joinDataReceiver", abid=>{
-          console.log("####joinDataReceiver");
-          socket.join("__data_receiver__");
+        socket.on("joinDataReceiver", bid=>{
+          console.log("####joinDataReceiver", socket.id, bid);
+          socket.join(room_checker);
           // io.$.join("__data_receiver__", socket);
         })
 
         socket.on("joinDataReceiver2", bid=>{
           console.log("####joinDataReceiver2");
-          socket.join("__data_receiver2__");
+          socket.join(room_bettor);
           // io.$.join("__data_receiver2__", socket);
         })
 
         socket.on("leaveDataReceiver", bid=>{
-          console.log("####leaveDataReceiver");
-          socket.leave("__data_receiver__");
+          console.log("####leaveDataReceiver", socket.id, bid);
+          socket.leave(room_checker);
           // io.$.leave("__data_receiver__", socket);
         })
 
         socket.on("leaveDataReceiver2", bid=>{
           console.log("####leaveDataReceiver2");
-          socket.leave("__data_receiver2__");
+          socket.leave(room_bettor);
           // io.$.leave("__data_receiver2__", socket);
         })
 
@@ -338,7 +355,7 @@ module.exports = MD=>{
         socket.on("inputGameUrl", obj=>{
           console.log("inputGameUrl");
           // console.log(io.sockets.clients(room));
-          io.to("__data_receiver2__").emit("gameurl", obj);
+          io.to(room_bettor).emit("gameurl", obj);
         })
 
         //정재된 매칭 게임데이터
@@ -377,7 +394,7 @@ module.exports = MD=>{
 
 
           // console.log(io.sockets.clients(room));
-          io.to("__data_receiver2__").emit("gamedata2", obj);
+          io.to(room_bettor).emit("gamedata2", obj);
           // io.$.emit(room, "gamedata2", obj);
 
           // emitToAllPrograms("gamedata2", obj);
@@ -423,27 +440,36 @@ module.exports = MD=>{
           emitToDashboard("updateAccountState", {id, state, bid});
         })
 
+        socket.on("addBetCount", async (data, bid)=>{
+          let {id} = data;
+          await Account.updateOne({user:session.user._id, id}, {$inc:{betCount:1}});
+          let account = await Account.findOne({id}).select(["betCount", "startBetCount"]).lean();
+          delete account._id;
+          emitToDashboard("addBetCount", {id, account, bid});
+        })
 
+        // socket.on("resetStartBetCount", async (data, bid)=>{
+        //   let {id} = data;
+        //   await Account.updateOne({user:session.user._id, id}, {startBetCount:0});
+        //   let account = await Account.findOne({id}).select(["betCount", "startBetCount"]).lean();
+        //   emitToDashboard("resetStartBetCount", {id, account, bid});
+        // })
 
         // from extension bg
         // let updateMoneyCallTimes = redisClient.get('updateMoneyCallTimes');
 
         socket.on("updateMoney", async (money, bid)=>{
-          let updateMoneyCallTimes = redisClient.get('updateMoneyCallTimes')||{};
-          // console.log("@@@@@11updateMoney", money);
-          // extension으로 부터 호출되기 때문에.
-          // 잘못된 코드로 반복호출되는 상황을 고려하여 안전장치를 둠.
-          // 각 브라우져별로 1초 이내에 재호출된 머니갱신 신호는 무시함.
-          // (벳삼머니가 갱신되는것은 한 경기를 깐뒤일거니까, 1초도 짦게설정한거다.)
-          if(updateMoneyCallTimes[bid] === undefined){
-            updateMoneyCallTimes[bid] = 0;
-          }
-          let t = Date.now();
-          if(t - updateMoneyCallTimes[bid] < 1000){
-            return;
-          }
-          updateMoneyCallTimes[bid] = t;
-          redisClient.set('updateMoneyCallTimes', updateMoneyCallTimes);
+          // let updateMoneyCallTimes = await getRedis('updateMoneyCallTimes')||{};
+          // if(updateMoneyCallTimes[bid] === undefined){
+          //   updateMoneyCallTimes[bid] = 0;
+          // }
+          // let t = Date.now();
+          // if(t - updateMoneyCallTimes[bid] < 200){
+          //   return;
+          // }
+          // updateMoneyCallTimes[bid] = t;
+          // await setRedis('updateMoneyCallTimes', updateMoneyCallTimes);
+
           // console.log("@@@@@22updateMoney", money);
           // let account = await Account.findOne({browser:bid, trash:false, removed:false})
           // console.log("updateMoney", money, bid);
@@ -481,13 +507,14 @@ module.exports = MD=>{
         //   console.log("bet365InitData", data);
         // })
 
-        socket.on("updateStartMoney", async ({id}, uuid)=>{
-          console.log("updateStartMoney", id);
-          let account = await Account.findOne({id}).select("startMoney money");
+        socket.on("resetProfitInfo", async ({id}, uuid)=>{
+          console.log("resetProfitInfo", id);
+          let account = await Account.findOne({id}).select("startMoney money betCount startBetCount");
           if(account){
             account.startMoney = account.money;
+            account.startBetCount = account.betCount;
             await account.save();
-            emit("resolve", account.money, uuid);
+            emit("resolve", {startMoney:account.money, startBetCount:account.betCount}, uuid);
           }
         })
 
@@ -691,6 +718,10 @@ module.exports = MD=>{
             {
               path: "option",
               model: Option
+            },
+            {
+              path: "proxy",
+              model: Proxy
             },
             {
               path: "account",

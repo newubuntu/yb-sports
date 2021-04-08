@@ -128,6 +128,9 @@ function bgJS(){
   		case "readyBet365":
   			// data.bid, data.email
 
+        /// test
+        // break;
+
         if(!checkBodyVersion()){
           let msg = "업그레이드가 필요한 버전입니다. " + window.body_version;
           log(msg, "danger", true);

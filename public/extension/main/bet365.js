@@ -461,7 +461,7 @@ function bet365JS(){
       if(pt.md && pt.md !== "Draw No Bet" && pt.md !== "Match Winner"){
         if(pt.hd === undefined){
           c++;
-          if(c < 6){
+          if(c < 4){
             await delay(1000);
             console.error("핸디없음 다시시도.", c);
             log(`벳365정보에 핸디없음. 다시시도(${c})`, "danger", true);
@@ -594,7 +594,7 @@ function bet365JS(){
   }
 
   function findDummy(){
-    let list = ["gl-Participant", "gl-ParticipantOddsOnly", "gl-ParticipantBorderless", "gl-ParticipantCentered"];
+    let list = ["gl-Participant", "gl-ParticipantOddsOnly", "srb-ParticipantCenteredStackedMarketRow", "gl-ParticipantBorderless", "gl-ParticipantCentered"];
     let n, $el;
     for(let i=0; i<list.length; i++){
       n = list[i];
@@ -735,7 +735,8 @@ function bet365JS(){
         timestamp("setPreUrl");
         // localStorage.setItem("setPreUrl", true);
         localStorage.setItem("setUrl", true);
-        window.location.href = data;
+        window.location.href = data.url;
+        betOption = data.betOption;
       break;
 
       case "setUrl":
@@ -1562,11 +1563,12 @@ function bet365JS(){
 
     let $money;
     if($btn.hasClass("hm-Balance")){
-      // $money = $btn;
-      await until(()=>{
-        return $btn.text();
-      })
-      return parseMoney($btn.text());
+      // await until(()=>{
+      //   return $btn.text();
+      // })
+      // return parseMoney($btn.text());
+
+      return await loadMoney();
     }else{
       $btn.click();
 

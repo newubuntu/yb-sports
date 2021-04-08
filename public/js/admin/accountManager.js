@@ -217,7 +217,7 @@ let Vapp;
       },
 
       reload(){
-        this.loadList(this.curPage, this.tab, this.email);
+        this.loadList(this.curPage, this.tab, this.getCurrentSearchInfo());
       },
 
       optionNameValidation(){

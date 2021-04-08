@@ -1,14 +1,17 @@
 const mongoose = require("mongoose");
 const deepPopulate = require('mongoose-deep-populate')(mongoose);
 const Schema = mongoose.Schema;
-const config = require('../config');
+// const config = require('../config');
 //mongoose.Schema.Types.Mixed
 const browserSchema = new mongoose.Schema({
   account: {type: Schema.Types.ObjectId, ref: 'Account'},
   user: {type: Schema.Types.ObjectId, ref: 'User'},
   program: {type: Schema.Types.ObjectId, ref: 'Program'},
   option: {type: Schema.Types.ObjectId, ref: 'Option'},
-  used: {type: Boolean}
+  used: {type: Boolean},
+  // proxy ip 적용
+  // ex) "124.198.111.32:11959"
+  proxy: {type: Schema.Types.ObjectId, ref: 'Proxy'}
   // logs: [mongoose.Schema.Types.Mixed]
   // logs: [new Schema({
   //   data: {type: mongoose.Schema.Types.Mixed, required:true},

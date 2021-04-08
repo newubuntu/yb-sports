@@ -125,9 +125,9 @@ async function onMessage(message){
       if(betOption.useExchange == 'y'){
         betOption.exchangeRate = await api.exchangeRate(betOption.exchangeCode1, betOption.exchangeCode2);
         log(`환율사용 ${betOption.exchangeCode1}->${betOption.exchangeCode2} : ${betOption.exchangeRate}`, 'info', true);
-        // to usd
-        money *= betOption.exchangeRate;
-        money = round(money, 2);
+        // // to usd
+        // money *= betOption.exchangeRate;
+        // money = round(money, 2);
       }
 
       log(`벳365 (${account.id}) 로그인 완료. 잔액: ${money}`, null, true);
@@ -918,7 +918,8 @@ async function bet365PlacebetProcess(data, bet365Info){
       }else if(result.status == "foundBetmax"){
         changeOddsBet365Process(data, result.info.odds);
         setBet365RandomStake(data, result.betmax);
-        everBeenFixedBetmax = fixedBetmax = true;
+        fixedBetmax = true;
+        everBeenFixedBetmax = result.betmax;
 
         // api.limitAccount(account.id);
         sendDataToServer("updateAccountState", {id:account.id, state:"limited"});
@@ -983,7 +984,7 @@ async function bet365PlacebetProcess(data, bet365Info){
   }
 
   if(everBeenFixedBetmax){
-    log("벳365 계정 짤림", "danger", true);
+    log(`벳365 계정 짤림 betmax: ${everBeenFixedBetmax}`, "danger", true);
     sendDataToSite("sound", {name:"limitAccount"});
     stopMatch(true);
   }
@@ -997,6 +998,7 @@ async function bet365PlacebetProcess(data, bet365Info){
       // bet365 money load방식이 바뀌면서 배팅하고 남은금액이온다.
       sendDataToServer("updateMoney", result.money);
     }
+    sendDataToServer("addBetCount", {id:account.id});
     benEvent(data, "OBOK", 0, "배팅완료");
   }
 
@@ -1279,6 +1281,16 @@ function getBet365TeamName(data){
   return data.bet365[data.bet365.homeAway];
 }
 
+
+let replaceAlphabet = {
+  'a': /[åä]/g,
+  'A': /[ÅÄ]/g,
+  'O': /[Ö]/g,
+  'o': /[ö]/g,
+  'N': /[Ñ]/g,
+  'n': /[ñ]/g,
+  'u': /[ü]/g
+}
 function checkBet365TeamName(data, info){
   let teams = info.desc.toLowerCase().split(' vs ');
   if(teams.length==1){
@@ -1295,8 +1307,17 @@ function checkBet365TeamName(data, info){
   }else{
     bet365TeamName = teams[1];
   }
-  log(`팀이름확인 '${teamName}' in '${bet365TeamName}'`, "danger");
-  return bet365TeamName && bet365TeamName.replace(/ /g,'').indexOf(teamName.replace(/ /g,'').toLowerCase()) > -1;
+
+  if(bet365TeamName){
+    for(let a in replaceAlphabet){
+      bet365TeamName = bet365TeamName.replace(replaceAlphabet[a], a);
+    }
+  }
+
+  let chk = bet365TeamName && bet365TeamName.replace(/ /g,'').indexOf(teamName.replace(/ /g,'').toLowerCase()) > -1;
+  log(`팀이름확인 '${teamName}' in '${bet365TeamName}'`, chk?'':'danger');
+
+  return chk;
 }
 
 
@@ -1417,7 +1438,9 @@ function activeMainEveryBrowser(){
   sendDataToServer("inputGameUrl", null);
 }
 
+let cancelGetBetmaxFlag;
 function cancelGetBetmax(){
+  cancelGetBetmaxFlag = true;
   return sendData("cancelGetBetmax", null, PN_B365);
 }
 
@@ -1426,7 +1449,13 @@ function cancelPncPlaceBet(){
   pncPlaceBetCancelFlag = true;
 }
 
-function getBetmax(data){
+async function getBetmax(data, delayT=0){
+  if(delayT){
+    await delay(delayT);
+  }
+  if(cancelGetBetmaxFlag){
+    return Promise.reject(0);
+  }
   activeBet365();
   log(`betmax 확인시작`, null, true);
   return sendData("getBetmax", null, PN_B365).then(async d=>{
@@ -1668,10 +1697,12 @@ async function checkBetmaxProcess(data){
   if(checkProfit){
     if(!flag.isMatching) return;
 
-
+    cancelGetBetmaxFlag = false;
     //////////////
     //let betmaxInfo = await sendData("getBetmax", null, PN_B365);
-    let betmaxPromise = getBetmax(data).then(async d=>{
+    // 피나클 라인바뀜이 2초안에 진행될경우 벳삼을 확인할필요없다.
+    // 불필요 트래픽 방지위해 2초 딜레이
+    let betmaxPromise = getBetmax(data, 2000).then(async d=>{
       betmaxInfo = d;
       // 피나클 배팅결과가 나오기전에 betmax결과가 나왔다면.
       if(!betResult){
@@ -2213,7 +2244,7 @@ async function init(){
       activeMain();
     }else{
       activeBet365();
-      sendData("setPreUrl", data, PN_B365, true);
+      sendData("setPreUrl", {betOption,url:data}, PN_B365, true);
     }
   })
 }

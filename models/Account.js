@@ -25,7 +25,10 @@ const accountSchema = new mongoose.Schema({
   user: {type: Schema.Types.ObjectId, ref: 'User'},
   memo: {type: String},
 
-  // 브라우져 연결시 설정할것, 0으로 설정됐다면 첫 머니 갱신시 재설정 할것
+  startBetCount: {type: Number, default: 0},
+  betCount: {type: Number, default: 0},
+
+  // money 업데이트시 startMoney가 0인경우 설정할것
   startMoney: {type: Number, default: 0},
   money: {type: Number, default: 0},
   // 짤짤이
