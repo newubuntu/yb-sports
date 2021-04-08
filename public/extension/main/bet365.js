@@ -739,6 +739,10 @@ function bet365JS(){
         betOption = data.betOption;
       break;
 
+      case "setBetOption":
+        betOption = data.betOption;
+      break;
+
       case "setUrl":
         /// test
         // break;
