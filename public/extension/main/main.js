@@ -997,7 +997,7 @@ async function bet365PlacebetProcess(data, bet365Info){
     }
   }
 
-  if(everBeenFixedBetmax){
+  if(!accountInfo.limited && everBeenFixedBetmax){
     log(`벳365 계정 짤림 betmax: ${everBeenFixedBetmax}`, "danger", true);
     sendDataToSite("sound", {name:"limitAccount"});
     stopMatch(true);

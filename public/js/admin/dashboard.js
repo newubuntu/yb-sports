@@ -190,6 +190,14 @@ let Vapp;
         this.$withdrawForm = $(".withdraw-form").removeClass("pre-hide").remove();
         appMountedResolve();
       })
+
+      $(document).on("click", ".browser-logger", null, e=>{
+        $(e.currentTarget).removeClass("scrollLock");
+      })
+
+      $(document).on("mouseleave", ".browser-logger", null, e=>{
+        $(e.currentTarget).addClass("scrollLock");
+      })
     },
 
     methods: {
@@ -703,7 +711,7 @@ let Vapp;
           }
           let $con = $(`.${_bid}>.browser-logger`);
           // console.error("!", $con.scrollTop() + $con.prop("offsetHeight") + 20, $con.prop("scrollHeight"));
-          let isBottom = $con.scrollTop() + $con.prop("offsetHeight") + 20 >= $con.prop("scrollHeight");
+          // let isBottom = $con.scrollTop() + $con.prop("offsetHeight") + 20 >= $con.prop("scrollHeight");
           if(data.isSame){
             browser.logs[browser.logs.length-1] = {data, updatedAt:new Date()};
           }else{
@@ -726,7 +734,8 @@ let Vapp;
           }else{
             browser.$loggerUl.append(`<li><div class="log-line ${data.type?'text-'+data.type:''}">${this.logToHtml(browser.logs[browser.logs.length-1])}</div></ul>`);
           }
-          if(isBottom){
+          // if(isBottom){
+          if(!$con.hasClass("scrollLock")){
             this.updateLogScroll(_bid);
           }
           // if(isBottom){
