@@ -28,23 +28,25 @@ schema.plugin(autoIncrement.plugin, {
   increment : 1 // 증가
 });
 
-schema.methods.disconnectBrowser = async function(){
-  if(this.browser){
-    if(this.browser instanceof mongoose.Types.ObjectId){
-      throw new Error("'browser변수를' populate 하자");
-      // this.browser = await Browser.findOne({_id:this.browser});
-    }
-    // if(!this.populated('browser')){
-    //   this.browser = await this.populate('browser');
-    //   console.log("!!", this.browser);
-    // }
-
-    this.browser.proxy = null;
-    await this.browser.save();
-    this.browser = null;
-    return this.save();
-  }
-}
+// schema.methods.disconnectBrowser = async function(){
+//   console.error("?", this.browser);
+//   if(this.browser){
+//     if(this.browser instanceof mongoose.Types.ObjectId){
+//       throw new Error("'browser변수를' populate 하자");
+//       // this.browser = await Browser.findOne({_id:this.browser});
+//     }
+//     // if(!this.populated('browser')){
+//     //   this.browser = await this.populate('browser');
+//     //   console.log("!!", this.browser);
+//     // }
+//     console.error("#1");
+//     this.browser.proxy = null;
+//     await this.browser.save();
+//     this.browser = null;
+//     console.error("#2");
+//     return this.save();
+//   }
+// }
 
 // optionSchema.statics.create = function(payload){
 //   const p = new this(payload);

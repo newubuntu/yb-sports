@@ -500,6 +500,7 @@ let Vapp;
         if(!(await modal("프록시 IP 회수", `프록시 IP '${proxy.proxyHttp}'를 회수하시겠습니까?`, {buttons:["취소", "회수"]}))) return;
 
         let res = await api.removeProxyUser(id);
+        console.error("?", res);
         if(res.status == "success"){
           // this.pullAccountObj(id);
           // await this.loadList(this.curPage, this.tab);

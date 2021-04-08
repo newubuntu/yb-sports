@@ -343,7 +343,7 @@ module.exports = MD=>{
   // 관리자 계정관리에서 계정 제거시.
   router.get("/remove_account/:id", authAdmin, task(async (req, res)=>{
     let id = req.params.id;
-    let account = await Account.findOne({_id:id, removed:false}).populate('browser');
+    let account = await Account.findOne({_id:id, removed:false});//.populate('browser');
 
     if(!account){
       res.json({
@@ -355,20 +355,17 @@ module.exports = MD=>{
 
     let user = account.user;
 
-    account.user = null;
-    // if(account.browser){
-    //   await account.disconnectBrowser();
-    // }
-    account.removed = true;
-    await account.save();
+    // account.user = null;
+    // account.removed = true;
+    // await account.save();
+    //
+    // // 연결된 브라우져가 있으면 해제
+    // await account.disconnectBrowser();
 
-    // 연결된 브라우져가 있으면 해제
-    await account.disconnectBrowser();
-    // if(account.browser){
-    //   account.browser.account = null;
-    //   await account.browser.save();
-    //   account.browser = null;
-    // }
+    if(account.browser){
+      await Browser.updateOne({_id:account.browser}, {account:null});
+    }
+    await Account.updateOne({_id:id}, {browser:null, user:null, removed:true});
 
     if(user){
       await updateBet365TotalMoney(user, true);
@@ -387,17 +384,8 @@ module.exports = MD=>{
 
   // 계정 회수
   router.get("/remove_account_user/:id", authAdmin, task(async (req, res)=>{
-    // console.error(req.body)
-    // if(!(req.user.authority || req.user.master)){
-    //   res.json({
-    //     status: "fail",
-    //     message: "권한이 없는 요청입니다."
-    //   })
-    //   return;
-    // }
-
     let id = req.params.id;
-    let account = await Account.findOne({_id:id}).populate('browser');
+    let account = await Account.findOne({_id:id});//.populate('browser');
     if(!account){
       res.json({
         status: "fail",
@@ -407,9 +395,15 @@ module.exports = MD=>{
     }
 
     let user = account.user;
-    account.user = null;
-    await account.save();
-    await account.disconnectBrowser();
+    // account.user = null;
+    // await account.save();
+    // await account.disconnectBrowser();
+
+    if(account.browser){
+      await Browser.updateOne({_id:account.browser}, {account:null});
+    }
+    await Account.updateOne({_id:id}, {browser:null, user:null});
+
     if(user){
       await updateBet365TotalMoney(user, true);
     }
@@ -500,7 +494,7 @@ module.exports = MD=>{
     let id = req.params.id;
     // 자신이 소유한 대상만 컨트롤가능해야한다.
     // await Account.updateOne({_id:id, user:req.user}, {trash:true});
-    let account = await Account.findOne({_id:id, user:req.user}).populate('browser');
+    let account = await Account.findOne({_id:id, user:req.user});//.populate('browser');
     if(!account){
       res.json({
         status: "fail",
@@ -508,9 +502,15 @@ module.exports = MD=>{
       })
       return;
     }
-    account.trash = true;
-    await account.save();
-    await account.disconnectBrowser();
+    // account.trash = true;
+    // await account.save();
+    // await account.disconnectBrowser();
+
+    if(account.browser){
+      await Browser.updateOne({_id:account.browser}, {account:null});
+    }
+    await Account.updateOne({_id:id}, {browser:null, trash:true});
+
     // 휴지통에 보냈으니 다시 갱신.
     await updateBet365TotalMoney(req.user, true);
     // let account = await Account.findOne({_id:id});

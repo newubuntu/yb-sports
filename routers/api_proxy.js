@@ -279,7 +279,7 @@ module.exports = MD=>{
   // 관리자 계정관리에서 계정 제거시.
   router.get("/remove_proxy/:_id", authAdmin, task(async (req, res)=>{
     let _id = req.params._id;
-    let proxy = await Proxy.findOne({_id}).populate('browser');
+    let proxy = await Proxy.findOne({_id});//.populate('browser');
 
     if(!proxy){
       res.json({
@@ -291,15 +291,26 @@ module.exports = MD=>{
 
     // let user = proxy.user;
 
-    proxy.user = null;
-    // if(account.browser){
-    //   await account.disconnectBrowser();
+    // disconnectBrowser
+    // if(proxy.browser){
+    //   proxy.browser.proxy = null;
+    //   await proxy.browser.save();
     // }
-    proxy.removed = true;
-    await proxy.save();
+    // proxy.browser = null;
+    //
+    // proxy.user = null;
+    // proxy.removed = true;
+    // await proxy.save();
 
     // 연결된 브라우져가 있으면 해제
-    await proxy.disconnectBrowser();
+    // await proxy.disconnectBrowser();
+
+    if(proxy.browser){
+      await Browser.updateOne({_id:proxy.browser}, {proxy:null});
+    }
+    await Proxy.updateOne({_id}, {browser:null, user:null, removed:true});
+
+
 
     res.json({
       status: "success"
@@ -309,7 +320,7 @@ module.exports = MD=>{
   // 회수
   router.get("/remove_proxy_user/:_id", authAdmin, task(async (req, res)=>{
     let _id = req.params._id;
-    let proxy = await Proxy.findOne({_id}).populate('browser');
+    let proxy = await Proxy.findOne({_id});//.populate('browser');
     if(!proxy){
       res.json({
         status: "fail",
@@ -318,9 +329,24 @@ module.exports = MD=>{
       return;
     }
 
-    proxy.user = null;
-    await proxy.save();
-    await proxy.disconnectBrowser();
+    // console.log("@@@1", proxy);
+
+    // disconnectBrowser
+    // console.error("browser", proxy.browser);
+    if(proxy.browser){
+      await Browser.updateOne({_id:proxy.browser}, {proxy:null});
+      // proxy.browser.proxy = null;
+      // await proxy.browser.save();
+    }
+    await Proxy.updateOne({_id}, {browser:null, user:null});
+    // proxy.browser = null;
+    // proxy.user = null;
+    // await proxy.save();
+
+    // await proxy.disconnectBrowser();
+    // console.log("@1", proxy);
+    // let p = await Proxy.findOne({_id});//.populate('browser');
+    // console.log("@@@2", p);
 
     res.json({
       status: "success"
@@ -355,7 +381,7 @@ module.exports = MD=>{
     let _id = req.params._id;
     // 자신이 소유한 대상만 컨트롤가능해야한다.
     // await Account.updateOne({_id:id, user:req.user}, {trash:true});
-    let proxy = await Proxy.findOne({_id, user:req.user}).populate('browser');
+    let proxy = await Proxy.findOne({_id, user:req.user});//.populate('browser');
     if(!proxy){
       res.json({
         status: "fail",
@@ -363,9 +389,22 @@ module.exports = MD=>{
       })
       return;
     }
-    proxy.trash = true;
-    await proxy.save();
-    await proxy.disconnectBrowser();
+
+    // disconnectBrowser
+    // if(proxy.browser){
+    //   proxy.browser.proxy = null;
+    //   await proxy.browser.save();
+    // }
+    // proxy.browser = null;
+    //
+    // proxy.trash = true;
+    // await proxy.save();
+    // // await proxy.disconnectBrowser();
+
+    if(proxy.browser){
+      await Browser.updateOne({_id:proxy.browser}, {proxy:null});
+    }
+    await Proxy.updateOne({_id}, {browser:null, trash:true});
 
     res.json({
       status: "success"
