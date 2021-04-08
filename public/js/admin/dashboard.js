@@ -749,7 +749,7 @@ let Vapp;
       },
 
       proxyBtnHtml(proxy){
-        return `<button class="btn btn-square btn-secondary btn-account" type="button">
+        return `<button class="btn btn-square btn-secondary btn-proxy" type="button">
             <svg class="icon-svg" style="width: 30px;height: 17px;">
               <use xlink:href="/vendors/@coreui/icons/sprites/flag.svg#cif-${proxy.country.toLowerCase()}"></use>
             </svg>
@@ -807,12 +807,11 @@ let Vapp;
             }
             return;
           }
-          console.log({selectedProxy});
+          // console.log({selectedProxy});
           if(selectedProxy){
             if(browser){
               res = await api.updateBrowser(_bid, {proxy: selectedProxy._id});
               if(res.status == "success"){
-                console.error("!!");
                 browser.proxy = selectedProxy;
                 this.proxys.push(selectedProxy);
                 this.$forceUpdate();
@@ -847,6 +846,15 @@ let Vapp;
         }
       },
 
+      accountBtnHtml(account){
+        return `<button class="btn btn-square btn-secondary btn-account" type="button">
+            <svg class="icon-svg" style="width: 30px;height: 17px;">
+              <use xlink:href="/vendors/@coreui/icons/sprites/flag.svg#cif-${account.country.toLowerCase()}"></use>
+            </svg>
+            [${account.number}] ${account.id}
+          </button>`
+      },
+
       async openAccountModal(pid, _bid){
         let browser = this.getBrowserObj(pid, _bid);
         if(!browser || browser.used){
@@ -879,7 +887,7 @@ let Vapp;
         if(accounts.length){
           let selectedAccount;
           let accountElList = accounts.map(account=>{
-            return $(`<button class="btn btn-square btn-success btn-account" type="button">[${account.number}] ${account.id}</button>`).on("click", e=>{
+            return $(this.accountBtnHtml(account)).on("click", e=>{
               selectedAccount = account;
               modalHide();
             })

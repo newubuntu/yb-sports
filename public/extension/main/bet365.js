@@ -1576,7 +1576,7 @@ function bet365JS(){
     }else{
       $btn.click();
 
-      let $username = await findEl(".lms-StandardLogin_Username", 5000);
+      let $username = await findEl(".lms-StandardLogin_Username", 10000);
 
       if(!$username){
         console.error("아이디 입력창을 찾을 수 없음.");
@@ -1700,6 +1700,7 @@ function bet365JS(){
       // let win = window.open(url);
       window['loadMoneyResolve_'+key] = function(money){
         delete window['loadMoneyResolve_'+key];
+        console.error("betOption", betOption);
         if(betOption.useExchange == 'y'){
           if(typeof money === "number"){
             // cny to usd

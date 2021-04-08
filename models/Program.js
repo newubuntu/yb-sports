@@ -3,6 +3,7 @@ const deepPopulate = require('mongoose-deep-populate')(mongoose);
 const Schema = mongoose.Schema;
 const Browser = require('../models/Browser');
 const Account = require('../models/Account');
+const Proxy = require('../models/Proxy');
 const Log = require('../models/Log');
 //mongoose.Schema.Types.Mixed
 const programSchema = new mongoose.Schema({
@@ -49,6 +50,7 @@ programSchema.methods.removeBrowser = async function(_bid){
     await Browser.deleteOne({_id:_bid});
     // Account. 연결된 브라우져 정보를 없애야한다.
     await Account.updateOne({browser:_bid}, {browser:null});
+    await Proxy.updateOne({browser:_bid}, {browser:null});
     // 브라우져에 해당하는 log를 제거
     await Log.deleteMany({browser:_bid});
   }catch(e){

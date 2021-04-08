@@ -132,15 +132,17 @@ module.exports = MD=>{
       // account.browser = bid;
       // await account.save();
     }
-
+    // console.log("data", browser);
+    // console.log("originBrowser", originBrowser);
     if(browser.proxy !== undefined){
       // 해당 브라우져에 연결된 프록시가 있다면 그 프록시에 브라우져 정보 제거
       if(originBrowser.proxy){
+        // console.log("disconnect browser from origin proxy");
         await Proxy.updateOne({_id:originBrowser.proxy}, {browser:null});
       }
 
       if(browser.proxy){
-        // 해당 계정에 브라우져 정보를 입력
+        // 해당 프록시에 브라우져 정보를 입력
         await Proxy.updateOne({_id:browser.proxy}, {browser:bid});
       }
     }

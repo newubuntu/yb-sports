@@ -130,6 +130,8 @@ async function onMessage(message){
         // money = round(money, 2);
       }
 
+      sendData("setBetOption", {betOption}, PN_B365, true);
+
       log(`벳365 (${account.id}) 로그인 완료. 잔액: ${money}`, null, true);
       sendDataToServer("updateMoney", money);
 

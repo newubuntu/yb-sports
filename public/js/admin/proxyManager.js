@@ -105,7 +105,7 @@ let Vapp;
       //   await this.loadListTo(linkPart);
       // }else{
         tab = parseInt(linkPart);
-        if(!isNaN(tab)){
+        if(isNaN(tab)){
           tab = 0
         }
         await this.loadList(0, tab);
@@ -222,6 +222,7 @@ let Vapp;
       },
 
       async loadList(curPage=0, tab=0, opt={}){
+        // console.error("loadList", curPage, tab, opt);
         let {email, searchIP} = opt;
         this.searchIP = searchIP;
         this.email = email;
