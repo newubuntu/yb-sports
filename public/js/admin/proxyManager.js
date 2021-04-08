@@ -32,6 +32,13 @@ let Vapp;
       type: "text"
     },
     {
+      name: "가격",
+      key: "price",
+      value: 0,
+      type: "number",
+      prepend: "$"
+    },
+    {
       name: "만료일",
       key: "expire",
       value: "",

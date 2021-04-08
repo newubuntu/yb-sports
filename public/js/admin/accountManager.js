@@ -72,7 +72,8 @@ let Vapp;
       name: "bet365 money",
       key: "money",
       value: "",
-      type: "number"
+      type: "number",
+      prepend: "$"
     },
     {
       name: "리밋 여부",
