@@ -662,9 +662,10 @@ function getNextData(){
 
 function getStakeRatio(){
   let stakeRatio = 1;
-  if(betOption.stakeRatioP !== undefined){
+  let p = parseFloat(betOption.stakeRatioP);
+  if(!isNaN(p)){
     try{
-      stakeRatio = betOption.stakeRatioP / 100;
+      stakeRatio = p / 100;
     }catch(e){
       console.error(e);
     }
@@ -760,10 +761,12 @@ async function commonProcess(data, noCheckBalance){
 
   let stakeRatio = 1;
   if(!accountInfo.limited){
-    if(betOption.stakeRatioP !== undefined){
+    // if(betOption.stakeRatioP !== undefined){
       stakeRatio = getStakeRatio();
-      log(`stake 증폭: ${round(data.bet365.stake, 2)}->${round(data.bet365.stake*stakeRatio, 2)} (${round(stakeRatio*100)}%)`, null, true);
-    }
+      if(stakeRatio != 1){
+        log(`stake 증폭: ${round(data.bet365.stake, 2)}->${round(data.bet365.stake*stakeRatio, 2)} (${round(stakeRatio*100)}%)`, null, true);
+      }
+    // }
   }else{
     log("리밋계정 증폭적용 X", "warning", true);
     stakeRatio = 0.9;
