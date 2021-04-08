@@ -188,6 +188,10 @@ let Vapp;
         appMountedResolve();
       })
 
+      // $(document).on("wheel", ".browser-logger", null, e=>{
+      //   console.error("!", e);
+      // })
+
       $(document).on("click", ".browser-logger", null, e=>{
         $(e.currentTarget).removeClass("scrollLock");
       })
@@ -199,6 +203,14 @@ let Vapp;
     },
 
     methods: {
+
+      wheelItBetter ( e ){
+      	// console.log( event, event.currentTarget )
+        if($(e.currentTarget).hasClass("scrollLock")){
+          e.preventDefault();
+        }
+      },
+
       reload(){
         this.load();
       },

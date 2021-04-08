@@ -191,6 +191,8 @@ let Vapp;
         appMountedResolve();
       })
 
+      
+
       $(document).on("click", ".browser-logger", null, e=>{
         $(e.currentTarget).removeClass("scrollLock");
       })
@@ -201,6 +203,7 @@ let Vapp;
     },
 
     methods: {
+
       reload(){
         this.load();
       },
