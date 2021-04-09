@@ -206,12 +206,12 @@ let Vapp;
 
     methods: {
 
-      // wheelItBetter ( e ){
-      // 	// console.log( event, event.currentTarget )
-      //   if($(e.currentTarget).hasClass("scrollLock")){
-      //     e.preventDefault();
-      //   }
-      // },
+      printProxy(proxy){
+        let s = 1000 * 60 * 60 * 24;
+        let d = new Date(proxy.expire);
+        let days = (Math.floor(d.getTime()/s)*s - Math.floor(Date.now()/s)*s) / s;
+        return `${proxy.proxyHttp} (${d.toLocaleDateString()}만료 ${days}일 남음)`;
+      },
 
       reload(){
         this.load();

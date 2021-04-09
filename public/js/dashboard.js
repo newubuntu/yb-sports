@@ -217,34 +217,13 @@ let Vapp;
     },
 
     methods: {
-     //  scrollme( i ){
-     //     // window.scrollTo(window.scrollX, window.scrollY + i);
-     //     window.scrollBy({
-     //       top: i,
-     //       left: 0,
-     //       behavior: 'smooth'
-     //     });
-     // },
-     //
-     //  wheelItBetter ( e ){
-     //    // return;
-     //  	// console.log( event, event.currentTarget )
-     //    console.error(1);
-     //    if($(e.currentTarget).hasClass("scrollLock")){
-     //      console.error(2);
-     //      e.preventDefault();
-     //      // e.stopImmediatePropagation();
-     //      // e.stopPropagation();
-     //      // this.scrollme.call(e.currentTarget.parentElement, e.deltaY);
-     //      // console.error(e.deltaY);
-     //      // console.error('1');
-     //      // var newEvent = new WheelEvent(e.type, e);
-     //      // target.dispatchEvent(newEvent);
-     //      // if(e.currentTarget.firstElementChild){
-     //      //   e.currentTarget.firstElementChild.dispatchEvent(newEvent);
-     //      // }
-     //    }
-     //  },
+
+      printProxy(proxy){
+        let s = 1000 * 60 * 60 * 24;
+        let d = new Date(proxy.expire);
+        let days = (Math.floor(d.getTime()/s)*s - Math.floor(Date.now()/s)*s) / s;
+        return `${proxy.proxyHttp} (${d.toLocaleDateString()}만료 ${days}일 남음)`;
+      },
 
       reload(){
         this.load();
@@ -617,7 +596,7 @@ let Vapp;
         })
       },
       async startMatch(program, browser){
-        console.error("startMatch", browser);
+        // console.error("startMatch", browser);
         // sendDataToMain(program._id, browser._id, "startMatch");
         // if(!browser.isMatching){
         //   let data = await sendDataToMainPromise(program._id, browser._id, "startMatch");
@@ -696,7 +675,8 @@ let Vapp;
         let browser = this.getBrowserObj(pid, _bid);
         let index = this.getBrowserIndex(pid, _bid);
         if(browser){
-          // console.log(browser)
+          // console.log(browser);
+          // return;
           if(!browser.account){
             modal("알림", `계정연결이 필요한 브라우져입니다.`);
           }else if(!browser.option){
@@ -708,7 +688,7 @@ let Vapp;
             //     return;
             //   }
             // }
-            socket.emit("openBrowser", pid, _bid, index);//, isChecker);
+            socket.emit("openBrowser", pid, _bid, index, !!browser.proxy);//, isChecker);
           }
         }else{
           modal("알림", `브라우져(${_bid})를 찾을 수 없습니다`);

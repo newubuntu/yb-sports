@@ -489,7 +489,12 @@ let Vapp;
         }
       },
 
-
+      printExpire(proxy){
+        let s = 1000 * 60 * 60 * 24;
+        let d = new Date(proxy.expire);
+        let days = (Math.floor(d.getTime()/s)*s - Math.floor(Date.now()/s)*s) / s;
+        return d.toLocaleDateString() + ` (${days}일 남음)`;
+      },
 
       async removeProxyUser(id){
         let proxy = this.getProxyObj(id);

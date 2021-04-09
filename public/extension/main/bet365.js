@@ -735,6 +735,7 @@ function bet365JS(){
         timestamp("setPreUrl");
         // localStorage.setItem("setPreUrl", true);
         localStorage.setItem("setUrl", true);
+        // sendData("updatedUrl", null, PN_BG, true);
         window.location.href = data.url;
         betOption = data.betOption;
       break;
@@ -747,6 +748,7 @@ function bet365JS(){
         /// test
         // break;
         ///
+
 
         // 작업중0
         timestamp("setUrl");
@@ -773,6 +775,7 @@ function bet365JS(){
         if(!f){
           console.error("set href");
           localStorage.setItem("setUrl", true);
+          // sendData("updatedUrl", null, PN_BG, true);
           window.location.href = data.data.betLink;
           // await pause();
           resolveData = {passResolve:true};
@@ -1691,27 +1694,43 @@ function bet365JS(){
   }
 
   // var balanceUrl = "https://members.bet365.com/he/Authenticated/Bank/Balances/?hostedBy=MEMBERS_HOST&mh=1";
-  var balanceUrl = "https://members.bet365.com/Members/Services/Bank/Bank/Balance?displaymode=Desktop";
+  // var balanceUrl = "https://members.bet365.com/Members/Services/Bank/Bank/Balance?displaymode=Desktop";
   function loadMoney(){
-    return new Promise(resolve=>{
-      let key = '' + Date.now() + Math.floor(Math.random()*1000000);
-      let url = balanceUrl + '&key=' + key;
-      $("#balance_frame").prop("src", url);
-      // let win = window.open(url);
-      window['loadMoneyResolve_'+key] = function(money){
-        delete window['loadMoneyResolve_'+key];
-        console.error("betOption", betOption);
-        if(betOption.useExchange == 'y' && betOption.exchangeRate){
-          if(typeof money === "number"){
-            // cny to usd
-            money *= betOption.exchangeRate;
-            money = round(money, 2);
+    return axios.get("https://www.bet365.com/balancedataapi/pullbalance").then(res=>{
+      if(res.data){
+        let m = parseFloat(res.data.split('$')[1]);
+        if(!isNaN(m)){
+          if(betOption.useExchange == 'y' && betOption.exchangeRate){
+              // to usd
+            m *= betOption.exchangeRate;
+            m = round(m, 2);
           }
+          return m;
+        }else{
+          return null
         }
-        resolve(money);
-        // win.close();
-      };
+      }
+      return null;
     })
+    // return new Promise(resolve=>{
+    //   let key = '' + Date.now() + Math.floor(Math.random()*1000000);
+    //   let url = balanceUrl + '&key=' + key;
+    //   $("#balance_frame").prop("src", url);
+    //   // let win = window.open(url);
+    //   window['loadMoneyResolve_'+key] = function(money){
+    //     delete window['loadMoneyResolve_'+key];
+    //     console.error("betOption", betOption);
+    //     if(betOption.useExchange == 'y' && betOption.exchangeRate){
+    //       if(typeof money === "number"){
+    //         // cny to usd
+    //         money *= betOption.exchangeRate;
+    //         money = round(money, 2);
+    //       }
+    //     }
+    //     resolve(money);
+    //     // win.close();
+    //   };
+    // })
   }
 
   var withdrawUrl = "https://members.bet365.com/he/Authenticated/Bank/Withdrawal/?hostedBy=MEMBERS_HOST";

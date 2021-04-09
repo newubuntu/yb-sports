@@ -157,42 +157,42 @@ block view
                 .btn-toolbar.justify-content-between
                   .b-header.btn-group(role="group")
                     span.b-ip {{browser.ip?'['+browser.ip+']':''}}
-                    button.btn.btn-square.btn-ghost-secondary.pd3(type="button" v-on:click="openProxyModal(program._id, browser._id)")
+                    button.btn.btn-square.btn-ghost-secondary.pd3(type="button" v-on:click.stop="openProxyModal(program._id, browser._id)")
                       .proxy-icon-luminati(v-if="!browser.proxy" title="luminati 프록시")
-                      .proxy-icon-ip(v-else :title="'고정IP 프록시 ' + browser.proxy.proxyHttp")
+                      .proxy-icon-ip(v-else :title="'고정IP 프록시 ' + printProxy(browser.proxy)")
                     svg.icon-svg(v-if="browser.account" style="margin-top: 9px; width: 30px;height: 17px;")
                       use(:xlink:href="'/vendors/@coreui/icons/sprites/flag.svg#cif-'+browser.account.country.toLowerCase()")
-                    button.btn.btn-square.btn-ghost-success.pd5.btn-connect-account(type="button" :title="browser.account ? browser.account.id : '계정연결필요'" v-on:click="openAccountModal(program._id, browser._id)" :disabled="browser.used")
+                    button.btn.btn-square.btn-ghost-success.pd5.btn-connect-account(type="button" :title="browser.account ? browser.account.id : '계정연결필요'" v-on:click.stop="openAccountModal(program._id, browser._id)" :disabled="browser.used")
                       | {{browser.account ? browser.account.id : "계정연결"}}
-                    button.btn.btn.btn-square.pd5(:class="(browser.option && browser.option.permission=='admin') ? 'btn-ghost-info' : 'btn-ghost-warning'" type="button" v-on:click="openOptionModal(program._id, browser._id)")
+                    button.btn.btn.btn-square.pd5(:class="(browser.option && browser.option.permission=='admin') ? 'btn-ghost-info' : 'btn-ghost-warning'" type="button" v-on:click.stop="openOptionModal(program._id, browser._id)")
                       | {{browser.option ? browser.option.name : "옵션선택"}}
                     span.b-money ${{browser.account ? Math.floor(browser.account.money) : 0}}                      
                     div.m-info(title="수익계산")
                       span(v-html="printProfitHtml(browser)" style="background:rgb(0 0 0 / 61%);")
-                      button.btn.btn-square.btn-primary.btn-refresh-startMoney(:class="browser._id" type="button" title="수익계산 초기화" v-on:click="resetProfitInfo(browser)")
+                      button.btn.btn-square.btn-primary.btn-refresh-startMoney(:class="browser._id" type="button" title="수익계산 초기화" v-on:click.stop="resetProfitInfo(browser)")
                         svg.c-icon.c-icon-lg
                           use(xlink:href="/vendors/@coreui/icons/sprites/solid.svg#cis-reload")
                     span
-                      button.btn.btn-sm.btn-primary.btn-refresh-money.pd3(type="button" title="머니갱신" :data-bid="browser._id" v-on:click="refreshMoney(program, browser)")
+                      button.btn.btn-sm.btn-primary.btn-refresh-money.pd3(type="button" title="머니갱신" :data-bid="browser._id" v-on:click.stop="refreshMoney(program, browser)")
                         svg.c-icon.c-icon-lg
                           use(xlink:href="/vendors/@coreui/icons/sprites/solid.svg#cis-reload")
                     span
-                      button.btn.btn-sm.btn-primary.btn-withdraw-money.pd3(type="button" title="출금" :data-bid="browser._id" v-on:click="openWithdrawModal(program, browser)")
+                      button.btn.btn-sm.btn-primary.btn-withdraw-money.pd3(type="button" title="출금" :data-bid="browser._id" v-on:click.stop="openWithdrawModal(program, browser)")
                         svg.c-icon.c-icon-lg(style="pointer-events:none")
                           use(xlink:href="/vendors/@coreui/icons/sprites/brand.svg#cib-cashapp")
                   .btn-group(role="group")
-                    button.btn.btn-square.btn-warning.pd5(type="button" v-if="browser.isMatching" v-on:click="stopMatch(program, browser)")
+                    button.btn.btn-square.btn-warning.pd5(type="button" v-if="browser.isMatching" v-on:click.stop="stopMatch(program, browser)")
                       | 매칭중지
-                    button.btn.btn-square.btn-success.pd5(type="button" v-else v-on:click="startMatch(program, browser)")
+                    button.btn.btn-square.btn-success.pd5(type="button" v-else v-on:click.stop="startMatch(program, browser)")
                       | 매칭시작
                   .btn-group(role="group")
                     //-button.btn.btn-square.btn-secondary(type="button" v-if="!browser.isOn&&user.admin" v-on:click="sk_openBrowser(program._id, browser._id, true)")
                       | 체크기
-                    button.btn.btn-square.btn-info.pd5(type="button" v-if="browser.isOn" v-on:click="sk_closeBrowser(program._id, browser._id)")
+                    button.btn.btn-square.btn-info.pd5(type="button" v-if="browser.isOn" v-on:click.stop="sk_closeBrowser(program._id, browser._id)")
                       | 끄기
-                    button.btn.btn-square.btn-secondary.pd5(type="button" v-else v-on:click="sk_openBrowser(program._id, browser._id)")
+                    button.btn.btn-square.btn-secondary.pd5(type="button" v-else v-on:click.stop="sk_openBrowser(program._id, browser._id)")
                       | 켜기
-                    button.btn.btn-square.btn-danger.pd5(type="button" v-on:click="sk_removeBrowser(program._id, browser._id)")
+                    button.btn.btn-square.btn-danger.pd5(type="button" v-on:click.stop="sk_removeBrowser(program._id, browser._id)")
                       svg.c-icon
                         use(xlink:href="/vendors/@coreui/icons/svg/solid.svg#cis-trash")
                       | 제거

@@ -700,7 +700,7 @@ module.exports = MD=>{
           emitToProgram(pid, "closeBrowser", bid);
         }
 
-        socket.on("openBrowser", async (pid, _bid, index)=>{//, isChecker)=>{
+        socket.on("openBrowser", async (pid, _bid, index, hasProxy)=>{//, isChecker)=>{
           // console.log("targetEmail", targetEmail);
           let browser = await Browser.findOneAndUpdate(
             {
@@ -741,9 +741,38 @@ module.exports = MD=>{
               body: `브라우져의 계정연결, 옵션연결을 확인해주세요`
             });
           }else{
-            // console.error(session);
-            // emitToProgram(pid, "openBrowser", _bid, isChecker&&session.admin);
-            emitToProgram(pid, "openBrowser", _bid, browser, index);
+            // console.log("??", browser.proxy);
+            let chk;
+            if(hasProxy){
+              if(!browser.proxy){
+                emit("modal", {
+                  title: "알림",
+                  body: `연결된 프록시가 제거됐습니다.`
+                });
+              }else if((browser.proxy.removed || browser.proxy.trash || !browser.proxy.user._id.equals(session.user._id))){
+                emit("modal", {
+                  title: "알림",
+                  body: `연결된 프록시를 소유중이 아닙니다.`
+                });
+              }else{
+                let s = (1000*60*60*24);
+                //만료일이 지났다면
+                if(Math.floor(Date.now()/s)*s > Math.floor(browser.proxy.expire.getTime()/s)*s){
+                  emit("modal", {
+                    title: "알림",
+                    body: `연결된 프록시 만료일이 지났습니다.`
+                  });
+                }else{
+                  chk = true;
+                }
+              }
+            }else{
+              chk = true;
+            }
+
+            if(chk){
+              emitToProgram(pid, "openBrowser", _bid, browser, index);
+            }
           }
         })
 

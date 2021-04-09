@@ -29,6 +29,13 @@ function bgJS(){
   let betHeaders = {};
   let betslipData = {};
 
+  //벳삼 먹통을 체크하기 위한 변수
+  // 소켓통신이 complete 되기까지(+1sec) 벳슬립 정보가 없으면
+  // 먹통으로 간주하자
+  let bet365WwsState = {};
+  let loadedBetslip = {};
+  let updateTabState = {};
+
   window._onBgMessage = async function _onBgMessage(message){
     let {com, data, from} = message;
     let resolveData;
@@ -125,6 +132,11 @@ function bgJS(){
         }
       break;
 
+      // case "updatedUrl":
+      //   console.error("% update url");
+      //   updateTabState[tabInfos.bet365.id] = 0;
+      // break;
+
   		case "readyBet365":
   			// data.bid, data.email
 
@@ -188,7 +200,7 @@ function bgJS(){
   								betOption: browser.option.data,
   								optionName: browser.option.name
   							});
-                
+
                 // 벳삼은 자주 새로고침된다. 처음에주는건 의미가 없으니 주석. 항상 받아서 사용하자.
                 // sendData("betOption", browser.option.data, PN_B365, true);
   							// sendDataToServer("bet365InitData", {
@@ -255,7 +267,87 @@ function bgJS(){
     return decodeURIComponent(String.fromCharCode.apply(null, new Uint8Array(buf)));
   }
 
+  chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab)=>{
+		if(tabInfos[PN_B365].id == tabId && tab.status == "complete"){
+      // console.error("%%% update");
+			// console.error("updated bet365", tab);
+      updateTabState[tabInfos.bet365.id] = 0;
+      loadedBetslip[tabInfos.bet365.id] = false;
+			// clearTimeout(bet365UpdatedItv);
+			// bet365UpdatedItv = setTimeout(runBet365Code, 200);
+		}
+	})
+
+  // chrome.webRequest.onBeforeRequest.addListener(function (details) {
+  //   let c;
+  //   let w = details.url.match(/wss:\/\/([^.]+).*/)[1];
+  //   if(details.url.indexOf("premws-pt")>-1){
+  //     c = "#";
+  //   }else{
+  //     c = "@";
+  //   }
+  //   console.error(`${c} ${w} socket before request`, details);
+  //   // if(updateTabState[details.tabId] == 0){
+  //   //   bet365WwsState[details.tabId] = 0;
+  //   //   loadedBetslip[details.tabId] = false;
+  //   // }
+  // }, {
+  //   "urls": [
+  //     // "wss://premws-pt3.365lpodds.com/zap/?uid=*",
+  //     // "wss://premws-pt2.365lpodds.com/zap/?uid=*",
+  //     // "wss://premws-pt1.365lpodds.com/zap/?uid=*",
+  //     "wss://pshudws.365lpodds.com/zap/?uid=*"
+  //   ],
+  //   "types": ['xmlhttprequest',"websocket"]
+  // }, ["requestBody"]);
+
+
+  chrome.webRequest.onCompleted.addListener(function (details) {
+    if(tabInfos.bet365.id != details.tabId){
+      return;
+    }
+    // let c;
+    // let w = details.url.match(/wss:\/\/([^.]+).*/)[1];
+    // if(details.url.indexOf("premws-pt")>-1){
+    //   c = "###";
+    // }else{
+    //   c = "@@@";
+    // }
+    // console.error(`${c} ${w} socket completed`, details);
+    if(updateTabState[details.tabId] == 0){
+      // bet365WwsState[details.tabId] = 1;
+      updateTabState[details.tabId] = 1;
+      setTimeout(()=>{
+        if(updateTabState[details.tabId] == 1 && !loadedBetslip[details.tabId]){
+          // https://www.bet365.com/?bs=101157588-1606551388~7&bet=1#/IP/EV15591587195C13
+          chrome.tabs.get(tabInfos.bet365.id, tab=>{
+            if(tab.url.indexOf("https://www.bet365.com/?bs=") == 0){
+              // 벳삼먹통인상황으로 간주. 새로고침하자
+              console.error("!!! 먹통 새로고침");
+              refreshBet365();
+            }
+          })
+        }
+      }, 1000);
+    }
+  }, {
+    "urls": [
+      // "wss://premws-pt3.365lpodds.com/zap/?uid=*",
+      // "wss://premws-pt2.365lpodds.com/zap/?uid=*",
+      // "wss://premws-pt1.365lpodds.com/zap/?uid=*",
+      "wss://pshudws.365lpodds.com/zap/?uid=*"
+    ],
+    "types": ['xmlhttprequest',"websocket"]
+  }, ["responseHeaders"]);
+
+
+
+
+
   chrome.webRequest.onBeforeRequest.addListener(function (details) {
+    if(tabInfos.bet365.id != details.tabId){
+      return;
+    }
 		// console.error("onBeforeRequest", details);
     // let str = decodeURIComponent(String.fromCharCode.apply(null, new Uint8Array(details.requestBody.raw[0].bytes)));
     if(details.requestBody.raw){
@@ -283,6 +375,9 @@ function bgJS(){
 
 
   chrome.webRequest.onBeforeRequest.addListener(function (details) {
+    if(tabInfos.bet365.id != details.tabId){
+      return;
+    }
 		// console.error("onBeforeRequest", details);
     // let str = decodeURIComponent(String.fromCharCode.apply(null, new Uint8Array(details.requestBody.raw[0].bytes)));
     if(details.requestBody.raw){
@@ -298,6 +393,7 @@ function bgJS(){
       betslipData[details.tabId] = {
         data
       };
+      loadedBetslip[details.tabId] = true;
       try{
         console.error("betslipData", JSON.parse(JSON.stringify(betslipData)));
       }catch(e){}
@@ -312,6 +408,10 @@ function bgJS(){
 
 
   chrome.webRequest.onBeforeSendHeaders.addListener(function (details) {
+    if(tabInfos.bet365.id != details.tabId){
+      return;
+    }
+
     console.error("onBeforeSendHeaders", details);
     // betData.url = details.url;
     let xnst = details.requestHeaders.find(h=>h.name=="X-Net-Sync-Term");
