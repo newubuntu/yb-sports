@@ -371,6 +371,14 @@ async function getBetsForCount(betData, checkCount){
 
 async function placeBet(line){
   if(line.lineData.status == "SUCCESS"){
+    /// test
+    // await delay(2000);
+    // return {
+    //   status: "fail",
+    //   message: "TEST"
+    // }
+    ///
+
     console.error("wait bets");
     log(`피나클 배팅시작: $${line.lineData.minRiskStake}`, "info", true);
     let bets = await sendData("placeBet", line, PN_BG);
@@ -1740,6 +1748,7 @@ async function checkBetmaxProcess(data){
 
     let pncBetPromise = placeBet(line).then(async d=>{
       betResult = d
+      let cancel;
       if(betResult.status == "success"){
         // 피나클 배팅완료후, 배팅된 배당으로 다시 수익률을 판단할 필요가 있나 ?
         // checkProfit = validProfitP(betResult.data.price, bet365Info.odds);
@@ -1751,11 +1760,15 @@ async function checkBetmaxProcess(data){
           checkProfit = profitPValidation(data);
           if(!checkProfit){
             log(`배팅취소`, 'danger', true);
-            return Promise.reject(1);
+            cancel = true;
           }
         }
         // checkPinnacleBet = true;
       }else{
+        cancel = true;
+      }
+
+      if(cancel){
         if(betmaxInfo === undefined){
           log("cancel get betmax..", 'danger', true);
           await cancelGetBetmax();

@@ -744,6 +744,11 @@ function bet365JS(){
         betOption = data.betOption;
       break;
 
+      case "checkPage":
+        resolveData = $(".bl-Preloader_Spinner:visible").length>0;
+        console.error("@checkPage", resolveData);
+      break;
+
       case "setUrl":
         /// test
         // break;

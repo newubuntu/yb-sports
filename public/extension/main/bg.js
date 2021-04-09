@@ -269,7 +269,7 @@ function bgJS(){
 
   chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab)=>{
 		if(tabInfos[PN_B365].id == tabId && tab.status == "complete"){
-      // console.error("%%% update");
+      console.error("%%% update");
 			// console.error("updated bet365", tab);
       updateTabState[tabInfos.bet365.id] = 0;
       loadedBetslip[tabInfos.bet365.id] = false;
@@ -301,30 +301,44 @@ function bgJS(){
   //   "types": ['xmlhttprequest',"websocket"]
   // }, ["requestBody"]);
 
+  async function repairRefresh(){
+    let itv = setTimeout(()=>{
+      // 벳삼먹통인상황으로 간주. 새로고침하자
+      console.error("!!! 먹통 새로고침");
+      refreshBet365();
+    }, 1000)
+    let chk = await sendData("checkPage", null, PN_B365);
+    if(!chk){
+      clearTimeout(itv);
+    }
+  }
 
   chrome.webRequest.onCompleted.addListener(function (details) {
     if(tabInfos.bet365.id != details.tabId){
       return;
     }
-    // let c;
-    // let w = details.url.match(/wss:\/\/([^.]+).*/)[1];
-    // if(details.url.indexOf("premws-pt")>-1){
-    //   c = "###";
-    // }else{
-    //   c = "@@@";
-    // }
-    // console.error(`${c} ${w} socket completed`, details);
+    let c;
+    let w = details.url.match(/wss:\/\/([^.]+).*/)[1];
+    if(details.url.indexOf("premws-pt")>-1){
+      c = "###";
+    }else{
+      c = "@@@";
+    }
+    console.error(`${c} ${w} socket completed`, details);
+
     if(updateTabState[details.tabId] == 0){
       // bet365WwsState[details.tabId] = 1;
       updateTabState[details.tabId] = 1;
       setTimeout(()=>{
         if(updateTabState[details.tabId] == 1 && !loadedBetslip[details.tabId]){
           // https://www.bet365.com/?bs=101157588-1606551388~7&bet=1#/IP/EV15591587195C13
-          chrome.tabs.get(tabInfos.bet365.id, tab=>{
+          chrome.tabs.get(tabInfos.bet365.id, async tab=>{
             if(tab.url.indexOf("https://www.bet365.com/?bs=") == 0){
-              // 벳삼먹통인상황으로 간주. 새로고침하자
-              console.error("!!! 먹통 새로고침");
-              refreshBet365();
+              console.error("배팅페이지에서 먹통체크");
+              repairRefresh();
+            }else{
+              // console.error("배팅페이지아닌 곳에서 먹통체크");
+              // repairRefresh();
             }
           })
         }
