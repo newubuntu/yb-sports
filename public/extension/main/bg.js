@@ -301,11 +301,21 @@ function bgJS(){
   //   "types": ['xmlhttprequest',"websocket"]
   // }, ["requestBody"]);
 
+  let repairRefreshCount = {};
   async function repairRefresh(){
     let itv = setTimeout(()=>{
       // 벳삼먹통인상황으로 간주. 새로고침하자
-      console.error("!!! 먹통 새로고침");
-      refreshBet365();
+      if(repairRefreshCount[tabInfos.bet365.id] === undefined){
+        repairRefreshCount[tabInfos.bet365.id] = 0;
+      }
+      repairRefreshCount[tabInfos.bet365.id]++;
+
+      if(repairRefreshCount[tabInfos.bet365.id] < 5){
+        console.error("!!! 먹통 새로고침");
+        refreshBet365();
+      }else{
+        console.error("!!! 먹통 새로고침 횟수 초과로 새로고침 안함");
+      }
     }, 1000)
     let chk = await sendData("checkPage", null, PN_B365);
     if(!chk){
@@ -333,7 +343,7 @@ function bgJS(){
         if(updateTabState[details.tabId] == 1 && !loadedBetslip[details.tabId]){
           // https://www.bet365.com/?bs=101157588-1606551388~7&bet=1#/IP/EV15591587195C13
           chrome.tabs.get(tabInfos.bet365.id, async tab=>{
-            if(tab.url.indexOf("https://www.bet365.com/?bs=") == 0){
+            if(tab && tab.url.indexOf("https://www.bet365.com/?bs=") == 0){
               console.error("배팅페이지에서 먹통체크");
               repairRefresh();
             }else{
@@ -342,7 +352,7 @@ function bgJS(){
             }
           })
         }
-      }, 1000);
+      }, 2000);
     }
   }, {
     "urls": [
@@ -408,6 +418,7 @@ function bgJS(){
         data
       };
       loadedBetslip[details.tabId] = true;
+      repairRefreshCount[tabInfos.bet365.id] = 0;
       try{
         console.error("betslipData", JSON.parse(JSON.stringify(betslipData)));
       }catch(e){}

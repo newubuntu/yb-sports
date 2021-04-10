@@ -7,6 +7,10 @@ function bet365JS(){
     throw new Error("이미 코드 실행됨.")
   }
 
+  window['onUicountersapiCancelled'] = function(e){
+    console.error("@@ uicountersapiCancelled", e);
+  }
+
   var betOption = {};
 
   var MESSAGE = {
@@ -44,12 +48,14 @@ function bet365JS(){
   var prevBalance;
   console.log({version});
 
-  function removeModal(){
-    $(".wcl-ModalManager_DarkWash ").remove();
-    $(".lp-UserNotificationsPopup_FrameContainer").remove();
-    $(".pm-PushGraphicContainer_DarkWash").remove();
-    $(".pm-PushGraphicContainer").remove();
-  }
+  // function removeModal(){
+    // $(".wcl-ModalManager_DarkWash").remove();
+    // $(".lp-UserNotificationsPopup_FrameContainer").remove();
+    // $(".pm-PushGraphicContainer_DarkWash").remove();
+    // $(".pm-PushGraphicContainer").remove();
+
+
+  // }
 
   async function getMoneyInBetslip(){
     await until(()=>{
@@ -680,7 +686,7 @@ function bet365JS(){
 				}, 20 * 1000);
         let money = await login(localStorage.getItem("id"), localStorage.getItem("pw"));
         clearTimeout(itv);
-        delay(2000).then(removeModal);
+        // delay(2000).then(removeModal);
         // localStorage.setItem("id", data.id);
         // localStorage.setItem("pw", data.pw);
         document.title = localStorage.getItem("id");
@@ -694,7 +700,7 @@ function bet365JS(){
         setInitMessage(message);
         console.log("login start");
         let _money = await login(data.id, data.pw);
-        delay(2000).then(removeModal);
+        // delay(2000).then(removeModal);
         localStorage.setItem("id", data.id);
         localStorage.setItem("pw", data.pw);
         document.title = data.id;
@@ -773,6 +779,7 @@ function bet365JS(){
         if($("body>p").eq(0).text().trim() == "The current page may have been removed, changed or is temporarily unavailable."){
         // if($("#header>h1").text().trim() == "Server Error"){
           resolveData = null;
+          setInitMessage(null);
           break;
         }
 
@@ -786,18 +793,22 @@ function bet365JS(){
           resolveData = {passResolve:true};
           break;
         }
-        localStorage.removeItem("setUrl");
+
         // localStorage.removeItem("setPreUrl");
 
         //let r;
 
-        let timeout = 10 * 1000;
+        let timeout = 2 * 1000;
 
         timestamp("QuickBetslip 찾는중");
+
         // console.error("QuickBetslip 찾는중");
         // let $betslip = await findEl(".bss-DefaultContent", 2000);
         // let $betslip = await findEl(".qbs-QuickBetslip", 2000);
-        let $betslip = await findElAll([".bss-DefaultContent:visible", ".qbs-QuickBetslip:visible"], timeout);
+        let $betslip = await findElAll([
+          ".bss-DefaultContent:visible",
+          ".qbs-QuickBetslip:visible"
+        ], timeout);
         // let $betslip = await findEl(".qbs-QuickBetslip", 2000);
         timestamp("QuickBetslip 찾음?");
         console.error("$betslip", $betslip);
@@ -807,13 +818,45 @@ function bet365JS(){
         let info = await getBetslipInfoForAPI(undefined, data.data.handicap?data.data.handicap:undefined);
         console.error("@@@betslipinfo", info);
 
+        localStorage.removeItem("setUrl");
+
         if(!info){
           console.error("betslipinfo null, refreshslip이 수신된적이 없는듯");
           resolveData = {
             status: "fail",
             message: "betslip 못찾음"
           };
+          setInitMessage(null);
           break;
+        }else if(info.title == "" && info.market == ""){
+          console.error("사라진 이벤트1");
+          resolveData = {
+            status: "fail",
+            message: "이벤트 사라짐"
+          };
+          setInitMessage(null);
+          break;
+        }else if(info.title != "" && info.market != "" && $(".bl-Preloader_Spinner:visible").length){
+          console.error("페이지 로딩바 먹통. 리로드");
+          log("로딩중 먹통. 리로드", "danger", true);
+          resolveData = {passResolve:true};
+          setTimeout(()=>{
+            window.location.reload();
+          }, 50)
+          // resolveData = {
+          //   status: "fail",
+          //   message: "로딩중 먹통"
+          // };
+          // setInitMessage(null);
+          break;
+        }else if(!$betslip[0] && !$betslip[1]){
+          timestamp("QuickBetslip 찾는중2");
+          $betslip = await findElAll([
+            ".bss-DefaultContent:visible",
+            ".qbs-QuickBetslip:visible"
+          ], timeout);
+          timestamp("QuickBetslip 찾음2?");
+          console.error("$betslip2", $betslip);
         }
 
 
@@ -880,10 +923,15 @@ function bet365JS(){
 
             $dummyEl = findDummy();
             if($dummyEl){
+
+
+
+
               $dummyEl.click();
               console.error("dummyEl 클릭", $dummyEl[0]);
 
               $betSlip = await findEl(".bss-DefaultContent", 2000);
+
 
               if($betSlip){
                 console.error("betslip 클릭");
@@ -904,31 +952,43 @@ function bet365JS(){
 
                 if(!removeComplete){
                   console.error("Highlighted 클릭처리 실패");
+                  setInitMessage(null);
                   return null;
                 }
 
                 console.error("betslip standard 상태로 전환 완료.");
               }else{
-                if(info.title != "" && info.market != "" && $(".bl-Preloader_Spinner:visible").length){
-                  console.error("페이지 로딩바 먹통");
-                  resolveData = {
-                    status: "fail",
-                    message: "로딩중 먹통"
-                  };
-                  break;
-                }else{
+                // if(info.title != "" && info.market != "" && $(".bl-Preloader_Spinner:visible").length){
+                //   console.error("페이지 로딩바 먹통");
+                //   resolveData = {
+                //     status: "fail",
+                //     message: "로딩중 먹통"
+                //   };
+                //   setInitMessage(null);
+                //   break;
+                // }else{
                   console.error("betslip 못찾음");
                   resolveData = {
                     status: "fail",
                     message: "betslip 못찾음"
                   };
+                  setInitMessage(null);
                   break;
                   // return null;
-                }
+                // }
               }
             }else{
               console.error("dummyEl 못찾음");
-              return null;
+              setInitMessage(null);
+              if($(".qbs-QuickBetHeader_MessageBody").text().indexOf("The selection is no longer available") > -1){
+                resolveData = {
+                  status: "fail",
+                  message: "이벤트 사라짐2"
+                };
+                break;
+              }else{
+                return null;
+              }
             }
           }else{
             let found = await until(()=>{
@@ -947,6 +1007,7 @@ function bet365JS(){
 
           if(!findBetslipTitle){
             console.error("betslip 못찾음");
+            setInitMessage(null);
             break;
           }
           // let r = await getBetslipInfo({withMoney:true});
@@ -955,6 +1016,7 @@ function bet365JS(){
         }else{
           if(!$betslip[0] && !$betslip[1]){
             console.error("퀵벳슬립이 없다. 이벤트가 사라진듯");
+            setInitMessage(null);
             break;
           }
           // timestamp("start load betslip info");
@@ -996,10 +1058,11 @@ function bet365JS(){
         }else{
           resolveData = info;
         }
-        localStorage.removeItem('loadingCount');
+        // localStorage.removeItem('loadingCount');
+
 
         setInitMessage(null);
-        removeModal();
+        // removeModal();
 
         // resolveData.money = await loadMoney();
 
@@ -1675,6 +1738,13 @@ function bet365JS(){
     addStyleTag(css);
   }
 
+  function setupModalDisable(){
+    let css = `.wcl-ModalManager_DarkWash, .lp-UserNotificationsPopup_FrameContainer, .pm-PushGraphicContainer_DarkWash, .pm-PushGraphicContainer {
+      display: none !important;
+    }`;
+    addStyleTag(css);
+  }
+
   function setupKeyLock(){
     window.addEventListener("keydown", e=>{
       e.preventDefault();
@@ -1786,6 +1856,7 @@ function bet365JS(){
 
     setupOnMoneyMessage();
     setupVideoDisable();
+    setupModalDisable();
 
     let id = localStorage.getItem("id");
     if(id){

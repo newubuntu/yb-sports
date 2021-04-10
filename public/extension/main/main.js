@@ -1315,6 +1315,10 @@ let replaceAlphabet = {
   'n': /[ñ]/g,
   'u': /[ü]/g
 }
+//팀이름에서 괄호의 내용 지우는데 사용
+function removeGroupText(s){
+  return s.replace(/\([^\)]+\)/g, '');
+}
 function checkBet365TeamName(data, info){
   let teams = info.desc.toLowerCase().split(' vs ');
   if(teams.length==1){
@@ -1326,11 +1330,14 @@ function checkBet365TeamName(data, info){
 
   let bet365TeamName;
   let teamName = getBet365TeamName(data);
+  teamName = removeGroupText(teamName);
   if(data.bet365.homeAway == "home"){
     bet365TeamName = teams[0];
   }else{
     bet365TeamName = teams[1];
   }
+
+  bet365TeamName = removeGroupText(bet365TeamName);
 
   if(bet365TeamName){
     for(let a in replaceAlphabet){
