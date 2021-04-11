@@ -2145,10 +2145,9 @@ async function init(){
     // sendData("loadBrowserInfo", data, PN_BG);
     await sendData("runBgCode", {code:bgCode}, PN_BG);
     await sendData("runApiCode", {email:EMAIL, code:apiCode}, PN_BG);
+    api = setupAPI(EMAIL);
     await sendData("saveBet365Account", data, PN_BG);
     await sendData("runBet365Code", bet365Code, PN_BG);
-
-    api = setupAPI(EMAIL);
 
     // tabActiveSchedule();
   })
