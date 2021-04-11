@@ -3,8 +3,11 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 //mongoose.Schema.Types.Mixed
 const depositLogSchema = new mongoose.Schema({
-  // member
+  // 돈 지급 대상
   user: {type: Schema.Types.ObjectId, ref: 'User'},
+
+  // 시행자 (master or system)
+  from: {type: String},
 
   money: {type: Number},
 

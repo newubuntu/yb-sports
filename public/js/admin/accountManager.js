@@ -68,13 +68,13 @@ let Vapp;
       help: "스크릴 보안코드",
       type: "text"
     },
-    {
-      name: "bet365 money",
-      key: "money",
-      value: "",
-      type: "number",
-      prepend: "$"
-    },
+    // {
+    //   name: "bet365 money",
+    //   key: "money",
+    //   value: "",
+    //   type: "number",
+    //   prepend: "$"
+    // },
     {
       name: "리밋 여부",
       key: "limited",

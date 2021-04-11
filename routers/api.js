@@ -416,7 +416,20 @@ module.exports = io=>{
       return false;
     }
 
-    static async _inc_process(user, prop, money, memo){
+    static async getFromEmail(from){
+      if(from){
+        let u = await getUser(from);
+        if(u){
+          return u.email;
+        }else{
+          return "notFound";
+        }
+      }else{
+        return "system";
+      }
+    }
+
+    static async _inc_process(user, prop, money, memo, from){
       if(!this._checkMoneyName(prop)) return;
       try{
         user = await getUser(user);
@@ -430,6 +443,7 @@ module.exports = io=>{
           console.log(`[MoneyManager] ${user.email} ${type} ${prop} ${memo?memo:''} : ${money}`);
           await DepositLog.create({
             user: user._id,
+            from: await this.getFromEmail(from),
             memo:memo + ` (result ${prop}: ${new_user[prop]})`,
             type,
             money,
@@ -445,7 +459,7 @@ module.exports = io=>{
       }
     }
 
-    static async _set_process(user, prop, money, memo){
+    static async _set_process(user, prop, money, memo, from){
       if(!this._checkMoneyName(prop)) return;
       try{
         user = await getUser(user);
@@ -455,6 +469,7 @@ module.exports = io=>{
           console.log(`[MoneyManager] ${user.email} ${type} ${prop} for set : ${-originMoney}`);
           await DepositLog.create({
             user: user._id,
+            from: await this.getFromEmail(from),
             memo: "before set",
             type,
             money: -originMoney,
@@ -485,40 +500,40 @@ module.exports = io=>{
       }
     }
 
-    static async _deposit(user, prop, money, memo){
+    static async _deposit(user, prop, money, memo, from){
       if(money > 0){
-        return this._inc_process(user, prop, money, memo);
+        return this._inc_process(user, prop, money, memo, from);
       }
     }
 
-    static async _withdraw(user, prop, money, memo){
+    static async _withdraw(user, prop, money, memo, from){
       if(money > 0){
-        return this._inc_process(user, prop, -money, memo);
+        return this._inc_process(user, prop, -money, memo, from);
       }
     }
 
-    static async setMoney(user, money, memo){
-      return this._set_process(user, "money", money, memo);
+    static async setMoney(user, money, memo, from){
+      return this._set_process(user, "money", money, memo, from);
     }
 
-    static async setWallet(user, money, memo){
-      return this._set_process(user, "wallet", money, memo);
+    static async setWallet(user, money, memo, from){
+      return this._set_process(user, "wallet", money, memo, from);
     }
 
-    static async depositMoney(user, money, memo){
-      return this._deposit(user, "money", money, memo);
+    static async depositMoney(user, money, memo, from){
+      return this._deposit(user, "money", money, memo, from);
     }
 
-    static async depositWallet(user, money, memo){
-      return this._deposit(user, "wallet", money, memo);
+    static async depositWallet(user, money, memo, from){
+      return this._deposit(user, "wallet", money, memo, from);
     }
 
-    static async withdrawMoney(user, money, memo){
-      return this._withdraw(user, "money", money, memo);
+    static async withdrawMoney(user, money, memo, from){
+      return this._withdraw(user, "money", money, memo, from);
     }
 
-    static async withdrawWallet(user, money, memo){
-      return this._withdraw(user, "wallet", money, memo);
+    static async withdrawWallet(user, money, memo, from){
+      return this._withdraw(user, "wallet", money, memo, from);
     }
   }
 
@@ -770,11 +785,12 @@ module.exports = io=>{
     })
   }))
 
+  // /admin/depositManager 에서의 목록
   router.post("/get_money_log", authMaster, task(async (req, res)=>{
     let {
-      ids, offset, limit, curPage, email, type, moneyName, range
+      ids, offset, limit, curPage, email, type, moneyName, range, from
     } = req.body;
-    let query = {type, moneyName};
+    let query = {type, moneyName, from};
 
     if(email){
       let user = await User.findOne({email});
@@ -862,7 +878,7 @@ module.exports = io=>{
       total: {$sum:'$money'}
     });
 
-    let users = await User.find({}).select("email").lean();
+    let users = await User.find({}).select("email master").lean();
     // let sum = await DepositLog.aggregate([
     //   {
     //     $group: {

@@ -654,6 +654,15 @@ function getNextData(){
         }
       }
 
+      if(!out){
+        if(betOption.sports){
+          if(!betOption.sports[data.bet365.sports.toLowerCase().trim()]){
+            console.log(`제외된 종목: ${data.bet365.sports}`);
+            out = true;
+          }
+        }
+      }
+
       if(out){
         continue;
       }

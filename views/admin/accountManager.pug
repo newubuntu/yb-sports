@@ -112,7 +112,7 @@ block view
                   th(v-if="tab==3") 출금요청일
                   th 잔액
                   th 상태
-                  th(v-if="tab>1") 배팅
+                  th(v-if="tab>1 && tab!=3") 배팅
                   th(v-if="tab>1") 소유자
                   th(v-if="tab==2||tab==3||tab==4") 출금상태
                   th 상세
@@ -141,12 +141,15 @@ block view
                         button.btn.btn-sm.btn-primary(type="button" v-on:click="doChargeComplete(account._id)")
                           |충전완료
                   td(v-else) ${{comma(account.money)}}
+                  //- 상태
                   td
                     span.badge.badge-danger(v-if="account.die") 졸업
                     span.badge.badge-warning(v-else-if="account.limited") 짤짤이
                     span.badge.badge-success(v-else) 완통                  
-                  td(v-if="tab>1")
+                  //- 배팅
+                  td(v-if="tab>1 && tab!=3")
                     span.badge.badge-pill.badge-secondary {{account.betCount||0}}
+                  //- 소유자
                   td(v-if="tab>1")
                     a(:href="'#'+account.user.email" style="cursor:pointer" v-on:click="loadListTo(account.user.email)")
                       |{{account.user.email}}

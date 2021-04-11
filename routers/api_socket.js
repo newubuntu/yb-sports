@@ -580,11 +580,23 @@ module.exports = MD=>{
         //   }
         // }
 
-        socket.on("addProgram", async ()=>{
+        socket.on("addProgram", async (targetEmail)=>{
+          // targetEmail이 없으면 기본자신, 있으면 대상으로 삼음
           try{
-            let em = email;
-            console.log('receive addProgram', em);
+            // console.log("targetEmail", targetEmail);
+            let em = targetEmail || email;
+            // console.log('receive addProgram', em);
             let user = await User.findOne({email:em});
+            // console.log("user", user);
+            if(!user){
+              emit("modal", {
+              //emitWithOne(targetEmail, "modal", {
+                title: "알림",
+                body: `유저정보를 찾을 수 없습니다. (${em})`
+              });
+              return;
+            }
+            // console.log(user.programs.length, user.programCount);
             if(user.programs.length < user.programCount){
               // console.log('found user', user);
               let program = await user.addProgram();
@@ -609,11 +621,15 @@ module.exports = MD=>{
           try{
             let em = email;
             console.log('receive removeProgram', em, pid);
-            user = await User.findOne({email:em});
-            await user.removeProgram(pid);
-            // io.to(pid).emit("exit");
-            emitToProgram(pid, "exit");
-            emit("removeProgram", pid);
+            let program = await Program.findOne({_id:pid});
+            if(program){
+              // user = await User.findOne({email:em});
+              user = await User.findOne({_id:program.user});
+              await user.removeProgram(pid);
+              // io.to(pid).emit("exit");
+              emitToProgram(pid, "exit");
+              emit("removeProgram", pid);
+            }
             // emitWithOne(targetEmail, "removeProgram", pid)
           }catch(e){
             console.error(e);
@@ -622,9 +638,9 @@ module.exports = MD=>{
 
         socket.on("addBrowser", async (pid)=>{
           try{
-            let em = email;
-            console.log('receive addBrowser', em, pid);
-            let user = await User.findOne({email:em}).select("email browserCount");
+            // let em = email;
+            console.log('receive addBrowser', pid);
+            // let user = await User.findOne({email:em}).select("email browserCount");
             // .populate([
             //   {
             //     path: 'programs',
@@ -635,11 +651,11 @@ module.exports = MD=>{
             //   }
             // ]);
             //console.error("??", user);
-            let program = await Program.findOne({_id:pid});
+            let program = await Program.findOne({_id:pid}).populate('user');
             // let program = user.programs[0];
             // console.log("program", program);
             if(program){
-              if(program.browsers.length < user.browserCount){
+              if(program.browsers.length < program.user.browserCount){
                 let browser = await program.addBrowser();
                 browser = await Browser.findOne({_id: browser._id})
                 .sort({$natural:-1})
@@ -662,7 +678,7 @@ module.exports = MD=>{
                 emit("modal", {
                 // emitWithOne(targetEmail, "modal", {
                   title: "알림",
-                  body: `브라우져 생성 수량 ${user.browserCount}을(를) 초과합니다. 제한 수량을 늘리려면 관리자에게 문의해주세요`
+                  body: `브라우져 생성 수량 ${program.user.browserCount}을(를) 초과합니다. 제한 수량을 늘리려면 관리자에게 문의해주세요`
                 });
               }
             }
@@ -674,9 +690,9 @@ module.exports = MD=>{
         socket.on("removeBrowser", async (pid, _bid)=>{
           let program;
           try{
-            let em = email;
-            console.log('receive removeBrowser', em, pid, _bid);
-            program = await Program.findOne({_id:pid});
+            // let em = email;
+            console.log('receive removeBrowser', pid, _bid);
+            program = await Program.findOne({_id:pid});//.populate('user');
             await program.removeBrowser(_bid);
             // io.to(pid).emit("closeBrowser", _bid);
             // emitToProgram(pid, "closeBrowser", _bid);
@@ -689,7 +705,7 @@ module.exports = MD=>{
         })
 
         function closeBrowser(pid, bid){
-          socket.leave("__checker__");
+          // socket.leave("__checker__");
 
           // if(chekerSocket === socket){
           //   socket.leave("__checker__");

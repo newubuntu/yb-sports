@@ -171,6 +171,20 @@ let Vapp;
       value: 1.2,
       append: "이하 패스",
       type: "number"
+    },
+    {
+      name: "종목",
+      key: "sports",
+      list: ["soccer", "tennis", "basketball", "baseball", "hockey", "football"],
+      value: {
+        "soccer": true,
+        "tennis": true,
+        "basketball": true,
+        "baseball": true,
+        "hockey": true,
+        "football": true
+      },
+      type: "checkbox"
     }
     // {
     //   name: "최소 수익달러",

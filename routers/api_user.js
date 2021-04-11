@@ -209,18 +209,18 @@ module.exports = MD=>{
       if(money !== undefined){
         // await MoneyManager.setMoney(id, money, "from master");
         if(money > 0){
-          await MoneyManager.depositMoney(id, money, "from master");
+          await MoneyManager.depositMoney(id, money, `from master`, req.user);
         }else if(money < 0){
-          await MoneyManager.withdrawMoney(id, Math.abs(money), "from master");
+          await MoneyManager.withdrawMoney(id, Math.abs(money), `from master`, req.user);
         }
       }
 
       if(wallet !== undefined){
         // await MoneyManager.setWallet(id, wallet, "from master");
         if(wallet > 0){
-          await MoneyManager.depositWallet(id, wallet, "from master");
+          await MoneyManager.depositWallet(id, wallet, "from master", req.user);
         }else if(wallet < 0){
-          await MoneyManager.withdrawWallet(id, Math.abs(wallet), "from master");
+          await MoneyManager.withdrawWallet(id, Math.abs(wallet), "from master", req.user);
         }
       }
     }catch(e){
@@ -246,7 +246,7 @@ module.exports = MD=>{
     // console.error({money, wallet});
     try{
       if(money !== undefined){
-        await MoneyManager.setMoney(id, money, "from master");
+        await MoneyManager.setMoney(id, money, "from master", req.user);
         // if(money > 0){
         //   await MoneyManager.setMoney(id, money, "from master");
         // }else if(money < 0){
@@ -255,7 +255,7 @@ module.exports = MD=>{
       }
 
       if(wallet !== undefined){
-        await MoneyManager.setWallet(id, wallet, "from master");
+        await MoneyManager.setWallet(id, wallet, "from master", req.user);
         // if(wallet > 0){
         //   await MoneyManager.depositWallet(id, wallet, "from master");
         // }else if(wallet < 0){

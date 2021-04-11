@@ -164,6 +164,8 @@ function bet365JS(){
 
     let m = await readMoney();
 
+    bt.od = odCheck(bt.od, odds);
+
     return {
       title: pt.bd,
       handicap,
@@ -459,9 +461,13 @@ function bet365JS(){
         headers: headers
       })
       console.error("res", res);
-      localStorage.setItem('betGuid', res.data.bg);
+
 
       data = res.data;
+      
+      if(!data) break;
+
+      localStorage.setItem('betGuid', data.bg);
       let bt = data.bt[0];
       let pt = bt.pt[0];
       if(pt.md && pt.md !== "Draw No Bet" && pt.md !== "Match Winner"){
@@ -503,6 +509,21 @@ function bet365JS(){
     return n.replace(/\.(\d+)/, function(f,m){
       return '.' + m.padEnd(c, '0');
     })
+  }
+
+  function odCheck(od, odds){
+    if(!odds) return od;
+    //od가 숫자로만 2자리로 구성되어있으면
+    //odds가 2라면 od가 22이런식으로 올때가있다. 확인해주자
+    if(/^\d{2}$/.test(od)){
+      if(od === ''+odds+odds){
+        console.error("od가 잘못옴 보정한다.", od);
+        od = ''+odds;
+        console.error("od보정:", od);
+      }
+    }
+
+    return od;
   }
 
   async function placeBetDirect({betData, stake, odds, od, account}){
@@ -567,6 +588,11 @@ function bet365JS(){
       _result.status = "acceptChange";
       let od = res.data.bt[0].od;
       console.error("od", od);
+
+      //od가 숫자로만 2자리로 구성되어있으면
+      //odds가 2라면 od가 22이런식으로 올때가있다. 확인해주자
+      od = odCheck(od, odds);
+
       if(od){
         info = await getBetslipInfoForAPI(od);
         info.od = od;

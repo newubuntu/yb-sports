@@ -30,6 +30,7 @@ let Vapp;
       users: [],
       type: null,
       email: null,
+      from: null,
       moneyName: null,
       sum: 0,
       typeMap:{
@@ -102,12 +103,23 @@ let Vapp;
         this.email = $('.search-email').val().trim();
       },
 
+      changeSearchFrom(){
+        this.from = $('.search-from').val().trim();
+      },
+
       changeSearchType(){
         this.type = $('.search-type').val().trim();
       },
 
       changeSearchMoneyType(){
         this.moneyName = $('.search-money-type').val().trim();
+      },
+
+      getFromList(){
+        let a = this.users.filter(u=>u.master).map(u=>u.email);
+        a.unshift("system");
+        // console.error(a);
+        return a;
       },
 
       setData(data){
@@ -131,20 +143,37 @@ let Vapp;
         this.pages = pages;
       },
 
-      reload(){
-        this.loadList(this.curPage, this.tab, {type:this.type, email:this.email, moneyName:this.moneyName});
+      getCurrentOption(){
+        return {
+          type: this.type,
+          email: this.email,
+          from: this.from,
+          moneyName: this.moneyName
+        }
+      },
+
+      reload(curPage, tab, newOpt={}){
+        let opt = this.getCurrentOption();
+        opt = Object.assign(opt, newOpt);
+        // console.error("reload", opt);
+        return this.loadList(curPage||this.curPage, tab||this.tab, opt);
+      },
+
+      resetReload(curPage, tab, opt={}){
+        return this.loadList(curPage||this.curPage, tab||this.tab, opt);
       },
 
       async loadList(curPage=0, tab=0, opt={}){//accountId){
         // accountId = accountId||this.accountId;
-        let {type, email, moneyName} = opt;
+        let {type, email, moneyName, from} = opt;
         this.type = type;
         this.email = email;
+        this.from = from;
         this.moneyName = moneyName;
         let range = startPicker.getRange();
         range.end = new Date(range.end.getTime() + (1000*60*60*24 - 1000));
         // console.log("loadList page", curPage);
-        let query = {curPage, type, email, moneyName, range};
+        let query = {curPage, type, email, moneyName, range, from};
         switch(tab){
           case 0: // 전체
           break;

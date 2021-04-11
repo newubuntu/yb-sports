@@ -611,7 +611,7 @@ let Vapp;
       sk_addProgram(){
         // console.log("socket", socket);
         if(this.email){
-          socket.emit("addProgram");
+          socket.emit("addProgram", this.email);
         }
       },
       addProgram(program){
