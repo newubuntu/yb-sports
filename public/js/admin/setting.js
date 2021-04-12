@@ -24,25 +24,33 @@ let Vapp;
       type: "text"
     },
     {
-      name: "벳삼계정발급비용",
+      name: "벳삼 계정발급비용",
       key: "accountPrice",
       prepend:`<svg class="c-icon">
       <use xlink:href="/vendors/@coreui/icons/sprites/free.svg#cil-dollar"></use>
       </svg>`,
       // prepend: "$",
-      value: "20",
+      value: 20,
+      type: "number"
+    },
+    {
+      name: "벳삼 출금수수료",
+      key: "accountWithdrawCommission",
+      append:`%`,
+      // prepend: "$",
+      value: 5,
       type: "number"
     },
     {
       name: "PC 수량제한 기본값",
       key: "programLimit",
-      value: "2",
+      value: 2,
       type: "number"
     },
     {
       name: "브라우져 수량제한 기본값",
       key: "browserLimit",
-      value: "5",
+      value: 5,
       type: "number"
     },
     {
@@ -261,6 +269,11 @@ let Vapp;
       },
 
       async backup(){
+        let r = await modal("알림", "서버 백업작업은 서버에 부하를 줄수 있습니다. 계속하시겠습니까?", {buttons:["취소", "확인"]});
+        if(!r){
+          return;
+        }
+
         let res = await api.backup();
         if(res.status == "success"){
           modal("알림", "서버 백업 완료");

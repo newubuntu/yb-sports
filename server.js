@@ -433,27 +433,31 @@
       link: "/betHistory",
       name: "배팅기록"
     },{
-      link: "/depositHistory",
-      name: "입/출금기록"
+      link: "/withdrawHistory",
+      name: "출금기록"
     },{
       link: "/admin/accountManager",
-      name: "[관리자] 계정관리",
+      name: "계정관리",
       admin: true
     },{
       link: "/admin/proxyManager",
-      name: "[관리자] 프록시관리",
+      name: "프록시관리",
       admin: true
     },{
       link: "/admin/optionManager",
-      name: "[관리자] 옵션관리",
+      name: "옵션관리",
+      admin: true
+    },{
+      link: "/admin/accountWithdrawManager",
+      name: "출금관리",
       admin: true
     },{
       link: "/admin/depositManager",
-      name: "[관리자] 입/출금관리",
+      name: "입/출금기록",
       admin: true
     },{
       link: "/admin/betHistory",
-      name: "[관리자] 배팅기록",
+      name: "배팅기록",
       admin: true
     },{
       link: "/admin/dashboard",

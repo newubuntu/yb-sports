@@ -25,6 +25,7 @@ const Data = require('../models/Data');
 const BackupHistory = require('../models/BackupHistory');
 const BenEvent = require('../models/BenEvent');
 const Withdraw = require('../models/Withdraw');
+const AccountWithdraw = require('../models/AccountWithdraw');
 const Proxy = require('../models/Proxy');
 
 let argv = process.argv.slice(2);
@@ -258,6 +259,7 @@ module.exports = io=>{
       clearTimeout(refreshMoneyItvs[user.email]);
       refreshMoneyItvs[user.email] = setTimeout(()=>{
         // console.trace("@@ send updateMoney");
+        obj.email = user.email;
         emitToMember(user.email, "updateMoney", obj);
       }, 100)
       // console.log("######refreshMoney", user);
@@ -365,7 +367,8 @@ module.exports = io=>{
     console.log("refreshBet365TotalMoney");
     user = await getUser(user);
     if(user){
-      emitToMember(user.email, "updateMoney", {bet365Money:user.bet365Money});
+      // console.error("???", user.email, user.bet365Money);
+      emitToMember(user.email, "updateMoney", {email:user.email, bet365Money:user.bet365Money});
     }
   }
 
@@ -374,6 +377,7 @@ module.exports = io=>{
     console.log("updateBet365TotalMoney");
     // 유저에 표시할 벳삼머니는 유저가 가진 벳삼머니의 총합이다.
     user = await getUser(user);
+    // console.log("updateBet365TotalMoney user", user);
 
     if(!user) return;
 
@@ -401,6 +405,12 @@ module.exports = io=>{
         r[v] = data.value[v];
         return r;
       },{}) : data.value;
+    }
+  }
+
+  let util = {
+    round(n,p=0){
+      return Math.round(n * Math.pow(10,p))/Math.pow(10,p);
     }
   }
 
@@ -444,7 +454,7 @@ module.exports = io=>{
           await DepositLog.create({
             user: user._id,
             from: await this.getFromEmail(from),
-            memo:memo + ` (result ${prop}: ${new_user[prop]})`,
+            memo:memo + ` (result ${prop}: ${util.round(new_user[prop], 2)})`,
             type,
             money,
             moneyName: prop
@@ -541,6 +551,7 @@ module.exports = io=>{
   let room_bettor = "__data_receiver2__";
 
   let MD = {
+    util,
     setRedis,
     getRedis,
     room_checker,
@@ -569,6 +580,7 @@ module.exports = io=>{
     BenEvent,
     Proxy,
     Withdraw,
+    AccountWithdraw,
     Account,
     Option,
     Approval,
@@ -782,6 +794,250 @@ module.exports = io=>{
     res.json({
       status: "success",
       data: bd._id
+    })
+  }))
+
+
+  // depositHistory 에서의 목록
+  router.post("/get_withdraw_list_for_user", task(async (req, res)=>{
+    let {
+      ids, offset, limit, curPage, range, searchId
+    } = req.body;
+    let query = {};
+
+    for(let o in query){
+      if(query[o] === undefined || query[o] === ""){
+        delete query[o];
+      }
+    }
+
+    if(ids){
+      query._id = ids;
+    }
+
+    query.user = req.user._id;
+
+    if(searchId){
+      let account = await Account.findOne({id:searchId});
+      if(account){
+        query.account = account._id;
+      }else{
+        query.account = null;
+      }
+    }
+
+
+
+    if(curPage !== undefined){
+      // 페이지가 설정되었으면, 그에 맞춰서 limit, offset 계산
+      limit = 20;//config.ACCOUNT_LIST_COUNT_PER_PAGE;
+      offset = curPage * limit;
+    }else{
+      // 페이지가 설정안되었다면. 전달된 limit, offset 사용
+      // 전달된 limit, offset이 없으면 기본값사용
+      if(limit === undefined){
+        limit = 20;//config.ACCOUNT_LIST_COUNT_PER_PAGE;
+      }
+      if(offset === undefined){
+        offset = 0;
+      }
+
+      curPage = offset / limit;
+    }
+
+    let populateObjList = [
+      {
+        path: 'account',
+        model: Account,
+        select: '-pw -digit4 -skrillEmail -skrillId -skrillPw -skrillCode'
+      }
+    ]
+
+    if(range){
+      query.createdAt= {
+        $gte: new Date(range.start),
+        $lte: new Date(range.end)
+      }
+    }
+
+    console.log("query", query);
+
+    // 전체숫자는 limit되지 않은숫자여야하므로 이 count방법을 유지한다.
+    let count = await AccountWithdraw.countDocuments(query);
+    let pageLength = Math.ceil(count / limit);// 0 ~
+    let maxPage = pageLength - 1;
+    // console.log("account count", count);
+    let startPage = Math.floor(curPage / config.PAGE_COUNT) * config.PAGE_COUNT;
+    let endPage = Math.min(startPage + config.PAGE_COUNT-1, maxPage);
+
+    let list = await AccountWithdraw.find(query)
+    .sort({createdAt:-1})
+    .limit(limit)
+    .skip(offset)
+    .populate(populateObjList)
+    .lean();
+
+    let sum = await AccountWithdraw.aggregate()
+    .match(query)
+    .group({
+      _id: 'null',
+      total: {$sum:'$withdraw'}
+    });
+
+    // console.log("????", query, list);
+    console.log("sum", sum);
+    let sumWithdraw = 0;
+    if(sum[0]){
+      sumWithdraw = sum[0].total;
+    }
+
+    res.json({
+      status: "success",
+      data: {list, sumWithdraw, curPage, startPage, endPage, maxPage, count, pageCount:config.PAGE_COUNT}
+    });
+  }))
+
+
+  // /admin/accountWithdrawManager 에서의 목록
+  router.post("/get_withdraw_list", authAdmin, task(async (req, res)=>{
+    let {
+      ids, offset, limit, curPage, email, check, checker, range, searchId
+    } = req.body;
+    let query = {};
+
+    if(email){
+      let user = await User.findOne({email});
+      if(user){
+        query.user = user._id;
+      }else{
+        query.user = null;
+      }
+    }
+
+    if(checker){
+      let user = await User.findOne({email:checker});
+      if(user){
+        query.checker = user._id;
+      }else{
+        query.checker = null;
+      }
+    }else if(check){
+      if(check == 'y'){
+        query.checker = {$ne:null};
+      }else if(check == 'n'){
+        query.checker = null;
+      }
+    }
+
+    for(let o in query){
+      if(query[o] === undefined || query[o] === ""){
+        delete query[o];
+      }
+    }
+
+    if(ids){
+      query._id = ids;
+    }
+
+    if(searchId){
+      let account = await Account.findOne({id:searchId});
+      if(account){
+        query.account = account._id;
+      }else{
+        query.account = null;
+      }
+    }
+
+
+
+    if(curPage !== undefined){
+      // 페이지가 설정되었으면, 그에 맞춰서 limit, offset 계산
+      limit = 20;//config.ACCOUNT_LIST_COUNT_PER_PAGE;
+      offset = curPage * limit;
+    }else{
+      // 페이지가 설정안되었다면. 전달된 limit, offset 사용
+      // 전달된 limit, offset이 없으면 기본값사용
+      if(limit === undefined){
+        limit = 20;//config.ACCOUNT_LIST_COUNT_PER_PAGE;
+      }
+      if(offset === undefined){
+        offset = 0;
+      }
+
+      curPage = offset / limit;
+    }
+
+    let populateObjList = [
+      {
+        path: 'user',
+        model: User,
+        select: '-password'
+      },
+      {
+        path: 'checker',
+        model: User,
+        select: '-password'
+      },
+      {
+        path: 'account',
+        model: Account,
+        select: '-pw -digit4 -skrillEmail -skrillId -skrillPw -skrillCode'
+      }
+    ]
+
+    if(range){
+      query.createdAt= {
+        $gte: new Date(range.start),
+        $lte: new Date(range.end)
+      }
+    }
+
+    console.log("query", query);
+
+    // 전체숫자는 limit되지 않은숫자여야하므로 이 count방법을 유지한다.
+    let count = await AccountWithdraw.countDocuments(query);
+    let pageLength = Math.ceil(count / limit);// 0 ~
+    let maxPage = pageLength - 1;
+    // console.log("account count", count);
+    let startPage = Math.floor(curPage / config.PAGE_COUNT) * config.PAGE_COUNT;
+    let endPage = Math.min(startPage + config.PAGE_COUNT-1, maxPage);
+
+    let list = await AccountWithdraw.find(query)
+    .sort({createdAt:-1})
+    .limit(limit)
+    .skip(offset)
+    .populate(populateObjList)
+    .lean();
+
+    let sum = await AccountWithdraw.aggregate()
+    .match(query)
+    .group({
+      _id: 'null',
+      total: {$sum:'$withdraw'}
+    });
+
+    let users = await User.find({}).select("email authority master").lean();
+
+    // console.log("????", query, list);
+    console.log("sum", sum);
+    let sumWithdraw = 0;
+    if(sum[0]){
+      sumWithdraw = sum[0].total;
+    }
+
+    res.json({
+      status: "success",
+      data: {list, users, sumWithdraw, curPage, startPage, endPage, maxPage, count, pageCount:config.PAGE_COUNT}
+    });
+  }))
+
+
+  router.get("/checking_withdraw/:_id", authAdmin, task(async (req, res)=>{
+    let aw = await AccountWithdraw.findOneAndUpdate({_id:req.params._id}, {checker:req.user, checkDate:new Date()}, {new:true})
+    .populate('user checker account');
+    res.json({
+      status: "success",
+      aw
     })
   }))
 
@@ -1059,6 +1315,7 @@ module.exports = io=>{
     await updateBet365TotalMoney(user);
     // console.error("?", user.email);
     let data = {
+      email: user.email,
       money: user.money,
       wallet: user.wallet,
       bet365Money: user.bet365Money

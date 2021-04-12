@@ -4,6 +4,7 @@ module.exports = {
   BACKUP_PATH: "./backup_db",
   MAX_LOG_LENGTH: 500,
   // ACCOUNT_PRICE: 20,
+  // ACCOUNT_WITHDRAW_COMMISSION: 0.05,
   // 페이지당 계정 수
   ACCOUNT_LIST_COUNT_PER_PAGE: 10,
   // 페이지당 프록시 수

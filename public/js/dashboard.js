@@ -229,18 +229,38 @@ let Vapp;
         this.load();
       },
 
+      pushAccount(account){
+        let has = this.accounts.find(a=>a._id == account._id);
+        if(!has){
+          this.accounts.push(account);
+        }
+      },
+
+      updateAccountList(){
+        this.accounts = [];
+        this.programs.forEach(program=>{
+          program.browsers.forEach(browser=>{
+            if(browser.account){
+              this.accounts.push(browser.account);
+            }
+          })
+        })
+      },
+
       async load(){
         let res = await api.getUser();
         if(res.status == "success"){
-          res.data.programs.forEach(program=>{
-            program.browsers.forEach(browser=>{
-              if(browser.account){
-                this.accounts.push(browser.account);
-              }
-            })
-          })
+          // this.accounts = [];
+          // res.data.programs.forEach(program=>{
+          //   program.browsers.forEach(browser=>{
+          //     if(browser.account){
+          //       this.accounts.push(browser.account);
+          //     }
+          //   })
+          // })
 
           this.programs = res.data.programs;
+          this.updateAccountList();
           this.$nextTick(()=>{
             this.programs.forEach(program=>{
               delay(100).then(()=>{
@@ -474,8 +494,7 @@ let Vapp;
       },
 
       async withdraw(program, browser, withdrawMoney){
-
-
+        startLoading();
         let money = await sendDataToMainPromise(program._id, browser._id, "withdraw", withdrawMoney);
         // console.error("!!!", money);
         if(money == null){
@@ -483,33 +502,46 @@ let Vapp;
         }else if(typeof money === "string"){
           console.error(money);
         }else{
-          if(browser.account.money != money){
-            console.log("refreshMoney", money);
-            browser.account.money = money;
-            sendDataToServer("updateBet365MoneyFromSite", {money, aid:browser.account._id, uid:browser.user});
-          }
+          await this.requestWithdraw(browser.account, withdrawMoney);
 
-          this.requestWithdraw(browser.account, withdrawMoney);
+          console.log("refreshMoney", money);
+          browser.account.money = money;
+          sendDataToServer("updateBet365MoneyFromSite", {money, aid:browser.account._id, uid:browser.user});
         }
+        stopLoading();
       },
+
       async openWithdrawModal(program, browser){
-        let $input = this.$withdrawForm.find(".withdraw-input").val(browser.account.money);
-        $input.attr("max", browser.account.money);
+        if(!browser.isOn) return;
+        startLoading();
+        let money = await sendDataToMainPromise(program._id, browser._id, "loadMoney");
+        stopLoading();
+        if(typeof money !== "number"){
+          console.error("loaded money was not number", money);
+          return;
+        }
+
+        browser.account.money = money;
+        money = Math.floor(money);
+
+        let $input = this.$withdrawForm.find(".withdraw-input").val(money);
+        $input.attr("max", money);
         setTimeout(()=>$input.focus(), 500);
         if(await modal("출금", this.$withdrawForm, {buttons:['취소', '출금']})){
-          let money = parseFloat($input.val());
+          let inputMoney = parseFloat($input.val());
           // console.error(money);
-          if(money < 10){
+          if(inputMoney < 10){
             modal("알림", "$10 이상만 출금 가능합니다.");
             return;
           }
-          if(money > browser.account.money){
+          if(inputMoney > browser.account.money){
             modal("알림", `잔액($${browser.account.money})보다 큰 입력입니다.`);
             return;
           }
-          await this.withdraw(program, browser, money);
+          await this.withdraw(program, browser, inputMoney);
         }
       },
+
       async refreshMoney(program, browser){
         // if(refreshTime[browser._id] === undefined) refreshTime[browser._id] = 0;
         //
@@ -669,8 +701,10 @@ let Vapp;
           }
         })
 
-        this.accounts = program.browsers.map(b=>b.account);
+        // this.accounts = program.browsers.map(b=>b.account);
+        this.updateAccountList();
       },
+
       async sk_openBrowser(pid, _bid){//, isChecker){
         let browser = this.getBrowserObj(pid, _bid);
         let index = this.getBrowserIndex(pid, _bid);
@@ -918,7 +952,7 @@ let Vapp;
           modal("오류", res.message);
           return;
         }
-        // console.log({accounts});
+
         // let browser = this.getBrowserObj(pid, _bid);
         if(accounts.length){
           let selectedAccount;
@@ -941,13 +975,22 @@ let Vapp;
             }
             return;
           }
-          // console.log(selectedAccount);
+
           if(selectedAccount){
             if(browser){
               res = await api.updateBrowser(_bid, {account: selectedAccount._id});
               if(res.status == "success"){
+                if(res.account){
+                  for(let k in res.account){
+                    if(k){
+                      selectedAccount[k] = res.account[k];
+                    }
+                  }
+                }
                 browser.account = selectedAccount;
-                this.accounts.push(selectedAccount);
+                
+                // this.accounts.push(selectedAccount);
+                this.pushAccount(selectedAccount);
                 this.$forceUpdate();
               }else{
                 modal("알림", `브라우져 업데이트 실패<br>${res.message}`);

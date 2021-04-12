@@ -182,9 +182,10 @@ $(document).ready(async ()=>{
   // })
   let itvUpdateMoney;
   socket.on("updateMoney", money=>{
-    clearTimeout(itvUpdateMoney);
-    itvUpdateMoney = setTimeout(()=>{
-      console.log("updateMoney:", money);
+    // clearTimeout(itvUpdateMoney);
+    // itvUpdateMoney = setTimeout(()=>{
+    if(money.email == user.email){
+      console.log("updateMoney:", money);      
       if(money.money !== undefined){
         Vmoney.money.site = money.money;
       }
@@ -194,7 +195,8 @@ $(document).ready(async ()=>{
       if(money.bet365Money !== undefined){
         Vmoney.money.bet365 = money.bet365Money;
       }
-    }, 100);
+    }
+    // }, 100);
   })
 
 })

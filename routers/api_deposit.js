@@ -1,30 +1,57 @@
 module.exports = MD=>{
   let {
+    util,
+    setRedis,
+    getRedis,
+    room_checker,
+    room_bettor,
+    argv,
+    redisClient,
     io,
+    mongoose,
     sendDataToMain,
     sendDataToBg,
     sendDataToBet365,
     emitToMember,
     emitToAdmin,
     emitToProgram,
+    emitToProgramPromise,
+    socketResolveList,
     config,
     comma,
     router,
     User,
     Program,
     Browser,
+    BetData,
+    Event,
     Log,
-    BenList,
+    BenEvent,
+    Proxy,
     Withdraw,
+    AccountWithdraw,
     Account,
     Option,
     Approval,
+    Setting,
+    DepositLog,
+    Data,
+    BackupHistory,
     authAdmin,
     authMaster,
     task,
     deposit,
     approvalTask,
-    refreshMoney
+    refreshTab,
+    refreshMoney,
+    refreshBet365Money,
+    refreshBet365TotalMoney,
+    updateBet365Money,
+    updateBet365TotalMoney,
+    getSetting,
+    calc,
+    MoneyManager,
+    uuidv4
   } = MD;
 
   router.post("/get_deposit_history", task(async (req, res)=>{
@@ -149,13 +176,21 @@ module.exports = MD=>{
     //   return;
     // }
 
-    // if(withdrawMoney < 10){
-    //   res.json({
-    //     status: "fail",
-    //     message: "잔액이 너무 작습니다. 출금요청시 필요한 최소금액은 $10입니다."
-    //   })
-    //   return;
-    // }
+    if(account.money < withdrawMoney){
+      res.json({
+        status: "fail",
+        message: "요청금액이 잔액보다 큽니다."
+      })
+      return;
+    }
+
+    if(withdrawMoney < 10){
+      res.json({
+        status: "fail",
+        message: "요청금액이 너무 작습니다. 출금요청시 필요한 최소금액은 $10입니다."
+      })
+      return;
+    }
 
     // let pid, bid;
     // if(account.browser){
@@ -172,9 +207,27 @@ module.exports = MD=>{
     //   money: withdrawMoney
     // });
 
+    let setting = await getSetting();
+    let commission;
+    if(setting.accountWithdrawCommission){
+      commission = setting.accountWithdrawCommission / 100;
+    }else{
+      commission = 0;
+    }
+    let cp = (1-commission);
+    let money = withdrawMoney * cp;
+
+    await MoneyManager.depositWallet(account.user, money, `from bet365 withdraw(apply commission ${util.round(cp*100)}%)`, req.user);
+
+    await AccountWithdraw.create({
+      user: req.user,
+      account: account,
+      withdraw: withdrawMoney,
+      commission: commission
+    })
 
     emitToAdmin('menuBadge', {
-      link: '/admin/accountManager',
+      link: '/admin/accountWithdrawManager',
       text: 'New'
     });
 
@@ -184,7 +237,7 @@ module.exports = MD=>{
     });
 
     emitToAdmin('refreshTab', {
-      link: "/admin/accountManager"
+      link: "/admin/accountWithdrawManager"
     });
 
     res.json({

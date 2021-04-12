@@ -1,34 +1,57 @@
 module.exports = MD=>{
   let {
+    util,
+    setRedis,
+    getRedis,
+    room_checker,
+    room_bettor,
+    argv,
+    redisClient,
     io,
+    mongoose,
     sendDataToMain,
     sendDataToBg,
     sendDataToBet365,
     emitToMember,
     emitToAdmin,
     emitToProgram,
+    emitToProgramPromise,
+    socketResolveList,
     config,
     comma,
     router,
     User,
     Program,
     Browser,
+    BetData,
+    Event,
     Log,
+    BenEvent,
+    Proxy,
+    Withdraw,
+    AccountWithdraw,
     Account,
     Option,
     Approval,
     Setting,
+    DepositLog,
+    Data,
+    BackupHistory,
     authAdmin,
     authMaster,
     task,
     deposit,
     approvalTask,
+    refreshTab,
     refreshMoney,
     refreshBet365Money,
+    refreshBet365TotalMoney,
     updateBet365Money,
     updateBet365TotalMoney,
     getSetting,
-    MoneyManager
+    calc,
+    MoneyManager,
+    uuidv4
   } = MD;
 
   router.get("/load_account/:id", task(async (req, res)=>{
@@ -112,8 +135,10 @@ module.exports = MD=>{
       return;
     }
 
+    let price = setting.accountPrice || 0;
+
     // if(user.wallet < config.ACCOUNT_PRICE + account.money){
-    if(user.wallet < setting.accountPrice + account.money){
+    if(user.wallet < price + account.money){
       res.json({
         status: "fail",
         code: "INSUFFICIENT_CASH",
@@ -122,7 +147,7 @@ module.exports = MD=>{
       return;
     }
 
-    await MoneyManager.withdrawWallet(user, setting.accountPrice + account.money, "buy account");
+    await MoneyManager.withdrawWallet(user, price + account.money, "buy account");
     user = await User.findOne({email:req.user.email}).select(["email", "money", "wallet", "bet365Money"]);
     // user.wallet -= setting.accountPrice + account.money;
     // await user.save();
@@ -207,9 +232,9 @@ module.exports = MD=>{
       query.firstCharged = firstCharged;
     }
 
-    if(requestedDeposit){
-      query.depositStatus = {$in:['requested', 'outstanding']};
-    }
+    // if(requestedDeposit){
+    //   query.depositStatus = {$in:['requested', 'outstanding']};
+    // }
 
     let withoutSkrillField = ["-skrillId", "-skrillPw", "-skrillCode"];
     if(withSkrill){

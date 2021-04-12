@@ -404,6 +404,36 @@ let api = (()=>{
 
     getBackupTime(){
       return ax("/backuptime");
+    },
+
+    ////////////////////////// account withdraw
+    getWithdraws(opt){
+      opt = Object.assign({
+        ids: undefined,
+        offset: undefined,
+        limit: undefined,
+        curPage: undefined,
+        searchId: undefined,
+        email: undefined,
+        checker: undefined,
+        check: undefined
+      }, opt||{})
+      return ax("/get_withdraw_list", opt, "POST");
+    },
+
+    getWithdrawsForUser(opt){
+      opt = Object.assign({
+        ids: undefined,
+        offset: undefined,
+        limit: undefined,
+        curPage: undefined,
+        searchId: undefined
+      }, opt||{})
+      return ax("/get_withdraw_list_for_user", opt, "POST");
+    },
+
+    checkingWithdraw(id){
+      return ax("/checking_withdraw/" + id);
     }
   };
 })()

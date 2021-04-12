@@ -96,24 +96,25 @@ block view
             span.input-group-text $
           input.form-control.withdraw-input(type="number" min="10")
     //-.col-6.col-sm-4.col-md-2.col-xl.mb-3.mb-xl-0    
-    button.btn.btn-square.btn-reddit(type="button" v-on:click="sk_addProgram")
-      svg.c-icon.mr-2
-        use(xlink:href="/vendors/@coreui/icons/svg/brand.svg#cib-addthis")
-      |PC 추가
-    span.b-money.sum(style="margin-left:100px;" v-html="printSumHtmlAll(programs)")
-    .float-right.btn-group(role="group")
-      button.btn.btn-square.btn-primary(type="button" v-on:click="refreshMoneyAll()")
-        svg.c-icon.c-icon-lg
-          use(xlink:href="/vendors/@coreui/icons/sprites/solid.svg#cis-reload")
-        | 전체 bet365머니 갱신
-      button.btn.btn-square.btn-success(type="button" v-on:click="startMatchAllProgram()")
-        | 전체 매칭시작
-      button.btn.btn-square.btn-warning(type="button" v-on:click="stopMatchAllProgram()")
-        | 전체 매칭중지
-      button.btn.btn-square.btn-info(type="button" v-on:click="openBrowserAll()")
-        | 전체 켜기
-      button.btn.btn-square.btn-secondary(type="button" v-on:click="closeBrowserAll()")
-        | 전체 끄기      
+    div
+      button.btn.btn-square.btn-reddit(type="button" v-on:click="sk_addProgram")
+        svg.c-icon.mr-2
+          use(xlink:href="/vendors/@coreui/icons/svg/brand.svg#cib-addthis")
+        |PC 추가
+      span.b-money.sum(style="margin-left:100px;" v-html="printSumHtmlAll(programs)")    
+      .btn-group(role="group")
+        button.btn.btn-square.btn-primary(type="button" v-on:click="refreshMoneyAll()")
+          svg.c-icon.c-icon-lg
+            use(xlink:href="/vendors/@coreui/icons/sprites/solid.svg#cis-reload")
+          | 전체 bet365머니 갱신
+        button.btn.btn-square.btn-success(type="button" v-on:click="startMatchAllProgram()")
+          | 전체 매칭시작
+        button.btn.btn-square.btn-warning(type="button" v-on:click="stopMatchAllProgram()")
+          | 전체 매칭중지
+        button.btn.btn-square.btn-info(type="button" v-on:click="openBrowserAll()")
+          | 전체 켜기
+        button.btn.btn-square.btn-secondary(type="button" v-on:click="closeBrowserAll()")
+          | 전체 끄기      
     hr
     .card(v-for="program in programs" :data-pid="program._id" :class="program.connected?'border-warning':'border-secondary'")
       .card-header

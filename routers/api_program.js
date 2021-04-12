@@ -113,6 +113,7 @@ module.exports = MD=>{
 
     delete browser.logs;
     console.log("update_browser", bid);
+    let returnAccount;
     let originBrowser = await Browser.findOne({_id:bid});//.select("-logs");
 
     // 계정연결 요청이면
@@ -131,6 +132,16 @@ module.exports = MD=>{
       // let account = await Account.findOne({_id:browser.account});
       // account.browser = bid;
       // await account.save();
+
+      // 연결된 계정의 startMoney, betCount를 초기화(현재값과 일치)시킨다.
+      let account = await Account.findOne({_id:browser.account});
+      if(account && account.startMoney != 0){
+        account.startMoney = account.money;
+        account.startBetCount = account.betCount;
+        await account.save();
+        returnAccount = await Account.findOne({_id:browser.account}).lean();
+        // console.log("#####", returnAccount);
+      }
     }
     // console.log("data", browser);
     // console.log("originBrowser", originBrowser);
@@ -157,7 +168,8 @@ module.exports = MD=>{
     // await originBrowser.save();
 
     res.json({
-      status: "success"
+      status: "success",
+      account: returnAccount
     });
   }))
 

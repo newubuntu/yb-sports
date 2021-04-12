@@ -2,12 +2,18 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 //mongoose.Schema.Types.Mixed
 const withdrawSchema = new mongoose.Schema({
-  id: {type: String},
+  // id: {type: String},
   // status: {type: String, enum:["requested", "rejected", "approved"]},
-  money: {type: Number, default: 0},
-  type: {type: String, enum:["site", "bookmaker", "wallet"]},
+  // 출금요청 금액
+  withdraw: {type: Number, default: 0},
+  // 환전 수수료
+  commission: {type: Number, default: 0},
+  account: {type: Schema.Types.ObjectId, ref: 'Account'},
   user: {type: Schema.Types.ObjectId, ref: 'User'},
-  approval: {type: Schema.Types.ObjectId, ref: 'Approval'}
+  // 관리자의 실제 돈 확인여부
+  // check: {type: Boolean, default: false},
+  checker: {type: Schema.Types.ObjectId, ref: 'User'},
+  checkDate: {type: Date}
 },{
   timestamps: true
 })
@@ -48,4 +54,4 @@ const withdrawSchema = new mongoose.Schema({
 //   return this.updateOne({_id}, data);
 // }
 
-module.exports = mongoose.models.Withdraw || mongoose.model("Withdraw", withdrawSchema);
+module.exports = mongoose.models.AccountWithdraw || mongoose.model("AccountWithdraw", withdrawSchema);
