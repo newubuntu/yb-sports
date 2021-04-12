@@ -129,7 +129,8 @@ let Vapp;
       searchId: "",
       accounts: [],
       forms: [],
-      users: []
+      users: [],
+      user: user
     },
     async created(){
       console.log("wait socketReady");
@@ -320,6 +321,10 @@ let Vapp;
           return;
         }
       },
+
+      // openBrowserForMoneyCheck(account){
+      //   socket.emit("openBrowserForMoneyCheck", account._id);
+      // },
 
       resetReload(){
         this.loadList(this.curPage, this.tab);

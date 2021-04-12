@@ -716,6 +716,13 @@ module.exports = MD=>{
           emitToProgram(pid, "closeBrowser", bid);
         }
 
+        // socket.on("openBrowserForMoneyCheck", async (aid)=>{
+        //   let account = await Account.findOne({_id:aid, user:null, trash:false, removed:false}).select("id pw limited died country money");
+        //   if(account){
+        //     emitToProgram(pid, "openBrowserForMoneyCheck", account);
+        //   }
+        // })
+
         socket.on("openBrowser", async (pid, _bid, index, hasProxy)=>{//, isChecker)=>{
           // console.log("targetEmail", targetEmail);
           let browser = await Browser.findOneAndUpdate(

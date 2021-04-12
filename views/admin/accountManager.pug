@@ -111,6 +111,7 @@ block view
                   th 계정등록일
                   th(v-if="tab==3") 출금요청일
                   th 잔액
+                  //- th 충전처리
                   th 상태
                   th(v-if="tab>1 && tab!=3") 배팅
                   th(v-if="tab>1") 소유자
@@ -138,8 +139,11 @@ block view
                     .input-group
                       input.account-money-input.form-control(type="number" placeholder='0' :value="account.money?account.money:''" :data-id="account._id")
                       span.input-group-append
-                        button.btn.btn-sm.btn-primary(type="button" v-on:click="doChargeComplete(account._id)")
-                          |충전완료
+                        .btn-group
+                          button.btn.btn-sm.btn-primary(type="button" v-on:click="doChargeComplete(account._id)")
+                            |충전완료
+                          //- button.btn.btn-sm.btn-info(type="button" v-on:click="openBrowserForMoneyCheck(account)")
+                            |잔액확인
                   td(v-else) ${{comma(account.money)}}
                   //- 상태
                   td

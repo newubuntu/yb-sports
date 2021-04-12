@@ -906,6 +906,7 @@ module.exports = io=>{
     let query = {};
 
     if(email){
+      // query.user = {email};
       let user = await User.findOne({email});
       if(user){
         query.user = user._id;
