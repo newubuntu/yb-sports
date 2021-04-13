@@ -137,6 +137,7 @@ module.exports = MD=>{
 
 
   async function accountWithdrawProcess(aid, uid, withdrawMoney){
+    let account = await Account.findOne({_id:aid})
     let setting = await getSetting();
     let commission;
     if(setting.accountWithdrawCommission){
@@ -147,7 +148,8 @@ module.exports = MD=>{
     let cp = (1-commission);
     let money = withdrawMoney * cp;
 
-    await MoneyManager.depositWallet(aid, money, `from bet365 withdraw(apply commission ${util.round(cp*100)}%)`, uid);
+    // console.log("???", aid, money, uid);
+    await MoneyManager.depositWallet(account.user, money, `from bet365 withdraw(apply commission ${util.round(cp*100)}%)`, uid);
 
     await AccountWithdraw.create({
       user: uid,

@@ -442,7 +442,9 @@ module.exports = io=>{
     static async _inc_process(user, prop, money, memo, from){
       if(!this._checkMoneyName(prop)) return;
       try{
+        // console.log("?!?", user);
         user = await getUser(user);
+        // console.log("?!?!!", user);
         if(user){
           // user[prop] += money;
           // await user.save();

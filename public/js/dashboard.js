@@ -471,7 +471,7 @@ let Vapp;
             program.browsers[i] = obj;
           }
         }
-      },      
+      },
 
       async requestWithdraw(account, money){
         if(account){
@@ -520,7 +520,7 @@ let Vapp;
         }
 
         browser.account.money = money;
-        money = Math.floor(money);
+        // money = Math.floor(money);
 
         let $input = this.$withdrawForm.find(".withdraw-input").val(money);
         $input.attr("max", money);

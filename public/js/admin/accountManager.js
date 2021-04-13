@@ -324,13 +324,12 @@ let Vapp;
 
       // 벳삼에서 출금처리됐는데 우리쪽은 안됐을 때 처리하기 위함
       async requestWithdrawForce(account){
+        let $input = $(`.force-request-withdraw-money-input[data-id=${account._id}]`);
         if(account){
-          let money = parseFloat($(`.force-request-withdraw-money-input[data-id=${account._id}]`).val());
+          let money = parseFloat($input.val());
           if(isNaN(money)){
             modal("알림", `입력값이 잘못됐습니다.`);
-            return;
-          }
-          if(confirm(`${money}을 출금기록으로 남깁니까?`)){
+          }else if(confirm(`이 작업은 해당계정의 지갑에 돈이 추가됩니다. ${money}을 출금기록으로 남깁니까?`)){
             let res = await api.requestWithdrawAccountForce(account._id, money);
             if(res.status == "success"){
             }else{
@@ -340,6 +339,7 @@ let Vapp;
         }else{
           modal("알림", `계정을 찾을 수 없습니다.`);
         }
+        $input.val('');
       },
 
       // openBrowserForMoneyCheck(account){
