@@ -117,7 +117,11 @@ let Vapp;
           return;
         }
         let displayMoney = $input.val();
-        let money = toNumber(displayMoney);
+        let money = parseFloat(displayMoney);
+        if(isNaN(money)){
+          modal("오류", "잘못된 입력값입니다.");
+          return;
+        }
         let r = await modal("확인", `${user.email}의 ${displayName}에 ${displayMoney}를 추가하시겠습니까?`, {
           lock: true,
           buttons: ["취소", "추가"]
