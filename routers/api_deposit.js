@@ -135,10 +135,54 @@ module.exports = MD=>{
     });
   }))
 
+
+  async function accountWithdrawProcess(aid, uid, withdrawMoney){
+    let setting = await getSetting();
+    let commission;
+    if(setting.accountWithdrawCommission){
+      commission = setting.accountWithdrawCommission / 100;
+    }else{
+      commission = 0;
+    }
+    let cp = (1-commission);
+    let money = withdrawMoney * cp;
+
+    await MoneyManager.depositWallet(aid, money, `from bet365 withdraw(apply commission ${util.round(cp*100)}%)`, uid);
+
+    await AccountWithdraw.create({
+      user: uid,
+      account: aid,
+      withdraw: withdrawMoney,
+      commission: commission
+    })
+
+    emitToAdmin('menuBadge', {
+      link: '/admin/accountWithdrawManager',
+      text: 'New'
+    });
+
+    emitToAdmin('sound', {
+      name: "recReqWithdraw",
+      to: "admin"
+    });
+
+    emitToAdmin('refreshTab', {
+      link: "/admin/accountWithdrawManager"
+    });
+  }
+
+  // 수동 출금기록하기
+  router.post("/request_withdraw_account_force/:id", authMaster, task(async (req, res)=>{
+    let id = req.params.id;
+    let withdrawMoney = req.body.money;
+    await accountWithdrawProcess(id, req.user._id, withdrawMoney);
+    res.json({
+      status: "success"
+    })
+  }))
+
   // 유저의 벳삼 출금요청
-  // 연결된 열린 브라우져 닫기
-  // 브라우져 연결 끊기
-  router.post("/request_deposit_account/:id", task(async (req, res)=>{
+  router.post("/request_withdraw_account/:id", task(async (req, res)=>{
     let id = req.params.id;
     let withdrawMoney = req.body.money;
     let account = await Account.findOne({_id:id})
@@ -176,21 +220,21 @@ module.exports = MD=>{
     //   return;
     // }
 
-    if(account.money < withdrawMoney){
-      res.json({
-        status: "fail",
-        message: "요청금액이 잔액보다 큽니다."
-      })
-      return;
-    }
-
-    if(withdrawMoney < 10){
-      res.json({
-        status: "fail",
-        message: "요청금액이 너무 작습니다. 출금요청시 필요한 최소금액은 $10입니다."
-      })
-      return;
-    }
+    // if(account.money < withdrawMoney){
+    //   res.json({
+    //     status: "fail",
+    //     message: "요청금액이 잔액보다 큽니다."
+    //   })
+    //   return;
+    // }
+    //
+    // if(withdrawMoney < 10){
+    //   res.json({
+    //     status: "fail",
+    //     message: "요청금액이 너무 작습니다. 출금요청시 필요한 최소금액은 $10입니다."
+    //   })
+    //   return;
+    // }
 
     // let pid, bid;
     // if(account.browser){
@@ -207,38 +251,39 @@ module.exports = MD=>{
     //   money: withdrawMoney
     // });
 
-    let setting = await getSetting();
-    let commission;
-    if(setting.accountWithdrawCommission){
-      commission = setting.accountWithdrawCommission / 100;
-    }else{
-      commission = 0;
-    }
-    let cp = (1-commission);
-    let money = withdrawMoney * cp;
-
-    await MoneyManager.depositWallet(account.user, money, `from bet365 withdraw(apply commission ${util.round(cp*100)}%)`, req.user);
-
-    await AccountWithdraw.create({
-      user: req.user,
-      account: account,
-      withdraw: withdrawMoney,
-      commission: commission
-    })
-
-    emitToAdmin('menuBadge', {
-      link: '/admin/accountWithdrawManager',
-      text: 'New'
-    });
-
-    emitToAdmin('sound', {
-      name: "recReqWithdraw",
-      to: "admin"
-    });
-
-    emitToAdmin('refreshTab', {
-      link: "/admin/accountWithdrawManager"
-    });
+    await accountWithdrawProcess(id, req.user._id, withdrawMoney);
+    // let setting = await getSetting();
+    // let commission;
+    // if(setting.accountWithdrawCommission){
+    //   commission = setting.accountWithdrawCommission / 100;
+    // }else{
+    //   commission = 0;
+    // }
+    // let cp = (1-commission);
+    // let money = withdrawMoney * cp;
+    //
+    // await MoneyManager.depositWallet(account.user, money, `from bet365 withdraw(apply commission ${util.round(cp*100)}%)`, req.user);
+    //
+    // await AccountWithdraw.create({
+    //   user: req.user,
+    //   account: account,
+    //   withdraw: withdrawMoney,
+    //   commission: commission
+    // })
+    //
+    // emitToAdmin('menuBadge', {
+    //   link: '/admin/accountWithdrawManager',
+    //   text: 'New'
+    // });
+    //
+    // emitToAdmin('sound', {
+    //   name: "recReqWithdraw",
+    //   to: "admin"
+    // });
+    //
+    // emitToAdmin('refreshTab', {
+    //   link: "/admin/accountWithdrawManager"
+    // });
 
     res.json({
       status: "success"

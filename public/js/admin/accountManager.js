@@ -322,6 +322,26 @@ let Vapp;
         }
       },
 
+      // 벳삼에서 출금처리됐는데 우리쪽은 안됐을 때 처리하기 위함
+      async requestWithdrawForce(account){
+        if(account){
+          let money = parseFloat($(`.force-request-withdraw-money-input[data-id=${account._id}]`).val());
+          if(isNaN(money)){
+            modal("알림", `입력값이 잘못됐습니다.`);
+            return;
+          }
+          if(confirm(`${money}을 출금기록으로 남깁니까?`)){
+            let res = await api.requestWithdrawAccountForce(account._id, money);
+            if(res.status == "success"){
+            }else{
+              modal("오류", `출금요청 실패<br>${res.message}`);
+            }
+          }
+        }else{
+          modal("알림", `계정을 찾을 수 없습니다.`);
+        }
+      },
+
       // openBrowserForMoneyCheck(account){
       //   socket.emit("openBrowserForMoneyCheck", account._id);
       // },

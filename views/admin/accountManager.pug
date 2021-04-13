@@ -71,7 +71,7 @@ block view
             a.nav-link(href="#1" v-on:click="loadChargedList(0)" :class="tab==1?'active':''") 충전완료
           li.nav-item
             a.nav-link(href="#2" v-on:click="loadUseList(0)" :class="tab==2?'active':''") 발급완료
-          li.nav-item
+          //- li.nav-item
             a.nav-link(href="#3" v-on:click="loadRequestList(0)" :class="tab==3?'active':''") 입/출금요청
           li.nav-item
             a.nav-link(href="#4" v-on:click="loadTrashList(0)" :class="tab==4?'active':''") 휴지통
@@ -115,7 +115,7 @@ block view
                   th 상태
                   th(v-if="tab>1 && tab!=3") 배팅
                   th(v-if="tab>1") 소유자
-                  th(v-if="tab==2||tab==3||tab==4") 출금상태
+                  th(v-if="user.master") 출금기록생성
                   th 상세
                   th(v-if="tab==3") 처리
                   th(v-if="tab!=0 && tab!=3") 초기화
@@ -159,13 +159,12 @@ block view
                       |{{account.user.email}}
                     button.btn.btn-sm.btn-warning(v-if="account.user.email&&tab==2" type="button" v-on:click="removeAccountUser(account._id)")
                       |회수
-                  td(v-if="tab==2||tab==3||tab==4")
-                    span.badge.badge-secondary(v-if="!account.depositStatus") 요청전
-                    span.badge.badge-primary(v-if="account.depositStatus=='requested'") 출금요청중
-                    span.badge.badge-success(v-if="account.depositStatus=='outstanding'") 승인대기중
-                    span.badge.badge-info(v-if="account.depositStatus=='complete'") 출금완료
-                    //-button.btn.btn-sm.btn-danger(type="button" v-on:click="resetDeposit(account._id)")
-                      |출금상태초기화
+                  td(v-if="user.master")
+                    .input-group
+                      input.force-request-withdraw-money-input.form-control(style="width: 41px !important" type="number" placeholder='0' value="" :data-id="account._id")
+                      span.input-group-append                 
+                        button.btn.btn-sm.btn-info(type="button" v-on:click="requestWithdrawForce(account)")
+                          |출금기록생성
                   td
                     button.btn.btn-sm.btn-warning(type="button" v-on:click="openAccountModal(account._id)")
                       |상세

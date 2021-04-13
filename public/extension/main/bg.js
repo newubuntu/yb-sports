@@ -28,6 +28,7 @@ function bgJS(){
   let betData = {};
   let betHeaders = {};
   let betslipData = {};
+  let betslipDataTime = {};
 
   //벳삼 먹통을 체크하기 위한 변수
   // 소켓통신이 complete 되기까지(+1sec) 벳슬립 정보가 없으면
@@ -126,10 +127,29 @@ function bgJS(){
 
       case "getBetslipData":
         try{
-          resolveData = JSON.parse(JSON.stringify(betslipData[tabInfos.bet365.id]));
+          console.log("getBetslipData", betslipData[tabInfos.bet365.id]);
+          if(betslipData[tabInfos.bet365.id]){
+            resolveData = JSON.parse(JSON.stringify(betslipData[tabInfos.bet365.id]));
+          }else{
+            resolveData = undefined;
+          }
         }catch(e){
-          resolveData = undefined
+          console.error(e);
+          resolveData = undefined;
         }
+      break;
+
+      case "setBetslipData":
+        try{
+          betslipData[tabInfos.bet365.id] = data;
+        }catch(e){
+          console.error(e);
+          resolveData = undefined;
+        }
+      break;
+
+      case "isBetslipDataTimeover":
+        resolveData = Date.now() - (betslipDataTime[tabInfos.bet365.id]||0) > (1000*60*9);
       break;
 
       // case "updatedUrl":
@@ -413,15 +433,18 @@ function bgJS(){
         }
         return r;
       },{});
-
+      betslipDataTime[details.tabId] = Date.now();
       betslipData[details.tabId] = {
         data
       };
       loadedBetslip[details.tabId] = true;
       repairRefreshCount[tabInfos.bet365.id] = 0;
       try{
-        console.error("betslipData", JSON.parse(JSON.stringify(betslipData)));
-      }catch(e){}
+        console.error("origin betslipData", betslipData[details.tabId]);
+        console.error("betslipData", JSON.parse(JSON.stringify(betslipData[details.tabId])));
+      }catch(e){
+        console.error(e);
+      }
     }
     // return {
     //   requestHeaders: details.requestHeaders

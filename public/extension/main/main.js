@@ -579,6 +579,11 @@ async function findMatch(){
   log(`매칭확인중..`, null, true);
   // && data.pinnacle.sports == "Soccer"
   if(data){
+
+    // data.bet365.betLink = data.bet365.betLink.replace("/dl/sportsbookredirect?", "/dl/sportsbookredirect/?");
+    // console.error("betLink test", data.bet365.betLink);
+
+
     isCheckingMatch = true;
     if(betOption.action == "checkBetmax"){
       let f = await checkBetmaxProcess(data);
@@ -1197,7 +1202,11 @@ function checkLakeMoney(data, money){
 
 async function openBet365AndGetInfo(data, forApi){
   activeBet365();
-  let bet365Info = await sendData("setUrl", {data:data.bet365, betOption, forApi}, PN_B365);
+  let betslipData;
+  if(currentGameData){
+    betslipData = currentGameData.bookmaker.betslipData;
+  }
+  let bet365Info = await sendData("setUrl", {data:data.bet365, betOption, betslipData, forApi}, PN_B365);
   activeMain();
   if(!bet365Info){
     log(`벳365 링크열기 실패`, "danger", true);

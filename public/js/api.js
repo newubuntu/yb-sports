@@ -231,8 +231,14 @@ let api = (()=>{
       return ax("/update_account/" + id, account, "POST");
     },
 
-    requestDepositAccount(id, money){
-      return ax("/request_deposit_account/" + id, {money}, "POST");
+    // 수동 출금기록 만들기 for master
+    requestWithdrawAccountForce(id, money){
+      return ax("/request_withdraw_account_force/" + id, {money}, "POST");
+    },
+
+    // 계정 출금 요청
+    requestWithdrawAccount(id, money){
+      return ax("/request_withdraw_account/" + id, {money}, "POST");
     },
 
     rejectRequestDepositAccount(id){

@@ -471,13 +471,11 @@ let Vapp;
             program.browsers[i] = obj;
           }
         }
-      },
-
-
+      },      
 
       async requestWithdraw(account, money){
         if(account){
-          let res = await api.requestDepositAccount(account._id, money);
+          let res = await api.requestWithdrawAccount(account._id, money);
           if(res.status == "success"){
             // account.requestedDeposit = true;
             // this.$forceUpdate();
@@ -489,7 +487,7 @@ let Vapp;
             modal("오류", `출금요청 실패<br>${res.message}`);
           }
         }else{
-          modal("알림", `${id} 계정을 찾을 수 없습니다.`);
+          modal("알림", `계정을 찾을 수 없습니다.`);
         }
       },
 
@@ -988,7 +986,7 @@ let Vapp;
                   }
                 }
                 browser.account = selectedAccount;
-                
+
                 // this.accounts.push(selectedAccount);
                 this.pushAccount(selectedAccount);
                 this.$forceUpdate();
