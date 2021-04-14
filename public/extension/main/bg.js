@@ -149,7 +149,7 @@ function bgJS(){
       break;
 
       case "isBetslipDataTimeover":
-        resolveData = Date.now() - (betslipDataTime[tabInfos.bet365.id]||0) > (1000*60*9);
+        resolveData = Date.now() - (betslipDataTime[tabInfos.bet365.id]||0) > (1000*60*7);
       break;
 
       // case "updatedUrl":

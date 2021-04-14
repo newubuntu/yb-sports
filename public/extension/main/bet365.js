@@ -124,7 +124,9 @@ function bet365JS(){
   function odToOdds(od){
     if(od.indexOf('/') > -1){
       let a = od.split('/').map(n=>parseInt(n));
-      return round(1+a[0]/a[1], 3);
+      let o = 1+a[0]/a[1];
+      // return Math.floor(o*100)/100;
+      return round(o, 3);
     }else if(/\d{4}/.test(od)){
       let m = od.match(/(\d{2})(\d{2})/);
       return parseFloat(m[1]+'.'+m[2]);
@@ -487,6 +489,10 @@ function bet365JS(){
       data = res.data;
 
       if(!data) break;
+      if(!data.bt){
+        data = null;
+        break;
+      }
 
       localStorage.setItem('betGuid', data.bg);
       let bt = data.bt[0];
@@ -549,7 +555,7 @@ function bet365JS(){
 
   async function placeBetDirect({betData, stake, odds, od, account}){
     // await refreshslip();
-
+    console.error("placeBetDirect", {betData, stake, odds, od, account});
     let originStake = stake;
     if(betOption.useExchange == 'y'){
       // usd to cny
@@ -566,7 +572,7 @@ function bet365JS(){
     betData.data.ns = betData.data.ns.replace(/st=(\d+(?:\.\d+)?)/g, "st="+padEnd0(stake));
     betData.data.ns = betData.data.ns.replace(/tr=(\d+(?:\.\d+)?)/, "tr="+padEnd0(rt));
 
-    console.error("placeBetDirect data", betData);
+    console.error("placeBetDirect update betData", betData);
     let betGuid = localStorage.getItem('betGuid');
     console.error("betGuid", betGuid);
     // let refreshData = localStorage.getItem('refreshData');
@@ -604,27 +610,34 @@ function bet365JS(){
     console.error("res", res);
 
     let info;
-    let _result = {stake:originStake};
-    if(res.data.mi == "selections_changed"){
-      _result.status = "acceptChange";
-      let od = res.data.bt[0].od;
-      console.error("od", od);
 
-      //od가 숫자로만 2자리로 구성되어있으면
-      //odds가 2라면 od가 22이런식으로 올때가있다. 확인해주자
-      od = odCheck(od, odds);
+    let _od = res.data.bt[0].od;
+    console.error("od", _od);
 
-      if(od){
-        info = await getBetslipInfoForAPI(od);
-        info.od = od;
-        info.odds = odToOdds(od);
-      }else{
-        info = await getBetslipInfoForAPI(odds);
+    //od가 숫자로만 2자리로 구성되어있으면
+    //odds가 2라면 od가 22이런식으로 올때가있다. 확인해주자
+    _od = odCheck(_od, odds);
+
+    if(_od){
+      info = await getBetslipInfoForAPI(_od);
+      if(info){
+        info.od = _od;
+        info.odds = odToOdds(_od);
       }
-      _result.info = info;
     }else{
       info = await getBetslipInfoForAPI(odds);
-      _result.info = info;
+    }
+
+    let _result = {stake:originStake};
+    _result.info = info;
+
+    if(res.data.mi == "selections_changed"){
+      _result.status = "acceptChange";
+
+
+    }else{
+      // info = await getBetslipInfoForAPI(odds);
+      // _result.info = info;
       if(res.data.mi == "stakes_above_max_stake"){
         _result.status = "foundBetmax";
         if(betOption.useExchange == 'y'){
@@ -634,7 +647,11 @@ function bet365JS(){
         }else{
           _result.betmax = res.data.bt[0].ms;
         }
-      }else if(res.data.br){
+      }else if(res.data.mi == "allow_login_other"){
+        // 폐쇄계정
+        _result.status = "restriction";
+        _result.message = "폐쇄된 계정";
+      }else if(res.data.br && res.data.bt[0].br && res.data.la[0] && res.data.la[0].ak){
         _result.status = "success";
         _result.money = await loadMoney();
       }else{
@@ -803,28 +820,31 @@ function bet365JS(){
         betOption = data.betOption;
 
         /// test
-
-        // if(await isBetslipDataTimeover()){
-        //   window.location.href = data.url;
-        // }else{
-        //   $(".hm-MainHeaderRHSLoggedInMed_MyBetsLabel").click();
-        //   await delay(100);
-        //   $(".myb-MyBetsHeader_Button").last().click();
-        // }
-
-        window.location.href = data.url;
+        if(betOption.betType == "0414"){
+          if(await isBetslipDataTimeover()){
+            window.location.href = data.url;
+          }else{
+            $(".hm-MainHeaderRHSLoggedInMed_MyBetsLabel").click();
+            await delay(100);
+            $(".myb-MyBetsHeader_Button").last().click();
+          }
+        }else{
+          window.location.href = data.url;
+        }
         ///
       break;
 
       case "setUrl":
         /// test
-        // betOption = data.betOption;
-        // if(betOption.action !== "checkBetmax"){
-        //   console.error("set betslipData", data.betslipData);
-        //   if(data.betslipData){
-        //     await setBetslipData(data.betslipData);
-        //   }
-        // }
+        betOption = data.betOption;
+        if(betOption.betType == "0414"){
+          if(betOption.action !== "checkBetmax"){
+            console.error("set betslipData", data.betslipData);
+            if(data.betslipData){
+              await setBetslipData(data.betslipData);
+            }
+          }
+        }
         ///
 
         // 작업중0
@@ -843,7 +863,13 @@ function bet365JS(){
 
         if($("body>p").eq(0).text().trim() == "The current page may have been removed, changed or is temporarily unavailable."){
         // if($("#header>h1").text().trim() == "Server Error"){
-          resolveData = null;
+          resolveData = {
+            status: "fail",
+            message: "제거된 이벤트",
+            benKey: "BK",
+            betTime: 0,
+            betMsg: "제거된 이벤트"
+          };
           setInitMessage(null);
           break;
         }
@@ -853,21 +879,23 @@ function bet365JS(){
           localStorage.setItem("setUrl", true);
 
           /// test
-          // if(betOption.action == "checkBetmax" || await isBetslipDataTimeover()){
-          //   window.location.href = data.data.betLink;
-          //   resolveData = {passResolve:true};
-          //   break;
-          // }
+          if(betOption.betType == "0414"){
+            if(betOption.action == "checkBetmax" || await isBetslipDataTimeover()){
+              window.location.href = data.data.betLink;
+              resolveData = {passResolve:true};
+              break;
+            }
+          }else{
+            window.location.href = data.data.betLink;
+            resolveData = {passResolve:true};
+            break;
+          }
           ///
-
-          window.location.href = data.data.betLink;
-          resolveData = {passResolve:true};
-          break;
         }
 
 
         ///test
-        if(0 && betOption.action !== "checkBetmax"){
+        if(betOption.betType == "0414" && betOption.action !== "checkBetmax"){
           let info = await getBetslipInfoForAPI(undefined, data.data.handicap?data.data.handicap:undefined);
           console.error("@@@betslipinfo", info);
 
@@ -877,7 +905,7 @@ function bet365JS(){
             console.error("betslipinfo null, refreshslip이 수신된적이 없는듯");
             resolveData = {
               status: "fail",
-              message: "betslip 못찾음"
+              message: "timekey 만료된듯."
             };
           }else if(info.title == "" && info.market == ""){
             console.error("사라진 이벤트1");
@@ -1077,71 +1105,23 @@ function bet365JS(){
       break;
 
       case "placeBetDirect":
-        resolveData = await placeBetDirect(data);
-        // await (async ()=>{
-        //   let {betData, stake, odds} = data;
-        //
-        //   // await refreshslip();
-        //
-        //   console.error("placeBetTest", betData);
-        //   let betGuid = localStorage.getItem('betGuid');
-        //   console.error("betGuid", betGuid);
-        //   // let refreshData = localStorage.getItem('refreshData');
-        //   // console.error("refreshData", refreshData);
-        //   if(!betGuid){
-        //     return;
-        //   }
-        //
-        //   const params = new URLSearchParams();
-        //   for(let o in betData.data){
-        //     params.append(o, betData.data[o]);
-        //   }
-        //   // var bodyFormData = new FormData();
-        //   // for(let o in data.data){
-        //   //   bodyFormData.append(o, data.data[o]);
-        //   // }
-        //   let headers = await sendData("getBetHeaders", null, PN_BG);
-        //   console.error("bet headers", headers);
-        //   let res = await axios({
-        //     method: "post",
-        //     url: "https://www.bet365.com/BetsWebAPI/placebet?betGuid=" + betGuid,
-        //     data: params,
-        //     headers: headers
-        //   })
-        //   console.error("res", res);
-        //
-        //   let info;
-        //   let _result = {stake, money:info.money};
-        //   if(res.data.mi == "selections_changed"){
-        //     _result.status = "acceptChange";
-        //     let od = res.data.bt[0].od;
-        //     console.error("od", od);
-        //     _result.info = info;
-        //     if(od){
-        //       info = await getBetslipInfoForAPI(od);
-        //       info.od = od;
-        //       info.odds = odToOdds(od);
-        //     }else{
-        //       info = await getBetslipInfoForAPI(odds);
-        //     }
-        //   }else{
-        //     info = await getBetslipInfoForAPI(odds);
-        //     _result.info = info;
-        //     if(res.data.mi == "stakes_above_max_stake"){
-        //       _result.status = "foundBetmax";
-        //       _result.betmax = res.data.bt[0].ms;
-        //     }else if(res.data.br){
-        //       _result.status = "success";
-        //       _result.money = await loadMoney();
-        //     }else{
-        //       _result.status = "noReturn";
-        //     }
-        //   }
-        //
-        //   _result.data = res.data;
-        //   resolveData = _result;
-        // })()
-
+        // resolveData = await placeBetDirect(data);
+        resolveData = await new Promise(resolve=>{
+          let complete;
+          let itv = setTimeout(()=>{
+            if(!complete){
+              complete = true;
+              resolve(null);
+            }
+          }, 10000);
+          placeBetDirect(data).then(r=>{
+            if(!complete){
+              complete = true;
+              clearTimeout(itv);
+              resolve(r);
+            }
+          });
+        })
       break;
 
       case "placeBet":
@@ -1470,6 +1450,16 @@ function bet365JS(){
                 info = await getBetslipInfoForAPI();
                 let betData = await sendData("getBetData", null, PN_BG);
                 let betslipData = await sendData("getBetslipData", null, PN_BG);
+                let m = betData.data.ns.match(/#o=([^#]+)/);
+                if(m && info){
+                  let od = m[1];
+                  od = odCheck(od, info.odds);
+                  info.od = od
+                  info.odds = odToOdds(od);
+                  betslipData.data.ns = betslipData.data.ns.replace(/#o=((\d+\/\d+)|(\d+(\.\d+))?)/, function(f,m){
+                    return "#o=" + od;
+                  })
+                }
                 resolveData = {
                   balance, betmax, info, betData, betslipData
                 }

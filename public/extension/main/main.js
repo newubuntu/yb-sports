@@ -1228,7 +1228,9 @@ async function openBet365AndGetInfo(data, forApi){
     // }
     return;
   }else{
-    log(`벳365 확인: ${data.bet365.odds}`, null, true);
+    // log(`벳365 확인: ${data.bet365.odds}`, null, true);
+    log(`벳365 확인: ${bet365Info.odds}`, null, true);
+
     console.log("bet365 info", bet365Info);
     console.log("betburger info", data.bet365);
 
@@ -1472,7 +1474,7 @@ function checkOddsForBet365(data){
     return false;
   }
   let checkOdds = betOption.minOddsForBet365;
-  if(data.bet365.odds <= betOption.minOddsForBet365){
+  if(data.bet365.odds < betOption.minOddsForBet365){
     log(`벳365 최소배당보다 작습니다. ${data.bet365.odds}/${betOption.minOddsForBet365}`, "danger", true);
     return false;
   }
@@ -1618,9 +1620,23 @@ async function checkBetmaxProcess(data){
 
 
   console.error("wait pnc balance");
-  let balance = await sendData("getBalance", null, PN_BG);
-  console.error("balance", balance);
-  if(balance.code === "INVALID_CREDENTIALS"){
+  let balance, retryCount = 0;
+  while(1){
+    balance = await sendData("getBalance", null, PN_BG);
+    console.error("balance", balance);
+    if(balance.message == "Network Error"){
+      if(retryCount < 3){
+        log(`피나클 잔액확인 실패: ${balance.message}. 재시도(${++retryCount})`, "danger", true);
+        await delay(1000);
+        continue;
+      }else{
+        balance.code = "NETWORK_ERROR";
+      }
+    }
+    break;
+  }
+
+  if(balance.code === "INVALID_CREDENTIALS" || balance.code === "NETWORK_ERROR"){
     log(`피나클 잔액확인 실패: ${balance.message}`, "warning", true);
     stopMatch(true);
     return;
@@ -2034,7 +2050,7 @@ function setupMode(mode){
     $(".log-container").css("height", "calc(100vh - 63px)");
     $(window).off("resize");
   }else{
-    $("body").css("background", "black");
+    $("body").css("background", "#050505");
     $(".container").show();//.css("transform", "scale(0.5)");
     $("#matchButton").hide();
     $("#optionName").hide();

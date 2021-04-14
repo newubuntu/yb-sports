@@ -72,6 +72,22 @@ let Vapp;
       type: "select"
     },
     {
+      name: "배팅방식",
+      key: "betType",
+      value: "default",
+      list: [
+        {
+          name: "기본",
+          value: "default"
+        },
+        {
+          name: "0414테스트",
+          value: "0414"
+        }
+      ],
+      type: "select"
+    },
+    {
       type: "hr"
     },
     {
@@ -257,7 +273,13 @@ let Vapp;
     _id: "",
     name: "",
     data: optionDataFormat.reduce((r, form)=>{
-      r[form.key] = form.value;
+      if(form.key){
+        if(form.value && typeof form.value === "object"){
+          r[form.key] = JSON.parse(JSON.stringify(form.value));
+        }else{
+          r[form.key] = form.value;
+        }
+      }
       return r;
     }, {})
   }
@@ -291,11 +313,13 @@ let Vapp;
       if(options){
         this.options = options;
       }
-
+      // console.error({optionDataFormat});
+      // let formJson = JSON.parse(JSON.stringify(optionDataFormat));
       this.forms = JSON.parse(JSON.stringify(optionDataFormat));
       this.formsMap = this.forms.reduce((r,form)=>{
         if(form.key){
           r[form.key] = form;
+          // console.error('-', form.key, form);
         }
         return r;
       }, {});
@@ -371,7 +395,11 @@ let Vapp;
           if(form){
             if(form.type == 'checkbox'){
               // console.log(event.target.checked);
+              if(typeof form.value !== "object"){
+                form.value = {};
+              }
               form.value[key[1]] = event.target.checked;
+              // console.error(key, form);
             }else if(form.type == 'radio'){
               if(event.target.checked){
                 form.value = key[1];
@@ -388,6 +416,12 @@ let Vapp;
         let opt = {};
         for(let key in this.formsMap){
           opt[key] = this.formsMap[key].value;
+          // let v = this.formsMap[key].value;
+          // if(v && typeof v === "object"){
+          //   opt[key] = JSON.parse(JSON.stringify(v));
+          // }else{
+          //   opt[key] = v;
+          // }
         }
         return {
           _id: this.optionId,
@@ -397,7 +431,16 @@ let Vapp;
         }
       },
 
+      // clearOptionData(){
+      //   this.setOptionData(defaultOption);
+      // },
+
       setOptionData(option){
+        this._setOptionData(defaultOption);
+        this._setOptionData(option);
+      },
+
+      _setOptionData(option){
         option = JSON.parse(JSON.stringify(option));
         this.optionName = option.name;
         this.optionId = option._id;
@@ -405,7 +448,21 @@ let Vapp;
         for(let key in this.formsMap){
           // console.log(key, this.formsMap[key], option.data[key]);
           if(this.formsMap[key]){
-            this.formsMap[key].value = option.data[key] || "";
+            if(this.formsMap[key].type == "checkbox"){
+              // let v = this.formsMap[key].value;
+              // let fm = optionDataFormat.find(f=>f.key==key);
+              // for(let o in v){
+              //   v[o] = fm.value[o];
+              // }
+              if(typeof option.data[key] === "object"){
+                this.formsMap[key].value = option.data[key];
+              }
+              // else{
+              //   this.formsMap[key].value = {};
+              // }
+            }else if(option.data[key] !== undefined){
+              this.formsMap[key].value = option.data[key];
+            }
           }
         }
         // this.$forceUpdate();
