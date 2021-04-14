@@ -1450,15 +1450,19 @@ function bet365JS(){
                 info = await getBetslipInfoForAPI();
                 let betData = await sendData("getBetData", null, PN_BG);
                 let betslipData = await sendData("getBetslipData", null, PN_BG);
+                betslipData = JSON.parse(JSON.stringify(betslipData));
                 let m = betData.data.ns.match(/#o=([^#]+)/);
                 if(m && info){
                   let od = m[1];
                   od = odCheck(od, info.odds);
                   info.od = od
                   info.odds = odToOdds(od);
-                  betslipData.data.ns = betslipData.data.ns.replace(/#o=((\d+\/\d+)|(\d+(\.\d+))?)/, function(f,m){
+
+                  betslipData.data.ns = betslipData.data.ns.replace(/#o=([^#]+)/, function(f,m){
                     return "#o=" + od;
                   })
+
+                  console.error("##", {od, odds:info.odds, ns:betslipData.data.ns});
                 }
                 resolveData = {
                   balance, betmax, info, betData, betslipData
