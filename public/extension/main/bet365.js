@@ -497,7 +497,7 @@ function bet365JS(){
       localStorage.setItem('betGuid', data.bg);
       let bt = data.bt[0];
       let pt = bt.pt[0];
-      if(pt.md && pt.md !== "Draw No Bet" && pt.md !== "Match Winner"){
+      if(pt.md && pt.md !== "Draw No Bet" && pt.md !== "Match Winner" && pt.md !== "Next Game"){
         if(pt.hd === undefined){
           c++;
           if(c < 4){

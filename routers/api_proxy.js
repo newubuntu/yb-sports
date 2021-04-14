@@ -447,7 +447,7 @@ module.exports = MD=>{
     let data;
     if(body.proxyHttp){
       //내용 수정
-      data = await makeProxyBody(body);
+      data = await makeProxyBody(body, _id);
       if(data.status == "fail"){
         res.json(data);
         return;
@@ -465,13 +465,13 @@ module.exports = MD=>{
     })
   }))
 
-  async function makeProxyBody(data){
+  async function makeProxyBody(data, exceptId){
     let body = JSON.parse(JSON.stringify(data));
     delete body._id;
     // console.error(data, body);
 
     let ip = body.proxyHttp.split(':')[0];
-    let temp = await Proxy.findOne({proxyHttp:{$regex:'.*'+ip+'.*'}, removed:false});
+    let temp = await Proxy.findOne({_id:{$ne:exceptId}, proxyHttp:{$regex:'.*'+ip+'.*'}, removed:false});
     if(temp){
       return {
         status: "fail",
@@ -479,7 +479,7 @@ module.exports = MD=>{
       }
     }
 
-    temp = await Proxy.findOne({proxyHttp:{$regex:'.*'+ip+'.*'}, removed:true});
+    temp = await Proxy.findOne({_id:{$ne:exceptId}, proxyHttp:{$regex:'.*'+ip+'.*'}, removed:true});
     if(temp){
       body.historyOfUse = true;
     }else{
