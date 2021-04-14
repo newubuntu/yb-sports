@@ -999,6 +999,7 @@ async function bet365PlacebetProcess(data, bet365Info){
         if(result.info.market == ""){
           log(`배팅취소: 배팅카트 사라짐`, "danger", true);
         }else{
+          changeOddsBet365Process(data, result.info.odds);
           log(`벳365 배팅완료!`, "success", true);
           checkBet = true;
         }
