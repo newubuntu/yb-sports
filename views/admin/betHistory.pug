@@ -11,6 +11,9 @@ block append styles
     .input-group>input:not(.date) {
       width: 110px !important;
     }
+    .start-date, .end-date {
+      width: 126px !important;
+    }
 
 block scripts
   script(src='/js/admin/betHistory.js')
@@ -110,19 +113,19 @@ block view
       .col-md
         ul.nav.nav-tabs
           li.nav-item
-            a.nav-link(href="#0" v-on:click="loadList(0, 0, {accountId, email, status, betId, eventName})" :class="tab==0?'active':''") 배팅목록
+            a.nav-link(href="#0" v-on:click="reload(0, 0)" :class="tab==0?'active':''") 배팅목록
           li.nav-item 
-            a.nav-link(href="#1" v-on:click="loadList(0, 1, {accountId, email, status, betId, eventName})" :class="tab==1?'active':''") 축구
+            a.nav-link(href="#1" v-on:click="reload(0, 1)" :class="tab==1?'active':''") 축구
           li.nav-item 
-            a.nav-link(href="#2" v-on:click="loadList(0, 2, {accountId, email, status, betId, eventName})" :class="tab==2?'active':''") 테니스
+            a.nav-link(href="#2" v-on:click="reload(0, 2)" :class="tab==2?'active':''") 테니스
           li.nav-item 
-            a.nav-link(href="#3" v-on:click="loadList(0, 3, {accountId, email, status, betId, eventName})" :class="tab==3?'active':''") 하키
+            a.nav-link(href="#3" v-on:click="reload(0, 3)" :class="tab==3?'active':''") 하키
           li.nav-item 
-            a.nav-link(href="#4" v-on:click="loadList(0, 4, {accountId, email, status, betId, eventName})" :class="tab==4?'active':''") 농구
+            a.nav-link(href="#4" v-on:click="reload(0, 4)" :class="tab==4?'active':''") 농구
           li.nav-item 
-            a.nav-link(href="#5" v-on:click="loadList(0, 5, {accountId, email, status, betId, eventName})" :class="tab==5?'active':''") 야구
+            a.nav-link(href="#5" v-on:click="reload(0, 5)" :class="tab==5?'active':''") 야구
           li.nav-item 
-            a.nav-link(href="#6" v-on:click="loadList(0, 6, {accountId, email, status, betId, eventName})" :class="tab==6?'active':''") 미식축구
+            a.nav-link(href="#6" v-on:click="reload(0, 6)" :class="tab==6?'active':''") 미식축구
         .card
           .card-header
             div
@@ -130,7 +133,6 @@ block view
               span(style="margin-left:10px")
                 .btn-group
                   button.btn.btn-sm.btn-primary(type="button" v-on:click="reload")
-                    |새로고침
                     svg.c-icon.c-icon-lg
                       use(xlink:href="/vendors/@coreui/icons/sprites/solid.svg#cis-reload")
                   button.btn.btn-sm.btn-secondary(type="button" v-on:click="resetReload")
@@ -176,13 +178,22 @@ block view
                   .form-group
                     .input-group
                       .input-group-prepend
+                        .input-group-text 타입
+                      select.form-control.search-bettype(v-on:change="changeSearchBetType" :value="betType||''")
+                        option(value="") --------
+                        option(value="MONEYLINE") MONEYLINE
+                        option(value="SPREAD") SPREAD
+                        option(value="TOTAL_POINTS") TOTAL_POINTS
+                  .form-group
+                    .input-group
+                      .input-group-prepend
                         .input-group-text 유저
                       select.form-control.search-email(v-on:change="changeSearchEmail" :value="email?email:''")
                         option(value="") --------
                         option(v-if="!!user" v-for="user in users" :value="user.email") {{user.email}}
                       //-input.form-control.search-email(type="text" :value="email?email:''" v-on:change="changeSearchEmail")              
                   .form-group
-                    button.btn.btn-primary(type="button" v-on:click="loadList(0, tab, {accountId, email, status, betId, eventName})") 찾기
+                    button.btn.btn-primary(type="button" v-on:click="reload(0)") 찾기
               //-span.float-right(style="margin-right:30px;")
                 .form-inline
                   .form-group
@@ -276,33 +287,39 @@ block view
                 tr(v-for="item, i in list")
                   td {{i+1}}
                   td 
-                    a(:href="'#'+tab" style="cursor:pointer" v-on:click="loadList(0, tab, {accountId, email:item.user?item.user.email:'', status, betId, eventName})")
+                    a(:href="'#'+tab" style="cursor:pointer" v-on:click="reload(0, tab, {email:item.user?item.user.email:''})")
                       |{{item.user?item.user.email:""}}
                   td
-                    a(:href="'#'+tab" style="cursor:pointer" v-on:click="loadList(0, tab, {accountId, email, status, betId:item.betId, eventName})")
+                    a(:href="'#'+tab" style="cursor:pointer" v-on:click="reload(0, tab, {betId:item.betId})")
                       |{{item.betId}}
                   td
                     button.btn.btn-sm.btn-primary(v-if="user.master" type="button" v-on:click="openEditModal(item)")
                       |수정
                   td {{item.sportName}}
+                  //-리그/이벤트
                   td 
                     |{{item.event.leagueName}}
                     br
-                    a(:href="'#'+tab" style="cursor:pointer" v-on:click="loadList(0, tab, {accountId, email, status, betId, eventName:item.event.betburger.pinnacle.eventName})")
+                    a(:href="'#'+tab" style="cursor:pointer" v-on:click="reload(0, tab, {eventName:item.event.betburger.pinnacle.eventName})")
                       |{{item.event.betburger.pinnacle.eventName}}
                   //-td {{item.event.betburger.pinnacle.eventName}}
                   // pinnacle
                   td {{getSide(item, 'pinnacle')}}
-                  td {{item.event.betburger.pinnacle.type.code + " " + item.event.betburger.pinnacle.type.set}}
+                  //-타입
+                  td
+                    |{{item.event.betburger.pinnacle.type.code + " " + item.event.betburger.pinnacle.type.set}}
+                    br
+                    a(:href="'#'+tab" style="cursor:pointer" v-on:click="reload(0, tab, {betType:item.event.betType})")
+                      |{{item.event.betType}}
                   td {{item.siteOdds}}
                   td ${{item.siteStake}}
                   td(:class="getStatusColor(item)") {{item.pncResult}}
                   td(:class="getStatusColor(item)")
-                    a(style="cursor:pointer" v-on:click="loadList(0, tab, {accountId, email, status:item.betStatus, betId, eventName})")
+                    a(style="cursor:pointer" v-on:click="reload(0, tab, {status:item.betStatus})")
                       |{{item.betStatus}}
                   // bet365
                   td 
-                    a(:href="'#'+tab" style="cursor:pointer" v-on:click="loadList(0, tab, {accountId:item.account.id, email, status, betId, eventName})")
+                    a(:href="'#'+tab" style="cursor:pointer" v-on:click="reload(0, tab, {accountId:item.account.id})")
                       |{{item.account.id}}                  
                   td {{getSide(item, 'bet365')}}
                   td 
@@ -316,13 +333,13 @@ block view
           nav
             ul.pagination.justify-content-center(v-if="list.length>0")
               li.page-item
-                a.page-link(v-if="startPage>0" href="#" aria-label="Previous" v-on:click="loadList(startPage-1, tab, {accountId, email, status, betId, eventName})")
+                a.page-link(v-if="startPage>0" href="#" aria-label="Previous" v-on:click="reload(startPage-1)")
                   span(aria-hidden="true") «
                   span.sr-only Previous
               li.page-item(v-for="i in pages" :class="curPage==i?'active':''")
                 a.page-link(v-if="curPage==i") {{i+1}}
-                a.page-link(v-else href="#" v-on:click="loadList(i, tab, {accountId, email, status, betId, eventName})") {{i+1}}
+                a.page-link(v-else href="#" v-on:click="reload(i)") {{i+1}}
               li.page-item
-                a.page-link(v-if="maxPage>endPage" href="#" aria-label="Next" v-on:click="loadList(endPage+1, tab, {accountId, email, status, betId, eventName})")
+                a.page-link(v-if="maxPage>endPage" href="#" aria-label="Next" v-on:click="reload(endPage+1)")
                   span(aria-hidden="true") »
                   span.sr-only Next

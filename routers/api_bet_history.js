@@ -77,7 +77,8 @@ module.exports = MD=>{
 
   router.post("/get_bets", task(async (req, res)=>{
     let {
-      ids, offset, limit, curPage, sportName, accountId, admin, email, status, range, betId, eventName
+      ids, offset, limit, curPage, sportName, accountId, admin,
+      email, status, range, betId, eventName, betType
     } = req.body;
     let query = {user:req.user._id, event:{$ne:null}, sportName};
 
@@ -201,12 +202,16 @@ module.exports = MD=>{
     let list = await BetData.find(query)
     // .select(["-password"])
     .sort({createdAt:-1})
-    .limit(limit)
-    .skip(offset)
+    // .limit(limit)
+    // .skip(offset)
     .populate(populateObjList)
     .lean();
 
+    if(betType){
+      list = list.filter(bd=>!!bd.event.betType);
+    }
 
+    list = list.slice(offset*limit, offset*limit+limit);
 
     let totalMoney = 0;
     // list.reduce((r,v)=>r+v.user.money, 0);

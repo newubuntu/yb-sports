@@ -67,6 +67,7 @@ let Vapp;
       status: null,
       betId: null,
       eventName: null,
+      betType: null,
       result: {},
       users: [],
       forms: [],
@@ -205,6 +206,10 @@ let Vapp;
         this.eventName = $('.search-event').val().trim();
       },
 
+      changeSearchBetType(){
+        this.betType = $('.search-bettype').val().trim();
+      },
+
       getSide(item, who){
         let obj = item.event.betburger[who];
         if(obj.side){
@@ -240,33 +245,40 @@ let Vapp;
         this.pages = pages;
       },
 
-      reload(){
-        this.loadList(this.curPage, this.tab, {
+      getCurrentSearchInfo(){
+        return {
           accountId:this.accountId,
           email:this.email,
           status:this.status,
           betId:this.betId,
-          eventName: this.eventName
-        });
+          eventName: this.eventName,
+          betType: this.betType
+        }
       },
 
-      resetReload(){
-        this.loadList(this.curPage, this.tab);
+      reload(curPage, tab, opt={}){
+        opt = Object.assign(this.getCurrentSearchInfo(), opt);
+        return this.loadList(curPage||this.curPage, tab||this.tab, opt);
+      },
+
+      resetReload(curPage, tab){
+        this.loadList(curPage||this.curPage, tab||this.tab);
       },
 
       async loadList(curPage=0, tab=0, opt={}){//accountId){
         // accountId = accountId||this.accountId;
-        let {accountId, email, status, betId, eventName} = opt;
+        let {accountId, email, status, betId, eventName, betType} = opt;
         this.accountId = accountId;
         this.email = email;
         this.status = status;
         this.betId = betId;
         this.eventName = eventName;
+        this.betType = betType;
         let range = startPicker.getRange();
         range.end = new Date(range.end.getTime() + (1000*60*60*24 - 1000));
         // console.log("date range", range);
         // console.log("loadList page", curPage);
-        let query = {curPage, accountId, email, status, range, betId, eventName};
+        let query = {curPage, accountId, email, status, range, betId, eventName, betType};
         switch(tab){
           case 0: // 전체
           break;
