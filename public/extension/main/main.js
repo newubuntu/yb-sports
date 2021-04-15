@@ -1760,7 +1760,7 @@ async function checkBetmaxProcess(data){
     // 추후 벤하는쪽에서 id+odds+event 별로 한도를 정한 서버단의 벤리스트를 만들면
     // 그것을 체크하는것으로 변경하자
     // if(isBenEvent(data.bet365.eventId+data.bet365.odds)){
-    if(isBetEvent(data, "OBOK")){
+    if(isBenEvent(data, "OBOK")){
       log(`제외된 배당입니다.`, "warning", true);
       return;
     }
