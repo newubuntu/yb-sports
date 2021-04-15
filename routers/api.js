@@ -745,7 +745,7 @@ module.exports = io=>{
         return;
       }else{
         event.bookmaker = data.bookmaker;
-        data.sportName = event.sportName;
+
         delete data.bookmaker;
         await event.save();
       }
@@ -760,6 +760,8 @@ module.exports = io=>{
         data.betStatus = event.betStatus;
       }
       data.eventName = event.betburger.pinnacle.eventName;
+      data.sportName = event.sportName;
+      data.betType = event.betType;
       // data.event = await Event.findOne()
       bd = await BetData.create(data);
       // let user = await User.findOneAndUpdate({_id:req.user._id}, {$inc:{money:-data.siteStake}}, {new:true});

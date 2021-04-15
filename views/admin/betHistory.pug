@@ -309,8 +309,8 @@ block view
                   td
                     |{{item.event.betburger.pinnacle.type.code + " " + item.event.betburger.pinnacle.type.set}}
                     br
-                    a(:href="'#'+tab" style="cursor:pointer" v-on:click="reload(0, tab, {betType:item.event.betType})")
-                      |{{item.event.betType}}
+                    a(:href="'#'+tab" style="cursor:pointer" v-on:click="reload(0, tab, {betType:item.betType})")
+                      |{{item.betType}}
                   td {{item.siteOdds}}
                   td ${{item.siteStake}}
                   td(:class="getStatusColor(item)") {{item.pncResult}}

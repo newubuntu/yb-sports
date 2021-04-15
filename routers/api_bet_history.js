@@ -110,6 +110,10 @@ module.exports = MD=>{
       query.betStatus = status;
     }
 
+    if(betType){
+      query.betType = betType;
+    }
+
     if(accountId){
       let account = await Account.findOne({id:accountId});
       if(account){
@@ -202,16 +206,16 @@ module.exports = MD=>{
     let list = await BetData.find(query)
     // .select(["-password"])
     .sort({createdAt:-1})
-    // .limit(limit)
-    // .skip(offset)
+    .limit(limit)
+    .skip(offset)
     .populate(populateObjList)
     .lean();
 
-    if(betType){
-      list = list.filter(bd=>bd.event.betType==betType);
-    }
-
-    list = list.slice(offset*limit, offset*limit+limit);
+    // 이런식으로 하면 aggregate 합산에는 반영안됨
+    // if(betType){
+    //   list = list.filter(bd=>bd.event.betType==betType);
+    // }
+    // list = list.slice(offset*limit, offset*limit+limit);
 
     let totalMoney = 0;
     // list.reduce((r,v)=>r+v.user.money, 0);
@@ -243,6 +247,7 @@ module.exports = MD=>{
 
 
     let resultObj;
+
 
     resultObj = await BetData.aggregate()
     .match(query)
