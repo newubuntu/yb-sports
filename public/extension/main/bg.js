@@ -28,7 +28,7 @@ function bgJS(){
   let betData = {};
   let betHeaders = {};
   let betslipData = {};
-  let betslipDataTime = {};
+  let timekeyReceiveTime = {};
 
   //벳삼 먹통을 체크하기 위한 변수
   // 소켓통신이 complete 되기까지(+1sec) 벳슬립 정보가 없으면
@@ -148,12 +148,12 @@ function bgJS(){
         }
       break;
 
-      case "isBetslipDataTimeover":
-        resolveData = Date.now() - (betslipDataTime[tabInfos.bet365.id]||0) > (1000*60*4);
+      case "isTimekeyOver":
+        resolveData = Date.now() - (timekeyReceiveTime[tabInfos.bet365.id]||0) > (1000*60*4);
       break;
 
-      case "resetBetslipTime":
-        betslipDataTime[tabInfos.bet365.id] = 0;
+      case "resetTimekeyTime":
+        timekeyReceiveTime[tabInfos.bet365.id] = 0;
       break;
 
       // case "updatedUrl":
@@ -224,6 +224,9 @@ function bgJS(){
   								betOption: browser.option.data,
   								optionName: browser.option.name
   							});
+
+
+                sendData("bet365LoginComplete", null, PN_B365, true);
 
                 // 벳삼은 자주 새로고침된다. 처음에주는건 의미가 없으니 주석. 항상 받아서 사용하자.
                 // sendData("betOption", browser.option.data, PN_B365, true);
@@ -437,7 +440,7 @@ function bgJS(){
         }
         return r;
       },{});
-      betslipDataTime[details.tabId] = Date.now();
+      // betslipDataTime[details.tabId] = Date.now();
       betslipData[details.tabId] = {
         data
       };
@@ -468,18 +471,22 @@ function bgJS(){
     // betData.url = details.url;
     let xnst = details.requestHeaders.find(h=>h.name=="X-Net-Sync-Term");
     // let ctype = details.requestHeaders.find(h=>h.name=="Content-type");
-    betHeaders[details.tabId] = {
-      "X-Net-Sync-Term": xnst.value,
-      'Content-Type': 'application/x-www-form-urlencoded'
-      // "Content-type": ctype.value
+    if(xnst.value){
+      timekeyReceiveTime[details.tabId] = Date.now();
+      betHeaders[details.tabId] = {
+        "X-Net-Sync-Term": xnst.value,
+        'Content-Type': 'application/x-www-form-urlencoded'
+        // "Content-type": ctype.value
+      }
+      console.error("betHeaders", betHeaders);
     }
-    console.error("betHeaders", betHeaders);
   }, {
     "urls": [
       "https://www.bet365.com/BetsWebAPI/refreshslip",
       "https://www.bet365.com/BetsWebAPI/placebet*",
       "https://www.bet365.com/BetsWebAPI/addbet",
-      "https://www.bet365.com/BetsWebAPI/removebet"
+      "https://www.bet365.com/BetsWebAPI/removebet",
+      "https://www.bet365.com/SportsBook.API/web?*"
     ],
 		"types": ["xmlhttprequest"]
   }, ["requestHeaders"]);

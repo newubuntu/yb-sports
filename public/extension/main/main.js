@@ -891,7 +891,7 @@ async function bet365PlacebetProcess(data, bet365Info){
       }
 
       if(isBenEvent(data, "OBOK")){
-        log(`제외된 배당입니다.`, "warning", true);
+        log(`제외된 배당입니다(odds:${data.bet365.odds})`, "warning", true);
         break;
       }
 
@@ -1017,7 +1017,7 @@ async function bet365PlacebetProcess(data, bet365Info){
           log(`배팅취소: 배팅카트 사라짐`, "danger", true);
         }else{
           changeOddsBet365Process(data, result.info.odds);
-          log(`벳365 배팅완료! (${result.info.odds})`, "success", true);
+          log(`벳365 배팅완료! (odds:${result.info.odds}, stake:${result.stake})`, "success", true);
           checkBet = true;
         }
         break;
@@ -1055,7 +1055,7 @@ async function bet365PlacebetProcess(data, bet365Info){
       sendDataToServer("updateMoney", result.money);
     }
     sendDataToServer("addBetCount", {id:account.id});
-    benEvent(data, "OBOK", 0, `배팅완료 (${data.bet365.odds})`);
+    benEvent(data, "OBOK", 0, `배팅완료`);
   }
 
   // if(noChangeOddsAcceptCount >= 3){
@@ -1761,7 +1761,7 @@ async function checkBetmaxProcess(data){
     // 그것을 체크하는것으로 변경하자
     // if(isBenEvent(data.bet365.eventId+data.bet365.odds)){
     if(isBenEvent(data, "OBOK")){
-      log(`제외된 배당입니다.`, "warning", true);
+      log(`제외된 배당입니다(odds:${data.bet365.odds})`, "warning", true);
       return;
     }
 

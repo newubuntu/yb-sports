@@ -424,10 +424,10 @@ function bet365JS(){
   }
 
   // let bsdtime = 0;
-  function isBetslipDataTimeover(){
+  function isTimekeyOver(){
     // 4분을 유효주기로 잡자
     // return Date.now() - bsdtime > (1000 * 60 * 4);
-    return sendData("isBetslipDataTimeover", null, PN_BG);
+    return sendData("isTimekeyOver", null, PN_BG);
   }
 
   function getBetslipData(){
@@ -476,6 +476,7 @@ function bet365JS(){
     // localStorage.removeItem('refreshData');
 
     let data, c=0;
+    let retryCount = 0;
 
     while(1){
       let res = await axios({
@@ -489,10 +490,18 @@ function bet365JS(){
 
       data = res.data;
 
+      if(!data || !data.bt){
+        if(retryCount++ < 1){
+          refreshTimekey();
+          await delay(1000);
+          continue;
+        }
+      }
+
       if(!data) break;
       if(!data.bt){
         data = null;
-        sendData("resetBetslipTime", null, PN_BG, true);
+        sendData("resetTimekeyTime", null, PN_BG, true);
         break;
       }
 
@@ -656,8 +665,9 @@ function bet365JS(){
         // 폐쇄계정
         _result.status = "restriction";
         _result.message = "폐쇄된 계정";
-      }else if(res.data.br && res.data.bt[0].br && res.data.la[0] && res.data.la[0].ak){
+      }else if(res.data.br && res.data.ts !== undefined && res.data.bt[0].br && res.data.la[0] && res.data.la[0].ak){
         _result.status = "success";
+        _result.stake = res.data.ts;
         _result.money = await loadMoney();
       }else{
         _result.status = "noReturn";
@@ -682,6 +692,26 @@ function bet365JS(){
     }
 
     return $el;
+  }
+
+  function refreshTimekey(){
+    console.error("@@refreshTimekey");
+    var btn = $(".gl-Participant_General:not([class*=_Highlighted]):not([class*=_Suspended])").first()[0];
+    btn.click();
+    btn.click();
+  }
+
+  function sessionActivity(){
+    console.log("sessionActivity");
+    axios.get("https://www.bet365.com/sessionactivityapi/setlastactiontime");
+  }
+
+  var saItv;
+  function sessionActivityProcess(){
+    clearInterval(saItv);
+    saItv = setInterval(()=>{
+      sessionActivity();
+    }, 1000 * 60 * 3);
   }
 
   var currentData;
@@ -806,7 +836,9 @@ function bet365JS(){
         }
       break;
 
-
+      case "bet365LoginComplete":
+        sessionActivityProcess();
+      break;
 
       case "setBetOption":
         betOption = data.betOption;
@@ -826,13 +858,18 @@ function bet365JS(){
 
         /// test
         if(betOption.betType == "0414"){
-          if(await isBetslipDataTimeover()){
-            window.location.href = data.url;
-          }else{
-            $(".hm-MainHeaderRHSLoggedInMed_MyBetsLabel").click();
-            await delay(100);
-            $(".myb-MyBetsHeader_Button").last().click();
+          console.error("timecheck");
+          if(await isTimekeyOver()){
+            console.error("set href");
+            refreshTimekey();
+            // window.location.href = data.url;
           }
+          // else{
+          //   console.error("mybet click");
+          //   $(".hm-MainHeaderRHSLoggedInMed_MyBetsLabel").click();
+          //   await delay(100);
+          //   $(".myb-MyBetsHeader_Button").last().click();
+          // }
         }else{
           window.location.href = data.url;
         }
@@ -885,10 +922,13 @@ function bet365JS(){
 
           /// test
           if(betOption.betType == "0414"){
-            if(betOption.action == "checkBetmax" || await isBetslipDataTimeover()){
+            if(betOption.action == "checkBetmax"){
               window.location.href = data.data.betLink;
               resolveData = {passResolve:true};
               break;
+            }else if(await isTimekeyOver()){
+              refreshTimekey();
+              await delay(1000);
             }
           }else{
             window.location.href = data.data.betLink;
