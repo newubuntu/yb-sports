@@ -1000,7 +1000,7 @@ async function bet365PlacebetProcess(data, bet365Info){
           log(`배팅취소: 배팅카트 사라짐`, "danger", true);
         }else{
           changeOddsBet365Process(data, result.info.odds);
-          log(`벳365 배팅완료!`, "success", true);
+          log(`벳365 배팅완료! (${result.info.odds})`, "success", true);
           checkBet = true;
         }
         break;
@@ -1038,7 +1038,7 @@ async function bet365PlacebetProcess(data, bet365Info){
       sendDataToServer("updateMoney", result.money);
     }
     sendDataToServer("addBetCount", {id:account.id});
-    benEvent(data, "OBOK", 0, "배팅완료");
+    benEvent(data, "OBOK", 0, `배팅완료 (${data.bet365.odds})`);
   }
 
   // if(noChangeOddsAcceptCount >= 3){

@@ -491,10 +491,14 @@ function bet365JS(){
       if(!data) break;
       if(!data.bt){
         data = null;
+        sendData("resetBetslipTime", null, PN_BG, true);
         break;
       }
 
-      localStorage.setItem('betGuid', data.bg);
+      if(data.bg){
+        localStorage.setItem('betGuid', data.bg);
+      }
+
       let bt = data.bt[0];
       let pt = bt.pt[0];
       if(pt.md && pt.md !== "Draw No Bet" && pt.md !== "Match Winner" && pt.md !== "Next Game"){
