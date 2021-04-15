@@ -1149,10 +1149,10 @@ function getEventIds(data){
     BOK: data.bet365.id + data.bet365.odds,
     //origin bet365 event id + odds  key
     // OBOK: data.bet365.eventId + data.bet365.odds,
-    OBOK: data.origin.bookmaker_event_direct_link + data.bet365.odds,
+    OBOK: data.bet365.origin.bookmaker_event_direct_link + data.bet365.odds,
     //origin bet365 event id + odds + id  key
     // OBOIK: data.bet365.eventId + data.bet365.odds + account.id,
-    OBOIK: data.origin.bookmaker_event_direct_link + data.bet365.odds + account.id,
+    OBOIK: data.bet365.origin.bookmaker_event_direct_link + data.bet365.odds + account.id,
     // matchId: data.pinnacle.id + ':' + data.bet365.id
     EK: data.pinnacle.betburgerEventId,
     EBOK: data.pinnacle.betburgerEventId + data.bet365.odds,
