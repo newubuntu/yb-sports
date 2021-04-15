@@ -1013,7 +1013,7 @@ async function bet365PlacebetProcess(data, bet365Info){
         checkProfit = profitAllValidation(data);
         lakeMoney = true;
       }else if(result.status == "success"){
-        if(result.info.market == ""){
+        if(result.info && result.info.market == ""){
           log(`배팅취소: 배팅카트 사라짐`, "danger", true);
         }else{
           changeOddsBet365Process(data, result.info.odds);
