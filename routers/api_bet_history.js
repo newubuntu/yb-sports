@@ -208,7 +208,7 @@ module.exports = MD=>{
     .lean();
 
     if(betType){
-      list = list.filter(bd=>!!bd.event.betType);
+      list = list.filter(bd=>bd.event.betType==betType);
     }
 
     list = list.slice(offset*limit, offset*limit+limit);
