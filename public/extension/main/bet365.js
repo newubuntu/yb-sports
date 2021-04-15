@@ -493,6 +493,7 @@ function bet365JS(){
       if(!data || !data.bt){
         if(retryCount++ < 1){
           await refreshTimekey();
+          headers = await sendData("getBetHeaders", null, PN_BG);
           // await delay(1000);
           continue;
         }

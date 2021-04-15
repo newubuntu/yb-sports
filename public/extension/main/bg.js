@@ -478,7 +478,7 @@ function bgJS(){
         'Content-Type': 'application/x-www-form-urlencoded'
         // "Content-type": ctype.value
       }
-      console.error("betHeaders", betHeaders);
+      console.error("betHeaders", xnst.value);
     }
   }, {
     "urls": [
