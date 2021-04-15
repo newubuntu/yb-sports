@@ -492,8 +492,8 @@ function bet365JS(){
 
       if(!data || !data.bt){
         if(retryCount++ < 1){
-          refreshTimekey();
-          await delay(1000);
+          await refreshTimekey();
+          // await delay(1000);
           continue;
         }
       }
@@ -696,9 +696,16 @@ function bet365JS(){
 
   function refreshTimekey(){
     console.error("@@refreshTimekey");
+
+    localStorage.removeItem('betGuid');
+
     var btn = $(".gl-Participant_General:not([class*=_Highlighted]):not([class*=_Suspended])").first()[0];
     btn.click();
     btn.click();
+
+    return until(()=>{
+      return !!localStorage.getItem('betGuid');
+    }, 5000);
   }
 
   function sessionActivity(){
@@ -927,8 +934,8 @@ function bet365JS(){
               resolveData = {passResolve:true};
               break;
             }else if(await isTimekeyOver()){
-              refreshTimekey();
-              await delay(1000);
+              await refreshTimekey();
+              // await delay(1000);
             }
           }else{
             window.location.href = data.data.betLink;
