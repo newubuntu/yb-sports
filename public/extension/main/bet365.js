@@ -158,10 +158,11 @@ function bet365JS(){
     // info.odds = odToOdds(bt.od);
     // info.od = bt.od;
     let handicap;
+    let hd = pt.hd || pt.ha;
     if(pt.md !== "Draw No Bet"){
-      handicap = pt.hd?pt.hd:"";
+      handicap = hd?hd:"";
     }else{
-      handicap = pt.hd?pt.hd:"0";
+      handicap = hd?hd:"0";
     }
 
     let m = await readMoney();
@@ -502,7 +503,7 @@ function bet365JS(){
       let bt = data.bt[0];
       let pt = bt.pt[0];
       if(pt.md && pt.md !== "Draw No Bet" && pt.md !== "Match Winner" && pt.md !== "Next Game"){
-        if(pt.hd === undefined){
+        if(pt.hd === undefined && pt.ha === undefined){
           c++;
           if(c < 4){
             await delay(1000);
