@@ -554,8 +554,20 @@ function clearBenEvent(id){
   }
 }
 
-function isBenEvent(id){
-  return hasEventMark(id) && (!!getEventMark(id).ben);
+
+function isBenEvent(data, keyName){
+  let id;
+  if(arguments.length==1){
+    if(typeof data === "string"){
+      id = data;
+    }
+  }else{
+    let ids = getEventIds(data);
+    id = ids[keyName];
+  }
+  if(id){
+    return hasEventMark(id) && (!!getEventMark(id).ben);
+  }
 }
 
 function lineFindFailCount(id){
@@ -878,6 +890,11 @@ async function bet365PlacebetProcess(data, bet365Info){
         }
       }
 
+      if(isBenEvent(data, "OBOK")){
+        log(`제외된 배당입니다.`, "warning", true);
+        break;
+      }
+
       // await delay(Math.random()*1000);
       /// test
       let betData = currentGameData.bookmaker.betData;
@@ -1131,13 +1148,15 @@ function getEventIds(data){
     BK: data.bet365.id,
     BOK: data.bet365.id + data.bet365.odds,
     //origin bet365 event id + odds  key
-    OBOK: data.bet365.eventId + data.bet365.odds,
+    // OBOK: data.bet365.eventId + data.bet365.odds,
+    OBOK: data.origin.bookmaker_event_direct_link + data.bet365.odds,
     //origin bet365 event id + odds + id  key
-    OBOIK: data.bet365.eventId + data.bet365.odds + account.id,
+    // OBOIK: data.bet365.eventId + data.bet365.odds + account.id,
+    OBOIK: data.origin.bookmaker_event_direct_link + data.bet365.odds + account.id,
     // matchId: data.pinnacle.id + ':' + data.bet365.id
     EK: data.pinnacle.betburgerEventId,
     EBOK: data.pinnacle.betburgerEventId + data.bet365.odds,
-    EPOK: data.pinnacle.betburgerEventId + data.pinnacle.odds
+    EPOK: data.pinnacle.betburgerEventId + data.pinnacle.odds,
   }
 }
 
@@ -1740,8 +1759,9 @@ async function checkBetmaxProcess(data){
     // 검사되지 않을것이다.
     // 추후 벤하는쪽에서 id+odds+event 별로 한도를 정한 서버단의 벤리스트를 만들면
     // 그것을 체크하는것으로 변경하자
-    if(isBenEvent(data.bet365.eventId+data.bet365.odds)){
-      log(`제외된 배당입니다.(${data.bet365.eventId+data.bet365.odds})`, "warning", true);
+    // if(isBenEvent(data.bet365.eventId+data.bet365.odds)){
+    if(isBetEvent(data, "OBOK")){
+      log(`제외된 배당입니다.`, "warning", true);
       return;
     }
 
