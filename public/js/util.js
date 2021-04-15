@@ -125,6 +125,13 @@ function setupMoneyInput(input){
   }
 }
 
+function or(a, b){
+  if(a !== undefined && a !== null){
+    return a;
+  }
+  return b;
+}
+
 function toNumber(str){
   //str.replace(/)
   return Number(str.replace(/[^0-9-]/g,''));

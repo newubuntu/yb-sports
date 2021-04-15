@@ -258,11 +258,11 @@ let Vapp;
 
       reload(curPage, tab, opt={}){
         opt = Object.assign(this.getCurrentSearchInfo(), opt);
-        return this.loadList(curPage||this.curPage, tab||this.tab, opt);
+        return this.loadList(or(curPage,this.curPage), or(tab,this.tab), opt);
       },
 
       resetReload(curPage, tab){
-        this.loadList(curPage||this.curPage, tab||this.tab);
+        this.loadList(or(curPage,this.curPage), or(tab,this.tab));
       },
 
       async loadList(curPage=0, tab=0, opt={}){//accountId){

@@ -269,11 +269,11 @@ let Vapp;
       },
 
       reload(curPage, tab){
-        return this.loadList(curPage||this.curPage, tab||this.tab, this.getCurrentSearchInfo());
+        return this.loadList(or(curPage,this.curPage), or(tab,this.tab), this.getCurrentSearchInfo());
       },
 
       resetReload(tab){
-        return this.loadList(0, tab||this.tab);
+        return this.loadList(0, or(tab,this.tab));
       },
 
       loadListTo(email){

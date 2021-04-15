@@ -148,11 +148,11 @@ let Vapp;
         let opt = this.getCurrentOption();
         opt = Object.assign(opt, newOpt);
         // console.error("reload", opt);
-        return this.loadList(curPage||this.curPage, tab||this.tab, opt);
+        return this.loadList(or(curPage,this.curPage), or(tab,this.tab), opt);
       },
 
       resetReload(curPage, tab, opt={}){
-        return this.loadList(curPage||this.curPage, tab||this.tab, opt);
+        return this.loadList(or(curPage,this.curPage), or(tab,this.tab), opt);
       },
 
       async loadList(curPage=0, tab=0, opt={}){//accountId){
