@@ -634,10 +634,11 @@ function bet365JS(){
 
     if(_od){
       info = await getBetslipInfoForAPI(_od);
-      if(info){
-        info.od = _od;
-        info.odds = odToOdds(_od);
+      if(!info){
+        info = {};
       }
+      info.od = _od;
+      info.odds = odToOdds(_od);
     }else{
       info = await getBetslipInfoForAPI(odds);
     }
