@@ -145,6 +145,14 @@ let Vapp;
       // help: "체크기 옵션",
       prepend: "$"
     },
+    {
+      name: "리밋계정 배팅지연",
+      key: "limitBetDelay",
+      value: 3,
+      type: "number",
+      prepend: "최대",
+      append: "초 랜덤"
+    },
     // {
     //   name: "betmax 적용%",
     //   key: "betmaxRatio",

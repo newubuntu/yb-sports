@@ -856,6 +856,15 @@ async function bet365PlacebetProcess(data, bet365Info){
   // return emptyObj;
   ///
 
+  if(accountInfo){
+    if(accountInfo.limited){
+      let dt = betOption.limitBetDelay || 3;
+      let rt = Math.random() * dt;
+      log(`리밋계정 랜덤 딜레이 적용 (${round(rt, 1)}초/${dt}초)`, "warning", true);
+      await delay(rt * 1000);
+    }
+  }
+
   // log(`벳365 배팅시작`, "info", true);
   let result, checkBet, isChangeOdds, isFirst = true, lakeMoney, fixedBetmax, everBeenFixedBetmax;
   let checkProfit = true, checkType, noChangeOddsAcceptCount = 0, noReturnCount = 0;
@@ -999,7 +1008,7 @@ async function bet365PlacebetProcess(data, bet365Info){
               break;
             }else{
               log(`벳365 같은배당 acceptChange. 다시시도(${noChangeOddsAcceptCount})`, "danger", true);
-              await delay(1000);
+              await delay(3000);
             }
           }
         }else{
@@ -1301,6 +1310,8 @@ async function reLogin(){
 }
 
 function setBet365RandomStake(data, stake){
+  return;
+
   let ratio = randomRatio();
   let nbm;
   if(betOption.useFloorStake == "y"){

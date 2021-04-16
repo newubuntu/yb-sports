@@ -149,7 +149,7 @@ function bgJS(){
       break;
 
       case "isTimekeyOver":
-        resolveData = Date.now() - (timekeyReceiveTime[tabInfos.bet365.id]||0) > (1000*60*4);
+        resolveData = Date.now() - (timekeyReceiveTime[tabInfos.bet365.id]||0) > (1000*60*3);
       break;
 
       case "resetTimekeyTime":

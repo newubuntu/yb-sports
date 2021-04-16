@@ -607,14 +607,16 @@ function bet365JS(){
     let headers = await sendData("getBetHeaders", null, PN_BG);
     console.error("bet headers", headers);
 
-    if(account){
-      if(account.limited){
-        log("리밋계정 랜덤 딜레이 적용", "warning", true);
-        await delay(Math.random() * 3000);
-      }
-    }else{
-      console.error("계정정보 없음.");
-    }
+    // if(account){
+    //   if(account.limited){
+    //     let dt = betOption.limitBetDelay || 3;
+    //     let rt = Math.random() * dt;
+    //     log(`리밋계정 랜덤 딜레이 적용 (${round(rt, 1)}초)`, "warning", true);
+    //     await delay(rt * 1000);
+    //   }
+    // }else{
+    //   console.error("계정정보 없음.");
+    // }
 
     let res = await axios({
       method: "post",
@@ -918,8 +920,8 @@ function bet365JS(){
             status: "fail",
             message: "제거된 이벤트",
             benKey: "BK",
-            betTime: 0,
-            betMsg: "제거된 이벤트"
+            benTime: 0,
+            benMsg: "제거된 이벤트"
           };
           setInitMessage(null);
           break;
