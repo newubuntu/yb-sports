@@ -78,8 +78,9 @@ module.exports = MD=>{
     uuidv4
   } = MD;
 
-
-  init();
+  if(argv[0] == "master" || process.env.NODE_ENV === undefined){
+    init();
+  }
 
   function init(){
     let job3s = new CronJob('*/3 * * * * *', function() {
