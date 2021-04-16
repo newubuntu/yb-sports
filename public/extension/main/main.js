@@ -661,6 +661,8 @@ function getNextData(){
         }, {})
       }
 
+      // console.error("data", data);
+
       let ids = getEventIds(data);
       let out;
       for(let key in ids){
@@ -1158,10 +1160,10 @@ function getEventIds(data){
     BOK: data.bet365.id + data.bet365.odds,
     //origin bet365 event id + odds  key
     // OBOK: data.bet365.eventId + data.bet365.odds,
-    OBOK: data.bet365.origin.bookmaker_event_direct_link + data.bet365.odds,
+    OBOK: data.bet365.bookmakerDirectLink + data.bet365.odds,
     //origin bet365 event id + odds + id  key
     // OBOIK: data.bet365.eventId + data.bet365.odds + account.id,
-    OBOIK: data.bet365.origin.bookmaker_event_direct_link + data.bet365.odds + account.id,
+    OBOIK: data.bet365.bookmakerDirectLink + data.bet365.odds + account.id,
     // matchId: data.pinnacle.id + ':' + data.bet365.id
     EK: data.pinnacle.betburgerEventId,
     EBOK: data.pinnacle.betburgerEventId + data.bet365.odds,
@@ -2298,11 +2300,15 @@ async function init(){
 
     console.log("receive gamedata", data);
     let gd;
-    try{
-      gd = JSON.parse(data.data);
-    }catch(e){
-      console.error("gamedata parsing error. data:", data);
-      return;
+    if(Array.isArray(data)){
+      gd = data;
+    }else{
+      try{
+        gd = JSON.parse(data.data);
+      }catch(e){
+        console.error("gamedata parsing error. data:", data);
+        return;
+      }
     }
     setData("gamedata", gd);
 

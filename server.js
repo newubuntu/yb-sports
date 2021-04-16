@@ -304,8 +304,8 @@
   // });
 
   //body-parser
-  app.use(bodyParser.urlencoded({extended:true}));
   app.use(bodyParser.json());
+  app.use(bodyParser.urlencoded({extended:true}));
 
   // app.use('/api', [
   //     function(req, res, next) {

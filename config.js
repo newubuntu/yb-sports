@@ -2,6 +2,8 @@
 module.exports = {
   DB_URI: "mongodb://localhost/yb",
   BACKUP_PATH: "./backup_db",
+  BETBURGER_API_TOKEN: "3abde5652112f97882a5c443994836af",
+  BETBURGER_FILTER_ID: 374153,
   MAX_LOG_LENGTH: 500,
   // ACCOUNT_PRICE: 20,
   // ACCOUNT_WITHDRAW_COMMISSION: 0.05,
