@@ -71,7 +71,7 @@ block view
             .btn-toolbar.justify-content-between
               //-.requested-deposit-cover(v-if="account.requestedDeposit")
                 | 출금요청 중
-              svg.c-icon(v-if="account.browser")
+              svg.c-icon(v-if="account.browser" v-on:click="disconnect(account)" style="cursor:pointer;")
                 use(xlink:href="/vendors/@coreui/icons/svg/solid.svg#cis-link-intact")
               .aid
                 span(style="font-size:14pt;color:rgb(220, 228, 56)") [{{account.number}}]

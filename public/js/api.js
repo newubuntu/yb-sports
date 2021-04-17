@@ -231,6 +231,11 @@ let api = (()=>{
       return ax("/update_account/" + id, account, "POST");
     },
 
+    // 유저 계정관리화면에서 브라우져 연결해제
+    accountDisconnectBrowser(id){
+      return ax("/account_disconnect_browser/" + id, null);
+    },
+
     // 수동 출금기록 만들기 for master
     requestWithdrawAccountForce(id, money){
       return ax("/request_withdraw_account_force/" + id, {money}, "POST");

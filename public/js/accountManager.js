@@ -69,6 +69,18 @@ let Vapp;
         }
       },
 
+      async disconnect(account){
+        let r = await modal("확인", "브라우져와의 연결을 해제합니다. 계속합니까?", {buttons:["취소", "확인"]});
+        if(!r) return;
+        
+        let res = await api.accountDisconnectBrowser(account._id);
+        if(res.status == "success"){
+          account.browser = null;
+        }else{
+          modal("오류", `${res.message}`);
+        }
+      },
+
       getBorderClass(id){
         let account = this.accounts.find(account=>account._id==id);
         if(account){

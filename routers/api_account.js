@@ -551,6 +551,29 @@ module.exports = MD=>{
   }))
 
 
+  router.get("/account_disconnect_browser/:id", task(async (req, res)=>{
+    let id = req.params.id;
+    // 자신이 소유한 대상만 컨트롤가능해야한다.
+    // await Account.updateOne({_id:id, user:req.user}, {trash:true});
+    let account = await Account.findOne({_id:id, user:req.user});//.populate('browser');
+    if(!account){
+      res.json({
+        status: "fail",
+        message: "계정을 찾을 수 없습니다."
+      })
+      return;
+    }
+    
+    if(account.browser){
+      await Browser.updateOne({_id:account.browser}, {account:null});
+    }
+    await Account.updateOne({_id:id}, {browser:null});
+
+    res.json({
+      status: "success"
+    })
+  }))
+
 
   // 기본적으로 본인이 소유한 계정만 가져오도록 한다.
   router.post("/get_linked_accounts", task(async (req, res)=>{
