@@ -78,9 +78,11 @@ module.exports = MD=>{
     uuidv4
   } = MD;
 
-  if(argv[0] == "master" || process.env.NODE_ENV === undefined){
-    init();
-  }
+
+  // if(argv[0] == "master" || process.env.NODE_ENV === undefined){
+  //   init();
+  // }
+
 
   function init(){
     let job3s = new CronJob('*/3 * * * * *', function() {
@@ -183,6 +185,12 @@ module.exports = MD=>{
   function check(bets){
     if(!bets || bets.length < 2) return;
     if(bets[0].bookmaker == bets[1].bookmaker) return;
+    if(!(bets[0].bookmaker == "bet365" || bets[0].bookmaker == "pinnacle")){
+      return;
+    }
+    if(!(bets[1].bookmaker == "bet365" || bets[1].bookmaker == "pinnacle")){
+      return;
+    }
     if(bets[0].sports == "E-Sports") return;
     if(bets[0].swapTeams || bets[1].swapTeams){
       return;
