@@ -236,6 +236,11 @@ let api = (()=>{
       return ax("/account_disconnect_browser/" + id, null);
     },
 
+    // 유저 계정관리에서 브라우져 연결상태 갱신. 존재하지않는 브라우져/pc로부터 연결해제
+    accountRefrechConnectState(){
+      return ax("/account_refresh_connect_state/", null);
+    },
+
     // 수동 출금기록 만들기 for master
     requestWithdrawAccountForce(id, money){
       return ax("/request_withdraw_account_force/" + id, {money}, "POST");

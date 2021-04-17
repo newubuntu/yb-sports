@@ -65,6 +65,10 @@ userSchema.methods.addProgram = async function(p){
 userSchema.methods.removeProgram = async function(pid){
   this.programs.pull({_id:pid});
   try{
+    let program = await Program.findOne({_id:pid});
+    if(program){
+      await program.removeBrowserAll();
+    }
     await Program.deleteOne({_id:pid});
     // let program = await Program.findOne({_id:pid});
     // if(program){

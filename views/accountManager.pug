@@ -37,10 +37,15 @@ block view
   .fade-in.pre-hide#app    
     h1
       span.rm 계정관리
-      button.btn.btn-square.btn-vimeo(type="button" v-on:click="openAccountStoreModal")
-        svg.c-icon.mr-2
-          use(xlink:href="/vendors/@coreui/icons/svg/brand.svg#cib-addthis")
-        |계정발급
+      .btn-group
+        button.btn.btn-square.btn-vimeo(type="button" v-on:click="openAccountStoreModal")
+          svg.c-icon.mr-2
+            use(xlink:href="/vendors/@coreui/icons/svg/brand.svg#cib-addthis")
+          |계정발급
+        button.btn.btn-square.btn-secondary(type="button" v-on:click="refreshConnectState")
+          svg.c-icon.mr-2
+            use(xlink:href="/vendors/@coreui/icons/sprites/solid.svg#cis-reload")
+          |연결상태갱신
     hr
     h2
       |{{accounts.length}} 개

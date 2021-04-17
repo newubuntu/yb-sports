@@ -551,6 +551,7 @@ module.exports = MD=>{
   }))
 
 
+  // 유저단 계정-브라우져 연결 끊기
   router.get("/account_disconnect_browser/:id", task(async (req, res)=>{
     let id = req.params.id;
     // 자신이 소유한 대상만 컨트롤가능해야한다.
@@ -563,7 +564,7 @@ module.exports = MD=>{
       })
       return;
     }
-    
+
     if(account.browser){
       await Browser.updateOne({_id:account.browser}, {account:null});
     }
@@ -574,6 +575,28 @@ module.exports = MD=>{
     })
   }))
 
+  // 유저단 존제하지 않는 pc/브라우져에 연결된 계정. 연결해제
+  router.get("/account_refresh_connect_state", task(async (req, res)=>{
+
+    let accounts = await Account.find({user:req.user, trash:false, removed:false});//.populate('browser');
+    
+
+    for(let i=0; i<accounts.length; i++){
+      let account = accounts[i];
+      if(account.browser){
+        let b = await Browser.findOne({_id:account.browser});
+        if(!b){
+          account.browser = null;
+          await account.save();
+          // await Account.updateOne({_id:account.}, {browser:null});
+        }
+      }
+    }
+
+    res.json({
+      status: "success"
+    })
+  }))
 
   // 기본적으로 본인이 소유한 계정만 가져오도록 한다.
   router.post("/get_linked_accounts", task(async (req, res)=>{

@@ -42,6 +42,13 @@ programSchema.methods.addBrowser = async function(){//(bid){
   }
 }
 
+programSchema.methods.removeBrowserAll = async function(){
+  for(let i=0; i<this.browsers.length; i++){
+    await this.removeBrowser(this.browsers[i]._id);
+  }
+  this.browsers = [];
+  await this.save();
+}
 
 programSchema.methods.removeBrowser = async function(_bid){
   this.browsers.pull({_id:_bid});
