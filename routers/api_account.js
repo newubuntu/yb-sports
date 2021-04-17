@@ -579,13 +579,13 @@ module.exports = MD=>{
   router.get("/account_refresh_connect_state", task(async (req, res)=>{
 
     let accounts = await Account.find({user:req.user, trash:false, removed:false});//.populate('browser');
-    
+
 
     for(let i=0; i<accounts.length; i++){
       let account = accounts[i];
       if(account.browser){
-        let b = await Browser.findOne({_id:account.browser});
-        if(!b){
+        let b = await Browser.findOne({_id:account.browser}).populate("program");
+        if(!b || !b.program){
           account.browser = null;
           await account.save();
           // await Account.updateOne({_id:account.}, {browser:null});
