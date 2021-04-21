@@ -633,7 +633,7 @@ async function findMatch2(data){
   // && data.pinnacle.sports == "Soccer"
   if(data){
 
-    if(!dataFilter(data)){
+    if(!dataFilter(data.betburger)){
       data = null;
       return;
     }
@@ -671,7 +671,7 @@ function exceptEventCheckByFomula(data){
 }
 
 function dataFilter(data){
-  if(!data) return false;
+  // if(!data) return false;
 
   let ids = getEventIds(data);
   for(let key in ids){
@@ -724,7 +724,7 @@ function getNextData(){
 
       // console.error("data", data);
 
-      if(!dataFilter(data)){
+      if(!dataFilter(data.betburger)){
         data = null;
         continue;
       }

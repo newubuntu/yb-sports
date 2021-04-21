@@ -106,13 +106,13 @@ module.exports = MD=>{
   }
 
   function wrapData(data){
-    data.sports = SPORTS[data.sport_id];
+    data.sports = SPORTS[data.sport_id]||'';
     data.bookmaker = (BOOKMAKERS[data.bookmaker_id]||'').toLowerCase();
-    data.bet_type = BET_TYPES[data.market_and_bet_type];
+    data.bet_type = BET_TYPES[data.market_and_bet_type]||'';
     if(data.market_and_bet_type_param){
       data.bet_type = data.bet_type.replace('%s', data.market_and_bet_type_param);
     }
-    data.period = PERIODS[data.period_id];
+    data.period = PERIODS[data.period_id]||'';
     return data;
   }
 
