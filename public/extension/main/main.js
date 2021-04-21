@@ -111,7 +111,7 @@ async function onMessage(message){
       betOption = data.betOption;
       optionName = data.optionName;
       $("#optionName").html(`[${optionName}]`);
-      if(optionName == "체크기"){
+      if(betOption.action == "checkBetmax"){
         setupMode("dev");
       }
 
