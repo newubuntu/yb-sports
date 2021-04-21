@@ -111,8 +111,10 @@ async function onMessage(message){
       betOption = data.betOption;
       optionName = data.optionName;
       $("#optionName").html(`[${optionName}]`);
+      document.title = (data.dataChannel||'1') + "채널";
       if(betOption.action == "checkBetmax"){
         setupMode("dev");
+        requestAnimationFrame(animate);
       }
 
       if(!betOption){
@@ -139,6 +141,7 @@ async function onMessage(message){
       sendDataToServer("updateMoney", money);
 
       flag.bet365LoginComplete = true;
+      // startPulling();
       if(!flag.isMatching){
         log('매칭을 시작하려면 <span class="text-success">[매칭시작]</span>을 눌러주세요', "warning", true);
       }
@@ -583,15 +586,18 @@ function lineFindFailCountUp(id){
 // }
 
 var isCheckingMatch = false;
-async function findMatch(){
+async function findMatch(data){
   if(isCheckingMatch){
     return;
   }
-  let data = getNextData();
+  // let data = getNextData();
   log(`매칭확인중..`, null, true);
   // && data.pinnacle.sports == "Soccer"
   if(data){
-
+    if(!dataFilter(data)){
+      data = null;
+      return;
+    }
     // data.bet365.betLink = data.bet365.betLink.replace("/dl/sportsbookredirect?", "/dl/sportsbookredirect/?");
     // console.error("betLink test", data.bet365.betLink);
 
@@ -1984,12 +1990,13 @@ async function checkBetmaxProcess(data){
       bdata._id = betResult.data.uniqueRequestId;
       bdata.bookmaker = betmaxInfo;
       bdata.dataChannel = betOption.dataChannel||'1';
-      sendDataToServer("inputGameData", bdata);
+      sendDataToServer("inputGameData", {data:bdata, betburgerEventId:data.bet365.betburgerEventId});
       // benEvent(data, "BOK", 0, "데이터 수집");
       benEvent(data, "OBOK", 0, "데이터 수집");
       return true;
     }else{
       log(`배팅취소`, 'danger', true);
+      sendDataToServer("inputGameData", {data:null, betburgerEventId:data.bet365.betburgerEventId});
     }
 
     //////////////
@@ -2252,6 +2259,57 @@ function setupMode(mode){
   }
 }
 
+// async function gamedataProcess(data){
+//   console.log("receive gamedata", data);
+//   // if(!flag.bet365LoginComplete) return;
+//   // if(!flag.isMatching) return;
+//   if(flag.bet365LoginComplete && flag.isMatching){
+//     await findMatch(data);
+//   }
+//
+//   // await delay(3000);
+//   // sendDataToServer("pullGameData");
+// }
+
+// var isPulling;
+// async function startPulling(){
+//   // if(flag.bet365LoginComplete && flag.isMatching && !isCheckingMatch){
+//   //   sendDataToServer("pullGameData");
+//   // }
+//
+//   if(isPulling) return;
+//
+//   isPulling = true;
+//   // clearInterval(pullItv);
+//   // pullItv = setInterval(()=>{
+//   while(1){
+//     // if(!flag.bet365LoginComplete) return;
+//     // if(!flag.isMatching) return;
+//     // if(isCheckingMatch) return;
+//
+//     if(flag.bet365LoginComplete && flag.isMatching && !isCheckingMatch){
+//       sendDataToServer("pullGameData");
+//     }
+//
+//     let st = Date.now();
+//     await delay(1000 * 3);
+//     console.log((Date.now()-st)/1000);
+//   }
+//   // }, 3000);
+// }
+
+let pullTime = performance.now();
+let pullGab = 3000;
+function animate(){
+  if(performance.now() - pullTime > pullGab){
+    pullTime = performance.now();
+    if(flag.bet365LoginComplete && flag.isMatching && !isCheckingMatch){
+      sendDataToServer("pullGameData");
+    }
+  }
+  requestAnimationFrame(animate);
+}
+
 async function init(){
   console.error("init");
   // console.log(code.toString());
@@ -2398,30 +2456,22 @@ async function init(){
   // })
 
 
+  // socket.on("3secTick", ()=>{
+  //   if(flag.bet365LoginComplete && flag.isMatching && !isCheckingMatch){
+  //     sendDataToServer("pullGameData");
+  //   }
+  // })
 
-  socket.on("gamedata", data=>{
-    if(!flag.bet365LoginComplete) return;
-
+  socket.on("gamedata", async (data)=>{
     console.log("receive gamedata", data);
-    let gd;
-    if(Array.isArray(data)){
-      gd = data;
-    }else{
-      try{
-        gd = JSON.parse(data.data);
-      }catch(e){
-        console.error("gamedata parsing error. data:", data);
-        return;
-      }
+    // if(!flag.bet365LoginComplete) return;
+    // if(!flag.isMatching) return;
+    if(flag.bet365LoginComplete && flag.isMatching){
+      await findMatch(data);
     }
-    setData("gamedata", gd);
 
-    if(!flag.isMatching) return;
-    // sendData("gamedata", data, "bg");
-
-    // console.log("gamedata", gd);
-
-    findMatch();
+    // await delay(3000);
+    // sendDataToServer("pullGameData");
   })
 
   socket.on("gamedata2", async data=>{
@@ -2458,6 +2508,8 @@ async function init(){
       sendData("setPreUrl", {betOption, url:data.link}, PN_B365, true);
     }
   })
+
+
 }
 
 init();

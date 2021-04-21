@@ -159,7 +159,7 @@ function bet365JS(){
     // info.od = bt.od;
     let handicap;
     let hd = pt.hd || pt.ha;
-    if(pt.md !== "Draw No Bet"){
+    if(pt.md !== "Draw No Bet" && pt.md !== "Match Winner" && pt.md !== "Next Game" && pt.md !== "Most Corners"){
       handicap = hd?hd:"";
     }else{
       handicap = hd?hd:"0";
@@ -512,7 +512,7 @@ function bet365JS(){
 
       let bt = data.bt[0];
       let pt = bt.pt[0];
-      if(pt.md && pt.md !== "Draw No Bet" && pt.md !== "Match Winner" && pt.md !== "Next Game"){
+      if(pt.md && pt.md !== "Draw No Bet" && pt.md !== "Match Winner" && pt.md !== "Next Game" && pt.md !== "Most Corners"){
         if(pt.hd === undefined && pt.ha === undefined){
           c++;
           if(c < 4){

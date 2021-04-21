@@ -552,7 +552,67 @@ module.exports = io=>{
   let room_checker = "__data_receiver__";
   let room_bettor = "__data_receiver2__";
 
+  function setGameData(data){
+    // console.log("@@setGameData", data);
+    return setRedis("gamedata", data);
+  }
+
+  async function pullGameData(){
+    let data = await getRedis("gamedata");
+    if(data){
+      let gd;
+      try{
+        gd = JSON.parse(data);
+      }catch(e){
+        console.error("gamedata parsing error. data:", data);
+        return;
+      }
+
+      // console.log("@@GD", gd);
+
+      if(gd){
+        let r;
+        while(1){
+          r = gd.shift();
+          if(r && await isLockEvent(r.bet365.betburgerEventId)){
+            continue;
+          }
+          await setGameData(JSON.stringify(gd));
+          if(r){
+            await lockEvent(r.bet365.betburgerEventId);
+          }
+          return r;
+        }
+      }
+    }
+  }
+
+  async function isLockEvent(id){
+    let list = await getRedis("gamedataLockList");
+    list = list ? JSON.parse(list) : {};
+    return !!list[id];
+  }
+
+  async function lockEvent(id){
+    let list = await getRedis("gamedataLockList");
+    list = list ? JSON.parse(list) : {};
+    list[id] = 1;
+    return setRedis("gamedataLockList", JSON.stringify(list));
+  }
+
+  async function unlockEvent(id){
+    let list = await getRedis("gamedataLockList");
+    list = list ? JSON.parse(list) : {};
+    delete list[id];
+    return setRedis("gamedataLockList", JSON.stringify(list));
+  }
+
   let MD = {
+    isLockEvent,
+    lockEvent,
+    unlockEvent,
+    setGameData,
+    pullGameData,
     util,
     setRedis,
     getRedis,
@@ -670,33 +730,56 @@ module.exports = io=>{
 
 
 
+
   // from betburger
-  router.post("/input_data", async (req, res)=>{
-    let t = await getRedis("inputDataTime")||0;
-    if(Date.now() - t < 1000){
-      res.send('0');
-      return;
-    }
-    await setRedis("inputDataTime", Date.now());
-
-    console.log("receive gamedata " + (req.body.data.length>2), (new Date()).toLocaleTimeString());
-    // let room = "__data_receiver__";
-
-    // console.error(io.in(room).sockets);
-    // console.error(io.sockets.adapter.rooms.get(room));
-
-    // let map = io.sockets.adapter.rooms.get(room_checker);
-    // if(map){
-    // //   console.log("found checker");
-    // // //   // 추후에 체크기 수량에 따라 벳버거 데이터를 분배하여 처리하도록하자
-    //   console.log("count", map.size);
-    //   console.log(...map.keys());
-    // }
-    // io.$.emit(room, "gamedata", req.body);
-    io.to(room_checker).emit("gamedata", req.body);
-
-    res.send('1');
-  })
+  // router.post("/input_data", async (req, res)=>{
+  //   let t = await getRedis("inputDataTime")||0;
+  //   if(Date.now() - t < 1000){
+  //     res.send('0');
+  //     return;
+  //   }
+  //   await setRedis("inputDataTime", Date.now());
+  //
+  //   console.log("receive gamedata " + (req.body.data.length>2), (new Date()).toLocaleTimeString());
+  //   // let room = "__data_receiver__";
+  //
+  //   // console.error(io.in(room).sockets);
+  //   // console.error(io.sockets.adapter.rooms.get(room));
+  //
+  //   // let map = io.sockets.adapter.rooms.get(room_checker);
+  //   // if(map){
+  //   // //   console.log("found checker");
+  //   // // //   // 추후에 체크기 수량에 따라 벳버거 데이터를 분배하여 처리하도록하자
+  //   //   console.log("count", map.size);
+  //   //   console.log(...map.keys());
+  //   // }
+  //   // io.$.emit(room, "gamedata", req.body);
+  //
+  //   // io.to(room_checker).emit("gamedata", req.body);
+  //
+  //
+  //   let list;
+  //   try{
+  //     list = JSON.parse(req.body.data);
+  //   }catch(e){
+  //     console.error('gamedata parse error', e);
+  //   }
+  //   // console.log("###", list);
+  //   list = list.map(bets=>{
+  //     return bets.reduce((r,v)=>{
+  //       r[v.bookmaker] = v;
+  //       return r;
+  //     }, {});
+  //   })
+  //   // list = list.reduce((r,v)=>{
+  //   //   r[v.bookmaker] = v;
+  //   //   return r;
+  //   // }, {});
+  //
+  //   await setGameData(JSON.stringify(list));
+  //
+  //   res.send('1');
+  // })
 
 
 

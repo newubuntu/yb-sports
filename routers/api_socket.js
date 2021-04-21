@@ -2,6 +2,11 @@ const {v4:uuidv4} = require('uuid');
 
 module.exports = MD=>{
   let {
+    isLockEvent,
+    lockEvent,
+    unlockEvent,
+    setGameData,
+    pullGameData,
     setRedis,
     getRedis,
     room_checker,
@@ -376,9 +381,13 @@ module.exports = MD=>{
         //   // console.log("receive betData", obj);
         //   BetData.create(obj);
         // })
+        socket.on("pullGameData", async (data, bid)=>{
+          let r = await pullGameData();
+          emitToPrograms("gamedata", r, bid);
+        })
 
         socket.on("inputGameUrl", obj=>{
-          console.log("inputGameUrl");
+          console.log("inputGameUrl", obj);
           // console.log(io.sockets.clients(room));
           io.to(room_bettor).emit("gameurl", obj);
         })
@@ -387,6 +396,14 @@ module.exports = MD=>{
         socket.on("inputGameData", async obj=>{
           //if(argv[0] == "master"){
           console.log("inputGameData");
+
+          let data = obj.data;
+
+          await unlockEvent(obj.betburgerEventId);
+
+          if(!data){
+            return;
+          }
           // let event;
           // try{
           //   event = await Event.create(obj);
@@ -399,28 +416,30 @@ module.exports = MD=>{
           //   io.to("__data_receiver2__").emit("gamedata2", event);
           // }
 
-          if(typeof obj.pitcher1MustStart === "string"){
-            obj.pitcher1MustStart = obj.pitcher1MustStart.toLowerCase() == "true";
+          if(typeof obj.data.pitcher1MustStart === "string"){
+            obj.data.pitcher1MustStart = obj.data.pitcher1MustStart.toLowerCase() == "true";
           }
-          if(typeof obj.pitcher2MustStart === "string"){
-            obj.pitcher2MustStart = obj.pitcher2MustStart.toLowerCase() == "true";
+          if(typeof obj.data.pitcher2MustStart === "string"){
+            obj.data.pitcher2MustStart = obj.data.pitcher2MustStart.toLowerCase() == "true";
           }
-          if(typeof obj.isLive === "string"){
-            obj.isLive = obj.isLive.toLowerCase() == "true";
+          if(typeof obj.data.isLive === "string"){
+            obj.data.isLive = obj.data.isLive.toLowerCase() == "true";
           }
 
           // let dataChannel = obj.dataChannel;
           // delete obj.dataChannel;
 
-          await Event.create(obj);
+          await Event.create(obj.data);
           // .catch(e=>{
           //   console.error("이벤트 저장 오류");
           //   console.error(e);
           // })
 
-          console.log("send gamedata2", obj.dataChannel);
+
+
+          // console.log("send gamedata2", obj.dataChannel);
           // console.log(io.sockets.clients(room));
-          io.to(room_bettor).emit("gamedata2", obj);
+          io.to(room_bettor).emit("gamedata2", obj.data);
           // io.to(room_bettor).emit("gamedata2:"+dataChannel, obj);
           // io.$.emit(room, "gamedata2", obj);
 

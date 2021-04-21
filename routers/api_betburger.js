@@ -24,6 +24,8 @@ const ax = axios.create({
 
 module.exports = MD=>{
   let {
+    setGameData,
+    pullGameData,
     util,
     setRedis,
     getRedis,
@@ -79,9 +81,9 @@ module.exports = MD=>{
   } = MD;
 
 
-  // if(argv[0] == "master" || process.env.NODE_ENV === undefined){
-  //   init();
-  // }
+  if(argv[0] == "master" || process.env.NODE_ENV === undefined){
+    init();
+  }
 
 
   function init(){
@@ -101,10 +103,18 @@ module.exports = MD=>{
       })).filter(check);
       list.forEach(calcProfit);
       list.sort(profitSort);
+      list = list.map(bets=>{
+        // console.log(bets[0].id);
+        return bets.reduce((r,v)=>{
+          r[v.bookmaker] = v;
+          return r;
+        }, {});
+      })
     }
 
     console.log("receive gamedata " + list.length, (new Date()).toLocaleTimeString());
-    io.to(room_checker).emit("gamedata", list);
+    // io.to(room_checker).emit("gamedata", list);
+    await setGameData(JSON.stringify(list));
   }
 
   function calcProfit(bets){
@@ -198,11 +208,11 @@ module.exports = MD=>{
     if(!bets || bets.length < 2) return;
     if(bets[0].bookmaker == bets[1].bookmaker) return;
     if(!(bets[0].bookmaker == "bet365" || bets[0].bookmaker == "pinnacle")){
-      console.log("!! another bookmaker");
+      console.log("!! another bookmaker", bets[0].bookmaker);
       return;
     }
     if(!(bets[1].bookmaker == "bet365" || bets[1].bookmaker == "pinnacle")){
-      console.log("!! another bookmaker");
+      console.log("!! another bookmaker", bets[1].bookmaker);
       return;
     }
     if((!bets[0].team && !bets[0].side) || (!bets[1].team && !bets[1].side)){
@@ -244,24 +254,18 @@ module.exports = MD=>{
       count = setting.betburgerPerPage;
     }
 
-    // console.error(res);
     if(filterId === undefined || token === undefined){
       console.error("wrong betburger settings");
       return null;
     }
+    // console.log({filterId});
     let data = {
-      // access_token: config.BETBURGER_API_TOKEN,
-      // search_filter: config.BETBURGER_FILTER_ID,
       access_token: token,
       search_filter: filterId,
       per_page: count || 20,
       grouped: 1,
       show_event_arbs: true,
       sort_by: "percent"
-      // event_arb_types: undefined,//[],
-      // excluded_events: undefined,//[],
-      // excluded_bk_events: undefined,//[],
-      // excluded_bets: undefined//[]
     }
 
     const params = new URLSearchParams();
@@ -271,7 +275,6 @@ module.exports = MD=>{
 
     return ax.post("/api/v1/arbs/bot_pro_search", params)
     .then(res=>{
-      // console.error("bets", res.data.bets);
       return res.data?res.data.bets:null
     })
     .catch(e=>{
@@ -279,19 +282,5 @@ module.exports = MD=>{
       return null;
     })
   }
-
-  // router.get("/test", task(async (req, res)=>{
-  //   let list = (await loadArbs()) || [];
-  //   console.log("??", list);
-  //
-  //   list = reGroup(list.map((data,i)=>{
-  //     return makeData(wrapData(data), i);
-  //   })).filter(check);
-  //
-  //   res.json({
-  //     status: "success",
-  //     data: list
-  //   })
-  // }))
 
 }

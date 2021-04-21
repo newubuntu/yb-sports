@@ -969,7 +969,15 @@ let Vapp;
         if(result){
           option = this.getOptionData();
           if(result == 2){
-            option.name = prompt(`'${option.name}'의 새 이름을 입력하세요`);
+            let name = option.name;
+            while(1){
+              option.name = prompt(`'${name}'의 새 이름을 입력하세요`);
+              if(!option.name){
+                alert("옵션 이름을 입력해주세요");
+              }else{
+                break;
+              }
+            }
             res = await api.registOption(option);
           }else{
             res = await api.updateOption(option._id, option);
