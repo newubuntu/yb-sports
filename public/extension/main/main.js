@@ -655,7 +655,7 @@ async function findMatch2(data){
 }
 
 function exceptEventCheckByFomula(data){
-  if(Array.isArray(betOption.exceptEventConditions)){
+  if(data && Array.isArray(betOption.exceptEventConditions)){
     let cdts = betOption.exceptEventConditions;
     for(let i=0; i<cdts.length; i++){
       let cmd = generateExceptionFomula(cdts[i]);
