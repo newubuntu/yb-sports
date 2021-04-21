@@ -568,12 +568,13 @@ module.exports = io=>{
         return;
       }
 
-      // console.log("@@GD", gd);
+      console.log("gamedata length:", gd.length);
 
       if(gd){
         let r;
         while(1){
           r = gd.shift();
+          console.log("gamedata", r);
           if(r && await isLockEvent(r.bet365.betburgerEventId)){
             continue;
           }
@@ -590,6 +591,7 @@ module.exports = io=>{
   async function isLockEvent(id){
     let list = await getRedis("gamedataLockList");
     list = list ? JSON.parse(list) : {};
+    console.log("isLockEvent", id, !!list[id]);
     return !!list[id];
   }
 
@@ -597,6 +599,7 @@ module.exports = io=>{
     let list = await getRedis("gamedataLockList");
     list = list ? JSON.parse(list) : {};
     list[id] = 1;
+    console.log("lockEvent", id);
     return setRedis("gamedataLockList", JSON.stringify(list));
   }
 
@@ -604,6 +607,7 @@ module.exports = io=>{
     let list = await getRedis("gamedataLockList");
     list = list ? JSON.parse(list) : {};
     delete list[id];
+    console.log("unlockEvent", id);
     return setRedis("gamedataLockList", JSON.stringify(list));
   }
 
