@@ -388,6 +388,11 @@ module.exports = MD=>{
           emitToPrograms("gamedata", r, bid);
         })
 
+        socket.on("unlockEvent", async (data, bid)=>{
+          console.log("unlockEvent", data);
+          await unlockEvent(data);
+        })
+
         socket.on("inputGameUrl", obj=>{
           console.log("inputGameUrl", obj);
           // console.log(io.sockets.clients(room));
@@ -400,8 +405,6 @@ module.exports = MD=>{
           console.log("inputGameData");
 
           let data = obj.data;
-
-          await unlockEvent(obj.betburgerEventId);
 
           if(!data){
             return;

@@ -578,7 +578,7 @@ module.exports = io=>{
           if(r && await isLockEvent(r.bet365.betburgerEventId)){
             continue;
           }
-          console.log("@no lock")
+          // console.log("@no lock")
           await setGameData(JSON.stringify(gd));
           if(r){
             await lockEvent(r.bet365.betburgerEventId);
@@ -592,7 +592,7 @@ module.exports = io=>{
   async function isLockEvent(id){
     let list = await getRedis("gamedataLockList");
     list = list ? JSON.parse(list) : {};
-    console.log("isLockEvent", id, list[id], list.length);
+    console.log("@isLockEvent", id, list[id], Object.keys(list).length);
     return list[id] !== undefined;
   }
 
@@ -600,7 +600,7 @@ module.exports = io=>{
     let list = await getRedis("gamedataLockList");
     list = list ? JSON.parse(list) : {};
     list[id] = 1;
-    console.log("lockEvent", id);
+    console.log("@lockEvent", id);
     return setRedis("gamedataLockList", JSON.stringify(list));
   }
 
@@ -608,9 +608,15 @@ module.exports = io=>{
     let list = await getRedis("gamedataLockList");
     list = list ? JSON.parse(list) : {};
     delete list[id];
-    console.log("unlockEvent", id);
+    console.log("@unlockEvent", id);
     return setRedis("gamedataLockList", JSON.stringify(list));
   }
+
+  async function unlockEventAll(){
+    return setRedis("gamedataLockList", '{}');
+  }
+
+  unlockEventAll();
 
   let MD = {
     isLockEvent,

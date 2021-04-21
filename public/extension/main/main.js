@@ -2471,7 +2471,7 @@ async function init(){
     }
 
     // await delay(3000);
-    // sendDataToServer("pullGameData");
+    sendDataToServer("unlockEvent", data.bet365.betburgerEventId);
   })
 
   socket.on("gamedata2", async data=>{
