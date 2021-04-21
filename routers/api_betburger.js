@@ -221,10 +221,11 @@ module.exports = MD=>{
 
   async function loadArbs(){
     let setting = await getSetting();
-    let filterId, token;
+    let filterId, token, count;
     if(setting){
       filterId = setting.betburgerFilterId;
       token = setting.betburgerApiToken;
+      count = setting.betburgerPerPage;
     }
 
     // console.error(res);
@@ -237,7 +238,7 @@ module.exports = MD=>{
       // search_filter: config.BETBURGER_FILTER_ID,
       access_token: token,
       search_filter: filterId,
-      per_page: 20,
+      per_page: count || 20,
       grouped: 1,
       show_event_arbs: true,
       sort_by: "percent"

@@ -36,6 +36,12 @@ let Vapp;
       type: "text"
     },
     {
+      name: "벳버거 페이지당 이벤트",
+      key: "betburgerPerPage",
+      value: 20,
+      type: "number"
+    },
+    {
       name: "벳삼 계정발급비용",
       key: "accountPrice",
       prepend:`<svg class="c-icon">
