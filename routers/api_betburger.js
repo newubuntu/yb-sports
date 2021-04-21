@@ -79,9 +79,9 @@ module.exports = MD=>{
   } = MD;
 
 
-  // if(argv[0] == "master" || process.env.NODE_ENV === undefined){
-  //   init();
-  // }
+  if(argv[0] == "master" || process.env.NODE_ENV === undefined){
+    init();
+  }
 
 
   function init(){
@@ -186,9 +186,11 @@ module.exports = MD=>{
     if(!bets || bets.length < 2) return;
     if(bets[0].bookmaker == bets[1].bookmaker) return;
     if(!(bets[0].bookmaker == "bet365" || bets[0].bookmaker == "pinnacle")){
+      console.log("!! another bookmaker");
       return;
     }
     if(!(bets[1].bookmaker == "bet365" || bets[1].bookmaker == "pinnacle")){
+      console.log("!! another bookmaker");
       return;
     }
     if(bets[0].sports == "E-Sports") return;
@@ -217,10 +219,24 @@ module.exports = MD=>{
     }, [])
   }
 
-  function loadArbs(){
+  async function loadArbs(){
+    let setting = await getSetting();
+    let filterId, token;
+    if(setting){
+      filterId = setting.betburgerFilterId;
+      token = setting.betburgerApiToken;
+    }
+
+    // console.error(res);
+    if(filterId === undefined || token === undefined){
+      console.error("wrong betburger settings");
+      return null;
+    }
     let data = {
-      access_token: config.BETBURGER_API_TOKEN,
-      search_filter: config.BETBURGER_FILTER_ID,
+      // access_token: config.BETBURGER_API_TOKEN,
+      // search_filter: config.BETBURGER_FILTER_ID,
+      access_token: token,
+      search_filter: filterId,
       per_page: 20,
       grouped: 1,
       show_event_arbs: true,

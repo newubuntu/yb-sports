@@ -55,7 +55,7 @@ module.exports = MD=>{
   } = MD;
 
   router.get("/load_account/:id", task(async (req, res)=>{
-    let account = await Account.findOne({user:req.user._id, id:req.params.id})
+    let account = await Account.findOne({id:req.params.id})
     .select(["-skrillId", "-skrillPw", "-skrillCode", "-digit4", "-skrillEmail"])
     .lean();
 

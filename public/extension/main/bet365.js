@@ -924,6 +924,7 @@ function bet365JS(){
             benMsg: "제거된 이벤트"
           };
           setInitMessage(null);
+          window.location.href = "https://www.bet365.com";
           break;
         }
 

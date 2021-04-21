@@ -267,23 +267,47 @@ module.exports = MD=>{
           // io.$.join("__data_receiver__", socket);
         })
 
-        socket.on("joinDataReceiver2", bid=>{
+        socket.on("joinDataReceiver2", (bid)=>{
           console.log("####joinDataReceiver2");
-          socket.join(room_bettor);
+          socket.join(room_bettor);//+':'+dataChannel);
           // io.$.join("__data_receiver2__", socket);
         })
 
         socket.on("leaveDataReceiver", bid=>{
           console.log("####leaveDataReceiver", socket.id, bid);
           socket.leave(room_checker);
+          // leaveRegex(socket, new RegExp(`^${room_checker}.*`));
           // io.$.leave("__data_receiver__", socket);
         })
 
         socket.on("leaveDataReceiver2", bid=>{
           console.log("####leaveDataReceiver2");
           socket.leave(room_bettor);
+          // leaveRegex(socket, new RegExp(`^${room_bettor}.*`));
           // io.$.leave("__data_receiver2__", socket);
         })
+
+        function offRegex(socket, regex){
+          socket.eventNames().forEach(name=>{
+            if(regex.test(name)){
+              socket.off(name);
+            }
+          })
+        }
+
+        function leaveAll(socket){
+          socket.rooms.forEach(room=>{
+            socket.leave(room);
+          })
+        }
+
+        function leaveRegex(socket, regex){
+          socket.rooms.forEach(room=>{
+            if(typeof room === "string" && regex.test(room)){
+              socket.leave(room);
+            }
+          })
+        }
 
         socket.on("log", async (data, bid)=>{
           emitToDashboard("log", data, socket._pid, bid);
@@ -384,7 +408,8 @@ module.exports = MD=>{
             obj.isLive = obj.isLive.toLowerCase() == "true";
           }
 
-
+          // let dataChannel = obj.dataChannel;
+          // delete obj.dataChannel;
 
           await Event.create(obj);
           // .catch(e=>{
@@ -395,6 +420,7 @@ module.exports = MD=>{
 
           // console.log(io.sockets.clients(room));
           io.to(room_bettor).emit("gamedata2", obj);
+          // io.to(room_bettor).emit("gamedata2:"+dataChannel, obj);
           // io.$.emit(room, "gamedata2", obj);
 
           // emitToAllPrograms("gamedata2", obj);
@@ -725,6 +751,7 @@ module.exports = MD=>{
 
         socket.on("openBrowser", async (pid, _bid, index, hasProxy)=>{//, isChecker)=>{
           // console.log("targetEmail", targetEmail);
+          // console.log("@@@", socket.eventNames())
           let browser = await Browser.findOneAndUpdate(
             {
               _id:_bid,

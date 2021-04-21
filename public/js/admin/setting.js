@@ -24,6 +24,18 @@ let Vapp;
       type: "text"
     },
     {
+      name: "벳버거 API 토큰",
+      key: "betburgerApiToken",
+      value: "",
+      type: "text"
+    },
+    {
+      name: "벳버거 필터 ID",
+      key: "betburgerFilterId",
+      value: "",
+      type: "text"
+    },
+    {
       name: "벳삼 계정발급비용",
       key: "accountPrice",
       prepend:`<svg class="c-icon">

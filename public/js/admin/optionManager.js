@@ -146,6 +146,180 @@ let Vapp;
       prepend: "$"
     },
     {
+      name: "조건부 betmax제한 사용여부",
+      key: "useMaxBetmaxByOdds",
+      list: ['y', 'n'],
+      value: "n",
+      type: "radio"
+    },
+    {
+      name: "조건부 betmax제한",
+      key: "maxBetmaxByOdds",
+      value: {
+        odds1: [10, 15],
+        betmax1: 3,
+        odds2: [9, 10],
+        betmax2: 4,
+        odds3: [8, 9],
+        betmax3: 5,
+        odds4: [7, 8],
+        betmax4: 6
+      },
+      type: "slideRangeMix",
+      list: [
+        {
+          type: "range",
+          name: "odds1",
+          max: 15,
+          min: 1,
+          step: 0.1,
+          prepend: "odds1"
+        },
+        {
+          type: "slide",
+          name: "betmax1",
+          max: 20,
+          min: 1,
+          step: 0.1,
+          prepend: "betmax1"
+        },
+        {
+          type: "range",
+          name: "odds2",
+          max: 15,
+          min: 1,
+          step: 0.1,
+          prepend: "odds2"
+        },
+        {
+          type: "slide",
+          name: "betmax2",
+          max: 20,
+          min: 1,
+          step: 0.1,
+          prepend: "betmax2"
+        },
+        {
+          type: "range",
+          name: "odds3",
+          max: 15,
+          min: 1,
+          step: 0.1,
+          prepend: "odds3"
+        },
+        {
+          type: "slide",
+          name: "betmax3",
+          max: 20,
+          min: 1,
+          step: 0.1,
+          prepend: "betmax3"
+        },
+        {
+          type: "range",
+          name: "odds4",
+          max: 15,
+          min: 1,
+          step: 0.1,
+          prepend: "odds4"
+        },
+        {
+          type: "slide",
+          name: "betmax4",
+          max: 20,
+          min: 1,
+          step: 0.1,
+          prepend: "betmax4"
+        }
+      ]
+    },
+    {
+      name: "이벤트 제외 조건 (벳365)",
+      key: "exceptEventConditions",
+      type: "exceptEventList",
+      value: [
+
+      ],
+      stage: [
+
+      ],
+      btns: [
+        {
+          name: "변수",
+          type: "button",
+          vType: "var",
+          colorType: "success",
+          list: arrToListObj([
+            ["종목","sports"],
+            ["배팅타입","betType"],
+            ["언오바","side"],
+            ["핸디","handicap"],
+            ["배당","odds"]
+          ])
+        },
+        {
+          name: "종목",
+          type: "button",
+          vType: "string",
+          colorType: "warning",
+          key: "sports",
+          list: arrToListObj(["Soccer", "Tennis", "Hockey", "Baseball", "Basketball", "Football"])
+        },
+        {
+          name: "배팅타입",
+          type: "button",
+          vType: "string",
+          colorType: "warning",
+          key: "betType",
+          list: arrToListObj(["SPREAD", "TOTAL_POINTS", "MONEYLINE"])
+        },
+        {
+          name: "언오바",
+          type: "button",
+          vType: "string",
+          colorType: "warning",
+          key: "side",
+          list: arrToListObj(["OVER", "UNDER"])
+        },
+        {
+          name: "논리연산자",
+          type: "button",
+          colorType: "info",
+          list: arrToListObj([
+            ["AND","&&"],
+            ["OR","||"],
+            ["NOT","!"]
+          ])
+        },
+        {
+          name: "사칙연산자",
+          type: "button",
+          colorType: "info",
+          list: arrToListObj([
+            '+',
+            '-',
+            ['x','*'],
+            '/',
+            '(',
+            ')'
+          ])
+        },
+        {
+          name: "비교연산자",
+          type: "button",
+          colorType: "info",
+          list: arrToListObj([
+            '<', '<=', '>', '>=', '==', '!='
+          ])
+        },
+        {
+          name: "치수입력",
+          type: "number",
+          colorType: "danger"
+        }
+      ]
+    },
+    {
       name: "리밋계정 배팅지연",
       key: "limitBetDelay",
       value: 3,
@@ -196,20 +370,20 @@ let Vapp;
       append: "이하 패스",
       type: "number"
     },
-    {
-      name: "종목",
-      key: "sports",
-      list: ["soccer", "tennis", "basketball", "baseball", "hockey", "football"],
-      value: {
-        "soccer": true,
-        "tennis": true,
-        "basketball": true,
-        "baseball": true,
-        "hockey": true,
-        "football": true
-      },
-      type: "checkbox"
-    }
+    // {
+    //   name: "종목",
+    //   key: "sports",
+    //   list: ["soccer", "tennis", "basketball", "baseball", "hockey", "football"],
+    //   value: {
+    //     "soccer": true,
+    //     "tennis": true,
+    //     "basketball": true,
+    //     "baseball": true,
+    //     "hockey": true,
+    //     "football": true
+    //   },
+    //   type: "checkbox"
+    // }
     // {
     //   name: "최소 수익달러",
     //   key: "profit",
@@ -217,6 +391,75 @@ let Vapp;
     //   type: "number",
     //   prepend: "$"
     // }
+    // {
+    //   name: "조건부 betmax제한1",
+    //   key: "maxBetmaxByOdds1",
+    //   value: {
+    //     odds: 10,
+    //     betmax: 3
+    //   },
+    //   type: "slideList",
+    //   list: [
+    //     {
+    //       name: "odds",
+    //       max: 15,
+    //       min: 1.2,
+    //       step: 0.05,
+    //       prepend: "odds"
+    //     },
+    //     {
+    //       name: "betmax",
+    //       max: 20,
+    //       min: 1,
+    //       step: 0.1,
+    //       prepend: "betmax"
+    //     }
+    //   ]
+    // },
+    // {
+    //   name: "test",
+    //   key: "test",
+    //   value: 20,
+    //   type: "slide",
+    //   max: 100,
+    //   min: 1,
+    //   step: 1
+    // },
+    // {
+    //   name: "test2",
+    //   key: "test2",
+    //   value: [1, 20],
+    //   type: "range",
+    //   max: 100,
+    //   min: 1,
+    //   step: 1,
+    //   prepend: "$"
+    // },
+    // {
+    //   name: "test3",
+    //   key: "test3",
+    //   value: {
+    //     t1: [1, 20],
+    //     t2: [30, 80]
+    //   },
+    //   type: "rangeList",
+    //   list: [
+    //     {
+    //       name: "t1",
+    //       max: 100,
+    //       min: 1,
+    //       step: 1,
+    //       prepend: "$"
+    //     },
+    //     {
+    //       name: "t2",
+    //       max: 100,
+    //       min: 20,
+    //       step: 5,
+    //       prepend: "$"
+    //     }
+    //   ]
+    // },
     // {
     //   name: "테스트1",
     //   key: "test1",
@@ -263,17 +506,36 @@ let Vapp;
     // }
   ]
 
+  function arrToListObj(arr){
+    return arr.map((item, i, a)=>{
+      if(Array.isArray(item)){
+        return {
+          name: item[0],
+          value: item[1]||item[0]
+        }
+      }else if(typeof item == "object"){
+        return item;
+      }else{
+        return {
+          name: item,
+          value: item
+        }
+      }
+    })
+  }
+
   // list가 문자열로 된 것들을 오브젝트형태로 통일하자.
   optionDataFormat.forEach(obj=>{
     if(Array.isArray(obj.list)){
-      obj.list.forEach((item, i, arr)=>{
-        if(typeof item !== "object"){
-          arr[i] = {
-            name: item,
-            value: item
-          }
-        }
-      })
+      obj.list = arrToListObj(obj.list);
+      // obj.list.forEach((item, i, arr)=>{
+      //   if(typeof item !== "object"){
+      //     arr[i] = {
+      //       name: item,
+      //       value: item
+      //     }
+      //   }
+      // })
     }
   })
 
@@ -367,6 +629,85 @@ let Vapp;
         return this.$form;
       },
 
+      toFomula(list){
+        return list.map(item=>{
+          if(item.vType == "string"){
+            return `'${item.value}'`;
+          }else if(item.vType == "var"){
+            return `({}).${item.value}`
+          }else{
+            return item.value;
+          }
+        }).join('');
+      },
+
+      checkStage(list){
+        // {
+        //   name,
+        //   value,
+        //   key,
+        //   colorType
+        // }
+        if(!list || !list.length || list.length<3) return false;
+        if(!list.find(item=>item.vType=='var')) return false;
+
+        let cmd = this.toFomula(list);
+        // console.error(cmd);
+        try{
+          eval(cmd);
+        }catch(e){
+          return false;
+        }
+        return true;
+      },
+
+      addConditionItem(form, btn, item){
+        let obj;
+        // console.error(item);
+        if(typeof item === "object" && !(item instanceof HTMLElement)){
+          obj = {
+            name: item.name,
+            value: item.value
+          }
+        }else{
+          let v;
+          if(typeof item === "string"){
+            v = item;//$(item).val();
+          }else if(item instanceof HTMLInputElement){
+            v = item.value;
+            item.value = '';
+            item.focus();
+            // console.error(item, v);
+          }
+          if(btn.type == "number"){
+            v = parseFloat(v);
+          }
+          obj = {
+            name: v,
+            value: v
+          }
+        }
+        obj.colorType = btn.colorType;
+        obj.vType = btn.vType;
+        // console.log(item);
+        form.stage.push(obj);
+      },
+
+      addExceptEventCondition(form){
+        if(this.checkStage(form.stage)){
+          form.value.push(form.stage.slice());
+        }
+        // form.value.push(form.conditions.reduce((r,cdt)=>{
+        //   switch(cdt.type){
+        //     case "text":
+        //     case "select":
+        //       r[cdt.key] = cdt.value;
+        //     break;
+        //   }
+        //   return r;
+        // }, {}))
+      },
+
       async openOptionRegistModal(){
         this.setOptionData(defaultOption);
         let result = await modal("옵션등록", this.getOptionForm(), {
@@ -412,6 +753,42 @@ let Vapp;
               if(event.target.checked){
                 form.value = key[1];
               }
+            }else if(form.type == 'range'){
+              // form.value[key[1]] = parseFloat(value);
+              // this.$forceUpdate();
+              this.$set(form.value, key[1], parseFloat(value));
+            }else if(form.type == 'rangeList'){
+              // form.value[key[1]][key[2]] = parseFloat(value);
+              // this.$forceUpdate();
+              this.$set(form.value[key[1]], key[2], parseFloat(value));
+            }else if(form.type == 'slide'){
+              form.value = parseFloat(value);
+            }else if(form.type == 'slideList'){
+              form.value[key[1]] = parseFloat(value);
+            }else if(form.type == 'slideRangeMix'){
+              let item = form.list.find(item=>item.name==key[1]);
+              if(item.type == 'slide'){
+                // form.value[key[1]] = parseFloat(value);
+                this.$set(form.value, key[1], parseFloat(value));
+              }else if(item.type == 'range'){
+                // form.value[key[1]][key[2]] = parseFloat(value);
+                this.$set(form.value[key[1]], key[2], parseFloat(value));
+              }
+              // this.$forceUpdate();
+            }else if(form.type == 'exceptEventList'){
+              console.error(key, value);
+              let cdt = form.conditions.find(c=>c.key==key[1]);
+              if(cdt){
+                switch(cdt.type){
+                  case "text":
+                  case "select":
+                    cdt.value = value;
+                  break;
+                }
+              }
+              // form.value
+            }else if(form.type == 'number'){
+              form.value = parseFloat(value);
             }else{
               form.value = value;
             }
@@ -423,7 +800,52 @@ let Vapp;
       getOptionData(){
         let opt = {};
         for(let key in this.formsMap){
-          opt[key] = this.formsMap[key].value;
+          if(this.formsMap[key].type == 'range'){
+            let arr = this.formsMap[key].value;
+            if(arr[0]>arr[1]){
+              opt[key] = [arr[1], arr[0]]
+            }else{
+              opt[key] = arr.slice();
+            }
+          }else if(this.formsMap[key].type == 'rangeList'){
+            let obj = JSON.parse(JSON.stringify(this.formsMap[key].value));
+            for(let o in obj){
+              let arr = obj[o];
+              if(arr[0]>arr[1]){
+                obj[o] = [arr[1], arr[0]]
+              }else{
+                obj[o] = arr.slice();
+              }
+            }
+            opt[key] = obj;
+          }else if(this.formsMap[key].type == 'slideRangeMix'){
+            let obj = JSON.parse(JSON.stringify(this.formsMap[key].value));
+            for(let o in obj){
+              if(Array.isArray(obj[o])){
+                let arr = obj[o];
+                if(arr[0]>arr[1]){
+                  obj[o] = [arr[1], arr[0]]
+                }else{
+                  obj[o] = arr.slice();
+                }
+              }
+            }
+            opt[key] = obj;
+          }
+          // else if(this.formsMap[key].type == 'slideList'){
+            // let obj = JSON.parse(JSON.stringify(this.formsMap[key].value));
+            // for(let o in obj){
+            //   let arr = obj[o];
+            //   if(arr[0]>arr[1]){
+            //     obj[o] = [arr[1], arr[0]]
+            //   }else{
+            //     obj[o] = arr.slice();
+            //   }
+            // }
+            // opt[key] = obj;
+          else{
+            opt[key] = this.formsMap[key].value;
+          }
           // let v = this.formsMap[key].value;
           // if(v && typeof v === "object"){
           //   opt[key] = JSON.parse(JSON.stringify(v));
