@@ -724,7 +724,7 @@ function getNextData(){
 
       // console.error("data", data);
 
-      if(!dataFilter(data.betburger)){
+      if(!dataFilter(data)){
         data = null;
         continue;
       }
