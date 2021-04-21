@@ -1386,7 +1386,7 @@ function printGame(data){
 async function checkBalance(lv=0){
   let balance = await api.balance();
   if(balance.status == "success"){
-    if(optionName != "체크기" && balance.data.money < 100){
+    if(betOption.action != "checkBetmax" && balance.data.money < 100){
       log(`피나클 잔액이 100 미만입니다.`, "danger", true);
       sendDataToSite("sound", {name:"lakePncMoney"});
       return false;
