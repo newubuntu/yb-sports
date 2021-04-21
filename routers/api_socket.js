@@ -382,8 +382,9 @@ module.exports = MD=>{
         //   BetData.create(obj);
         // })
         socket.on("pullGameData", async (data, bid)=>{
-          console.log("pullGameData", bid);
+          console.log("pullGameData1", bid);
           let r = await pullGameData();
+          console.log("pullGameData2", r);
           emitToPrograms("gamedata", r, bid);
         })
 
