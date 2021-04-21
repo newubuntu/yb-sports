@@ -79,9 +79,9 @@ module.exports = MD=>{
   } = MD;
 
 
-  if(argv[0] == "master" || process.env.NODE_ENV === undefined){
-    init();
-  }
+  // if(argv[0] == "master" || process.env.NODE_ENV === undefined){
+  //   init();
+  // }
 
 
   function init(){
