@@ -79,9 +79,9 @@ module.exports = MD=>{
   } = MD;
 
 
-  if(argv[0] == "master" || process.env.NODE_ENV === undefined){
-    init();
-  }
+  // if(argv[0] == "master" || process.env.NODE_ENV === undefined){
+  //   init();
+  // }
 
 
   function init(){
@@ -99,10 +99,22 @@ module.exports = MD=>{
       list = reGroup(list.map((data,i)=>{
         return makeData(wrapData(data), i);
       })).filter(check);
+      list.forEach(calcProfit);
+      list.sort(profitSort);
     }
 
     console.log("receive gamedata " + list.length, (new Date()).toLocaleTimeString());
     io.to(room_checker).emit("gamedata", list);
+  }
+
+  function calcProfit(bets){
+    let p = calc.profitP(bets[0].odds, bets[1].odds, 1);
+    bets[0].profitP = p;
+    bets[1].profitP = p;
+  }
+
+  function profitSort(a,b){
+    return b.profitP - a.profitP;
   }
 
   function wrapData(data){

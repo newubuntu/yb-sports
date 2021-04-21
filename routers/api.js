@@ -671,32 +671,32 @@ module.exports = io=>{
 
 
   // from betburger
-  // router.post("/input_data", async (req, res)=>{
-  //   let t = await getRedis("inputDataTime")||0;
-  //   if(Date.now() - t < 1000){
-  //     res.send('0');
-  //     return;
-  //   }
-  //   await setRedis("inputDataTime", Date.now());
-  //
-  //   console.log("receive gamedata " + (req.body.data.length>2), (new Date()).toLocaleTimeString());
-  //   // let room = "__data_receiver__";
-  //
-  //   // console.error(io.in(room).sockets);
-  //   // console.error(io.sockets.adapter.rooms.get(room));
-  //
-  //   // let map = io.sockets.adapter.rooms.get(room_checker);
-  //   // if(map){
-  //   // //   console.log("found checker");
-  //   // // //   // 추후에 체크기 수량에 따라 벳버거 데이터를 분배하여 처리하도록하자
-  //   //   console.log("count", map.size);
-  //   //   console.log(...map.keys());
-  //   // }
-  //   // io.$.emit(room, "gamedata", req.body);
-  //   io.to(room_checker).emit("gamedata", req.body);
-  //
-  //   res.send('1');
-  // })
+  router.post("/input_data", async (req, res)=>{
+    let t = await getRedis("inputDataTime")||0;
+    if(Date.now() - t < 1000){
+      res.send('0');
+      return;
+    }
+    await setRedis("inputDataTime", Date.now());
+
+    console.log("receive gamedata " + (req.body.data.length>2), (new Date()).toLocaleTimeString());
+    // let room = "__data_receiver__";
+
+    // console.error(io.in(room).sockets);
+    // console.error(io.sockets.adapter.rooms.get(room));
+
+    // let map = io.sockets.adapter.rooms.get(room_checker);
+    // if(map){
+    // //   console.log("found checker");
+    // // //   // 추후에 체크기 수량에 따라 벳버거 데이터를 분배하여 처리하도록하자
+    //   console.log("count", map.size);
+    //   console.log(...map.keys());
+    // }
+    // io.$.emit(room, "gamedata", req.body);
+    io.to(room_checker).emit("gamedata", req.body);
+
+    res.send('1');
+  })
 
 
 

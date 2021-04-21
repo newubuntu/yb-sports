@@ -56,6 +56,18 @@ let Vapp;
       type: "select"
     },
     {
+      name: "체크기 채널",
+      key: "dataChannel",
+      value: "1",
+      list: Array(10).fill(0).map((a,i)=>{
+        return {
+          name:i+1+'채널',
+          value: i+1+''
+        }
+      }),
+      type: "select"
+    },
+    {
       name: "체크기 피나클 배팅확인 방식",
       key: "pncBetCheckType",
       value: "full",
@@ -71,22 +83,22 @@ let Vapp;
       ],
       type: "select"
     },
-    {
-      name: "배팅방식",
-      key: "betType",
-      value: "default",
-      list: [
-        {
-          name: "기본",
-          value: "default"
-        },
-        {
-          name: "0414테스트",
-          value: "0414"
-        }
-      ],
-      type: "select"
-    },
+    // {
+    //   name: "배팅방식",
+    //   key: "betType",
+    //   value: "default",
+    //   list: [
+    //     {
+    //       name: "기본",
+    //       value: "default"
+    //     },
+    //     {
+    //       name: "0414테스트",
+    //       value: "0414"
+    //     }
+    //   ],
+    //   type: "select"
+    // },
     {
       type: "hr"
     },

@@ -1617,11 +1617,11 @@ function checkOddsForBet365(data){
 }
 
 function openBet365EveryBrowser(data){
-  sendDataToServer("inputGameUrl", data.bet365.betLink);
+  sendDataToServer("inputGameUrl", {link:data.bet365.betLink, dataChannel:betOption.dataChannel||'1'});
 }
 
 function activeMainEveryBrowser(){
-  sendDataToServer("inputGameUrl", null);
+  sendDataToServer("inputGameUrl", {link:null, dataChannel:betOption.dataChannel||'1'});
 }
 
 let cancelGetBetmaxFlag;
@@ -1983,7 +1983,7 @@ async function checkBetmaxProcess(data){
       bdata.betburger = data;
       bdata._id = betResult.data.uniqueRequestId;
       bdata.bookmaker = betmaxInfo;
-      // bdata.dataChannel = betOption.dataChannel;
+      bdata.dataChannel = betOption.dataChannel||'1';
       sendDataToServer("inputGameData", bdata);
       // benEvent(data, "BOK", 0, "데이터 수집");
       benEvent(data, "OBOK", 0, "데이터 수집");
@@ -2451,11 +2451,11 @@ async function init(){
 
     console.log("receive gameurl");
 
-    if(!data){
+    if(!data || !data.link){
       activeMain();
     }else{
       activeBet365();
-      sendData("setPreUrl", {betOption,url:data}, PN_B365, true);
+      sendData("setPreUrl", {betOption, url:data.link}, PN_B365, true);
     }
   })
 }

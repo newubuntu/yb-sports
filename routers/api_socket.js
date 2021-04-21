@@ -269,7 +269,8 @@ module.exports = MD=>{
 
         socket.on("joinDataReceiver2", (bid)=>{
           console.log("####joinDataReceiver2");
-          socket.join(room_bettor);//+':'+dataChannel);
+          socket.join(room_bettor);
+          // socket.join(room_bettor+':'+dataChannel);
           // io.$.join("__data_receiver2__", socket);
         })
 
@@ -417,7 +418,7 @@ module.exports = MD=>{
           //   console.error(e);
           // })
 
-
+          console.log("send gamedata2", obj.dataChannel);
           // console.log(io.sockets.clients(room));
           io.to(room_bettor).emit("gamedata2", obj);
           // io.to(room_bettor).emit("gamedata2:"+dataChannel, obj);

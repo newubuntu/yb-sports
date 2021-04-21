@@ -867,38 +867,51 @@ function bet365JS(){
         // sendData("updatedUrl", null, PN_BG, true);
         betOption = data.betOption;
 
-        /// test
-        if(betOption.betType == "0414"){
-          console.error("timecheck");
-          if(await isTimekeyOver()){
-            console.error("set href");
-            refreshTimekey();
-            // window.location.href = data.url;
-          }
-          // else{
-          //   console.error("mybet click");
-          //   $(".hm-MainHeaderRHSLoggedInMed_MyBetsLabel").click();
-          //   await delay(100);
-          //   $(".myb-MyBetsHeader_Button").last().click();
-          // }
-        }else{
-          window.location.href = data.url;
+        console.error("timecheck");
+        if(await isTimekeyOver()){
+          console.error("set href");
+          refreshTimekey();
+          // window.location.href = data.url;
         }
+
+        /// test
+        // if(betOption.betType == "0414"){
+        //   console.error("timecheck");
+        //   if(await isTimekeyOver()){
+        //     console.error("set href");
+        //     refreshTimekey();
+        //     // window.location.href = data.url;
+        //   }
+        //   // else{
+        //   //   console.error("mybet click");
+        //   //   $(".hm-MainHeaderRHSLoggedInMed_MyBetsLabel").click();
+        //   //   await delay(100);
+        //   //   $(".myb-MyBetsHeader_Button").last().click();
+        //   // }
+        // }else{
+        //   window.location.href = data.url;
+        // }
         ///
       break;
 
       case "setUrl":
-        /// test
         betOption = data.betOption;
-        if(betOption.betType == "0414"){
-          if(betOption.action !== "checkBetmax"){
-            console.error("set betslipData", data.betslipData);
-            if(data.betslipData){
-              await setBetslipData(data.betslipData);
-            }
+        /// test
+        // if(betOption.betType == "0414"){
+        //   if(betOption.action !== "checkBetmax"){
+        //     console.error("set betslipData", data.betslipData);
+        //     if(data.betslipData){
+        //       await setBetslipData(data.betslipData);
+        //     }
+        //   }
+        // }
+        ///
+        if(betOption.action !== "checkBetmax"){
+          console.error("set betslipData", data.betslipData);
+          if(data.betslipData){
+            await setBetslipData(data.betslipData);
           }
         }
-        ///
 
         // 작업중0
         timestamp("setUrl");
@@ -933,26 +946,34 @@ function bet365JS(){
           localStorage.setItem("setUrl", true);
 
           /// test
-          if(betOption.betType == "0414"){
-            if(betOption.action == "checkBetmax"){
-              window.location.href = data.data.betLink;
-              resolveData = {passResolve:true};
-              break;
-            }else if(await isTimekeyOver()){
-              await refreshTimekey();
-              // await delay(1000);
-            }
-          }else{
+          // if(betOption.betType == "0414"){
+          //   if(betOption.action == "checkBetmax"){
+          //     window.location.href = data.data.betLink;
+          //     resolveData = {passResolve:true};
+          //     break;
+          //   }else if(await isTimekeyOver()){
+          //     await refreshTimekey();
+          //     // await delay(1000);
+          //   }
+          // }else{
+          //   window.location.href = data.data.betLink;
+          //   resolveData = {passResolve:true};
+          //   break;
+          // }
+          ///
+          if(betOption.action == "checkBetmax"){
             window.location.href = data.data.betLink;
             resolveData = {passResolve:true};
             break;
+          }else if(await isTimekeyOver()){
+            await refreshTimekey();
+            // await delay(1000);
           }
-          ///
         }
 
 
-        ///test
-        if(betOption.betType == "0414" && betOption.action !== "checkBetmax"){
+        // 0414 &&
+        if(betOption.action !== "checkBetmax"){
           let info = await getBetslipInfoForAPI(undefined, data.data.handicap?data.data.handicap:undefined);
           console.error("@@@betslipinfo", info);
 
@@ -976,7 +997,7 @@ function bet365JS(){
           setInitMessage(null);
           break;
         }else{
-        ///
+
 
           let timeout = 2 * 1000;
           let $betslip;
