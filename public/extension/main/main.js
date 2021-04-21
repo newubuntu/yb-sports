@@ -671,6 +671,8 @@ function exceptEventCheckByFomula(data){
 }
 
 function dataFilter(data){
+  if(!data) return false;
+
   let ids = getEventIds(data);
   for(let key in ids){
     if(isBenEvent(ids[key])){
