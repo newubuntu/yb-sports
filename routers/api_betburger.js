@@ -79,9 +79,9 @@ module.exports = MD=>{
   } = MD;
 
 
-  // if(argv[0] == "master" || process.env.NODE_ENV === undefined){
-  //   init();
-  // }
+  if(argv[0] == "master" || process.env.NODE_ENV === undefined){
+    init();
+  }
 
 
   function init(){
@@ -119,11 +119,11 @@ module.exports = MD=>{
   function makeData(data, index){
     let betType, team, side, handicap;
     let homeAway = index%2==0 ? "home" : "away";
-    if(data.swap_teams){
-      homeAway = index%2==0 ? "away" : "home";
-    }else{
-      homeAway = index%2==0 ? "home" : "away";
-    }
+    // if(data.swap_teams){
+    //   homeAway = index%2==0 ? "away" : "home";
+    // }else{
+    //   homeAway = index%2==0 ? "home" : "away";
+    // }
 
     if(data.bet_type.indexOf("Total") > -1){
       betType = "TOTAL_POINTS";
@@ -191,6 +191,10 @@ module.exports = MD=>{
     }
     if(!(bets[1].bookmaker == "bet365" || bets[1].bookmaker == "pinnacle")){
       console.log("!! another bookmaker");
+      return;
+    }
+    if((!bets[0].team && !bets[0].side) || (!bets[1].team && !bets[1].side)){
+      console.log("!! not found team or side");
       return;
     }
     if(bets[0].sports == "E-Sports") return;
