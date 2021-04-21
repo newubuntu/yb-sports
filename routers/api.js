@@ -574,7 +574,7 @@ module.exports = io=>{
         let r;
         while(1){
           r = gd.shift();
-          console.log("gamedata", r);
+          console.log("gamedata", !!r);
           if(r && await isLockEvent(r.bet365.betburgerEventId)){
             continue;
           }
