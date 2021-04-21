@@ -574,7 +574,7 @@ module.exports = io=>{
         let r;
         while(1){
           r = gd.shift();
-          console.log("gamedata", !!r);
+          console.log("gamedata", !!r, r?r.bet365.betburgerEventId:'');
           if(r && await isLockEvent(r.bet365.betburgerEventId)){
             continue;
           }
@@ -591,7 +591,7 @@ module.exports = io=>{
   async function isLockEvent(id){
     let list = await getRedis("gamedataLockList");
     list = list ? JSON.parse(list) : {};
-    console.log("isLockEvent", id, !!list[id]);
+    console.log("isLockEvent", id, !!list[id], list);
     return !!list[id];
   }
 
