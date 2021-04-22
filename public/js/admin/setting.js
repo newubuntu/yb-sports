@@ -30,8 +30,14 @@ let Vapp;
       type: "text"
     },
     {
-      name: "벳버거 필터 ID",
-      key: "betburgerFilterId",
+      name: "벳버거1 필터 ID",
+      key: "betburger1FilterId",
+      value: "",
+      type: "text"
+    },
+    {
+      name: "벳버거2 필터 ID",
+      key: "betburger2FilterId",
       value: "",
       type: "text"
     },

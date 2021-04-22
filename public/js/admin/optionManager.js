@@ -29,8 +29,12 @@ let Vapp;
           value: "betmax"
         },
         {
-          name: "벳버거",
-          value: "betburger"
+          name: "벳버거1",
+          value: "betburger1"
+        },
+        {
+          name: "벳버거2",
+          value: "betburger2"
         }
       ],
       type: "select"

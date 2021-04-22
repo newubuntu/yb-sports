@@ -87,17 +87,22 @@ module.exports = MD=>{
 
 
   function init(){
-    let job3s = new CronJob('*/3 * * * * *', function() {
-       betburgerEventProcess();
-    });
-    job3s.start();
+    new CronJob('*/3 * * * * *', function() {
+      let dataType = "betburger1";
+      betburgerEventProcess(dataType);
+    }).start();
+
+    new CronJob('*/3 * * * * *', function() {
+      let dataType = "betburger2";
+      betburgerEventProcess(dataType);
+    }).start();
   }
 
-  async function betburgerEventProcess(){
-    let list = (await loadArbs()) || [];
+  async function betburgerEventProcess(dataType){
+    let list = await loadArbs(dataType);
     // console.log("??", list);
 
-    if(list.length){
+    if(list){
       list = reGroup(list.map((data,i)=>{
         return makeData(wrapData(data), i);
       })).filter(check);
@@ -110,11 +115,13 @@ module.exports = MD=>{
           return r;
         }, {});
       })
+      console.log(`receive gamedata ${dataType}: ` + list.length, (new Date()).toLocaleTimeString());
+      await setGameData(JSON.stringify(list), dataType);
+    }else{
+      await setGameData('[]', dataType);
     }
 
-    console.log("receive gamedata " + list.length, (new Date()).toLocaleTimeString());
     // io.to(room_checker).emit("gamedata", list);
-    await setGameData(JSON.stringify(list));
   }
 
   function calcProfit(bets){
@@ -245,16 +252,21 @@ module.exports = MD=>{
     }, [])
   }
 
-  async function loadArbs(){
+  async function loadArbs(dataType){
     let setting = await getSetting();
     let filterId, token, count;
     if(setting){
-      filterId = setting.betburgerFilterId;
+      filterId = setting[dataType+'FilterId'];
+      // console.log(dataType, filterId);
       token = setting.betburgerApiToken;
       count = setting.betburgerPerPage;
     }
 
-    if(filterId === undefined || token === undefined){
+    if(filterId === undefined){
+      return null;
+    }
+
+    if(token === undefined){
       console.error("wrong betburger settings");
       return null;
     }

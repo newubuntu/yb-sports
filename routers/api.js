@@ -552,13 +552,13 @@ module.exports = io=>{
   let room_checker = "__data_receiver__";
   let room_bettor = "__data_receiver2__";
 
-  function setGameData(data){
+  function setGameData(data, dataType){
     // console.log("@@setGameData", data);
-    return setRedis("gamedata", data);
+    return setRedis("gamedata_"+dataType, data);
   }
 
-  async function pullGameData(){
-    let data = await getRedis("gamedata");
+  async function pullGameData(dataType){
+    let data = await getRedis("gamedata_"+dataType);
     if(data){
       let gd;
       try{
@@ -574,14 +574,14 @@ module.exports = io=>{
         let r;
         for(let i=0; i<gd.length; i++){
           r = gd[i];
-          if(r && await isLockEvent(r.bet365.betburgerEventId)){
+          if(r && await isLockEvent(r.bet365.betburgerEventId, dataType)){
             continue;
           }
 
           if(r){
             gd.splice(i, 1);
-            await setGameData(JSON.stringify(gd));
-            await lockEvent(r.bet365.betburgerEventId);
+            await setGameData(JSON.stringify(gd), dataType);
+            await lockEvent(r.bet365.betburgerEventId, dataType);
           }
           return r;
         }
@@ -602,34 +602,35 @@ module.exports = io=>{
     }
   }
 
-  async function isLockEvent(id){
-    let list = await getRedis("gamedataLockList");
+  async function isLockEvent(id, dataType){
+    let list = await getRedis("gamedataLockList_"+dataType);
     list = list ? JSON.parse(list) : {};
     // console.log("@isLockEvent", id, list[id], Object.keys(list).length);
     return list[id] !== undefined;
   }
 
-  async function lockEvent(id){
-    let list = await getRedis("gamedataLockList");
+  async function lockEvent(id, dataType){
+    let list = await getRedis("gamedataLockList_"+dataType);
     list = list ? JSON.parse(list) : {};
     list[id] = 1;
     // console.log("@lockEvent", id);
-    return setRedis("gamedataLockList", JSON.stringify(list));
+    return setRedis("gamedataLockList_"+dataType, JSON.stringify(list));
   }
 
-  async function unlockEvent(id){
-    let list = await getRedis("gamedataLockList");
+  async function unlockEvent(id, dataType){
+    let list = await getRedis("gamedataLockList_"+dataType);
     list = list ? JSON.parse(list) : {};
     delete list[id];
     // console.log("@unlockEvent", id);
-    return setRedis("gamedataLockList", JSON.stringify(list));
+    return setRedis("gamedataLockList_"+dataType, JSON.stringify(list));
   }
 
-  async function unlockEventAll(){
-    return setRedis("gamedataLockList", '{}');
+  async function unlockEventAll(dataType){
+    return setRedis("gamedataLockList_"+dataType, '{}');
   }
 
-  unlockEventAll();
+  unlockEventAll("betburger1");
+  unlockEventAll("betburger2");
 
   let MD = {
     isLockEvent,

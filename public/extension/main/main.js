@@ -111,7 +111,7 @@ async function onMessage(message){
       betOption = data.betOption;
       optionName = data.optionName;
       $("#optionName").html(`[${optionName}]`);
-      document.title = (betOption.dataChannel||'1') + "채널";
+      document.title = betOption.dataType + ' ' + (betOption.dataChannel||'1') + "채널";
       if(betOption.action == "checkBetmax"){
         setupMode("dev");
         requestAnimationFrame(animate);
@@ -2304,7 +2304,7 @@ function animate(){
   if(performance.now() - pullTime > pullGab){
     pullTime = performance.now();
     if(flag.bet365LoginComplete && flag.isMatching && !isCheckingMatch){
-      sendDataToServer("pullGameData");
+      sendDataToServer("pullGameData", betOption.dataType);
     }
   }
   requestAnimationFrame(animate);
@@ -2472,7 +2472,7 @@ async function init(){
 
     // await delay(3000);
     if(data && data.bet365){
-      sendDataToServer("unlockEvent", data.bet365.betburgerEventId);
+      sendDataToServer("unlockEvent", {dataType:betOption.dataType, betburgerEventId:data.bet365.betburgerEventId});
     }
   })
 
