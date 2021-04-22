@@ -111,7 +111,7 @@ async function onMessage(message){
       betOption = data.betOption;
       optionName = data.optionName;
       $("#optionName").html(`[${optionName}]`);
-      document.title = (data.dataChannel||'1') + "채널";
+      document.title = (betOption.dataChannel||'1') + "채널";
       if(betOption.action == "checkBetmax"){
         setupMode("dev");
         requestAnimationFrame(animate);
@@ -2471,7 +2471,9 @@ async function init(){
     }
 
     // await delay(3000);
-    sendDataToServer("unlockEvent", data.bet365.betburgerEventId);
+    if(data && data.bet365){
+      sendDataToServer("unlockEvent", data.bet365.betburgerEventId);
+    }
   })
 
   socket.on("gamedata2", async data=>{

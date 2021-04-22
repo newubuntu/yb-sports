@@ -1489,7 +1489,7 @@ function bet365JS(){
               await delay(200);
               // await sendData("getBetmax", stake);
               balance = parseMoney($(".bs-Balance_Value").text());
-              let stake = Math.min(balance, 500);
+              let stake = Math.min(Math.floor(balance), 500);
               if(isNaN(stake)){
                 stake = 500;
               }
