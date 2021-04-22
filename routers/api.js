@@ -572,19 +572,32 @@ module.exports = io=>{
 
       if(gd){
         let r;
-        while(1){
-          r = gd.shift();
-          // console.log("gamedata", !!r, r?r.bet365.betburgerEventId:'');
+        for(let i=0; i<gd.length; i++){
+          r = gd[i];
           if(r && await isLockEvent(r.bet365.betburgerEventId)){
             continue;
           }
-          
-          await setGameData(JSON.stringify(gd));
+
           if(r){
+            gd.splice(i, 1);
+            await setGameData(JSON.stringify(gd));
             await lockEvent(r.bet365.betburgerEventId);
           }
           return r;
         }
+        // while(1){
+        //   r = gd.shift();
+        //   // console.log("gamedata", !!r, r?r.bet365.betburgerEventId:'');
+        //   if(r && await isLockEvent(r.bet365.betburgerEventId)){
+        //     continue;
+        //   }
+        //
+        //   await setGameData(JSON.stringify(gd));
+        //   if(r){
+        //     await lockEvent(r.bet365.betburgerEventId);
+        //   }
+        //   return r;
+        // }
       }
     }
   }
