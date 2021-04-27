@@ -371,7 +371,7 @@ module.exports = MD=>{
       // count = setting.betburgerPerPage;
     }
 
-    console.error(dataType, arbsType, perPage, filterId);
+    // console.error(dataType, arbsType, perPage, filterId);
 
     if(!filterId){
       return null;
