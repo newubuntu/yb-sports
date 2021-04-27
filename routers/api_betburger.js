@@ -151,7 +151,7 @@ module.exports = MD=>{
     ]);
 
     list.forEach((a,i)=>{
-      console.log(['live', 'prematch'][i], a?a.length/2:0);
+      console.log(dataType, ['live', 'prematch'][i], a?a.length/2:0);
     })
 
     list = list.filter(a=>!!a).flat();
