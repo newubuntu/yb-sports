@@ -192,7 +192,7 @@ block view
             .input-group
               .input-group-prepend(v-if="form.prepend")
                 span.input-group-text(v-html="form.prepend")
-              input.form-control(v-on:change="update" :id="form.key" type="number" :name="form.key" :placeholder="form.placeholder?form.placeholder:''" :value="form.value")
+              input.form-control(v-on:change="update" :id="form.key" type="number" :name="form.key" :placeholder="form.placeholder?form.placeholder:''" :max="form.max" :min="form.min" :step="form.step" :value="form.value")
               .input-group-append(v-if="form.append")
                 span.input-group-text(v-html="form.append")
             span.help-block(v-if="form.help") {{form.help}}

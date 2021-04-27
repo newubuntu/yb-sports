@@ -549,6 +549,49 @@ module.exports = io=>{
     }
   }
 
+  var eventKeyGetter = {
+    PK: function(){return this.data.pinnacle.id},
+    POK: function(){return this.data.pinnacle.id + this.data.pinnacle.odds},
+    BK: function(){return this.data.bet365.id},
+    BOK: function(){return this.data.bet365.id + this.data.bet365.odds},
+    //origin bet365 event id + odds  key
+    // OBOK: data.bet365.eventId + data.bet365.odds,
+    OBOK: function(){return this.data.bet365.bookmakerDirectLink + this.data.bet365.odds},
+    //origin bet365 event id + odds + id  key
+    // OBOIK: data.bet365.eventId + data.bet365.odds + account.id,
+    // OBOIK: data.bet365.bookmakerDirectLink + data.bet365.odds + account.id,
+    // matchId: data.pinnacle.id + ':' + data.bet365.id
+    EK: function(){return this.data.pinnacle.betburgerEventId},
+    EBOK: function(){return this.data.pinnacle.betburgerEventId + this.data.bet365.odds},
+    EPOK: function(){return this.data.pinnacle.betburgerEventId + this.data.pinnacle.odds}
+  }
+
+  Object.defineProperty(eventKeyGetter, "data", {
+    value: null,
+    enumerable: false,
+    writable: true
+  })
+
+  function getEventKeyNames(){
+    return Object.keys(eventKeyGetter);
+  }
+
+  function getEventKey(data, keyName){
+    if(eventKeyGetter[keyName]){
+      eventKeyGetter.data = data;
+      return eventKeyGetter[keyName]();
+    }
+    return null;
+  }
+
+  function getEventKeys(data){
+    eventKeyGetter.data = data;
+    return Object.keys(eventKeyGetter).reduce((r,key)=>{
+      r[key] = eventKeyGetter[key]();
+      return r;
+    },{})
+  }
+
   let room_checker = "__data_receiver__";
   let room_bettor = "__data_receiver2__";
 
@@ -557,9 +600,21 @@ module.exports = io=>{
     return setRedis("gamedata_"+dataType, data);
   }
 
-  async function pullGameData(dataType){
+  async function pullGameData(opt){
+    let {dataType, livePrematch} = opt;
     let data = await getRedis("gamedata_"+dataType);
+    // console.log("@pull", data);
     if(data){
+
+      // empty는 실제 가져온 데이터가 없을때 넣어주고있다.
+      // temp는 pullGameData처리중에 임시로 데이터를 비울때 사용(다른 체크기가 못잡도록 하기위해)
+      if(data == "empty" || data == "temp"){
+        return null;
+      }
+
+      // console.log("@ set temp");
+      await setRedis("gamedata_"+dataType, "temp");
+
       let gd;
       try{
         gd = JSON.parse(data);
@@ -569,36 +624,67 @@ module.exports = io=>{
       }
 
       // console.log("gamedata length:", gd.length);
+      // console.log("@ gd", gd);
 
       if(gd){
         let r;
         for(let i=0; i<gd.length; i++){
           r = gd[i];
           if(r && await isLockEvent(r.bet365.betburgerEventId, dataType)){
+            // console.log("- isLocked");
+            continue;
+          }
+
+          if(typeof livePrematch === "object"){
+            if(r.isLive && !livePrematch.live){
+              // console.log("- is no live");
+              continue;
+            }
+            if(!r.isLive && !livePrematch.prematch){
+              // console.log("- is no prematch");
+              continue;
+            }
+          }
+
+          let keys = getEventKeyNames(r).map(k=>{
+            return getEventKey(r, k);
+          })
+
+          let ben = await BenEvent.findOne({
+            $and: [
+              {key: {$in:keys}},
+              {$or:[
+                {expire: null},
+                {expire: {$gte: new Date()}},
+              ]},
+              //이틀전에 만든 벤까지만 허용
+              {createdAt: {$gte: new Date(Date.now()-1000*60*60*24*2)}}
+            ]
+          })
+
+          if(ben){
+            console.log("@ ben event:", bet.betburgerEventId);
             continue;
           }
 
           if(r){
             gd.splice(i, 1);
-            await setGameData(JSON.stringify(gd), dataType);
+            // await setGameData(JSON.stringify(gd), dataType);
             await lockEvent(r.bet365.betburgerEventId, dataType);
           }
-          return r;
+          break;
+          // return r;
         }
-        // while(1){
-        //   r = gd.shift();
-        //   // console.log("gamedata", !!r, r?r.bet365.betburgerEventId:'');
-        //   if(r && await isLockEvent(r.bet365.betburgerEventId)){
-        //     continue;
-        //   }
-        //
-        //   await setGameData(JSON.stringify(gd));
-        //   if(r){
-        //     await lockEvent(r.bet365.betburgerEventId);
-        //   }
-        //   return r;
-        // }
+
+        let tempData = await getRedis("gamedata_"+dataType);
+        // console.log("@ check", tempData);
+        if(tempData == "temp"){
+          // console.log("@ restore");
+          await setRedis("gamedata_"+dataType, JSON.stringify(gd));
+        }
+        return r;
       }
+      // await setGameData(JSON.stringify(gd), dataType);
     }
   }
 
@@ -807,6 +893,19 @@ module.exports = io=>{
   // })
 
 
+  router.post("/ben_event", task(async (req, res)=>{
+    let {id, dataType, betburgerEventId, time, msg} = req.body;
+    await BenEvent.create({
+      key: id,
+      expire: time == 0 ? null : new Date(Date.now()+time),
+      msg: msg,
+      betburgerEventId: betburgerEventId,
+      dataType: dataType
+    })
+    res.json({
+      status: "success"
+    })
+  }))
 
 
   router.post("/input_bet", task(async (req, res)=>{

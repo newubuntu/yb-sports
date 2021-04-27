@@ -30,23 +30,35 @@ let Vapp;
       type: "text"
     },
     {
-      name: "벳버거1 필터 ID",
-      key: "betburger1FilterId",
+      name: "벳버거1 라이브 필터ID",
+      key: "betburger1LiveFilterId",
       value: "",
       type: "text"
     },
     {
-      name: "벳버거2 필터 ID",
-      key: "betburger2FilterId",
+      name: "벳버거1 프리매치 필터ID",
+      key: "betburger1PrematchFilterId",
       value: "",
       type: "text"
     },
     {
-      name: "벳버거 페이지당 이벤트",
-      key: "betburgerPerPage",
-      value: 20,
-      type: "number"
+      name: "벳버거2 라이브 필터ID",
+      key: "betburger2LiveFilterId",
+      value: "",
+      type: "text"
     },
+    {
+      name: "벳버거2 프리매치 필터ID",
+      key: "betburger2PrematchFilterId",
+      value: "",
+      type: "text"
+    },
+    // {
+    //   name: "벳버거 페이지당 이벤트",
+    //   key: "betburgerPerPage",
+    //   value: 20,
+    //   type: "number"
+    // },
     {
       name: "벳삼 계정발급비용",
       key: "accountPrice",

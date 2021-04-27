@@ -2,13 +2,16 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 //mongoose.Schema.Types.Mixed
 const benEventSchema = new mongoose.Schema({
-  bet365Id: {type: String},
+  // bet365Id: {type: String},
+  betburgerEventId: {type: String},
   key: {type: String},
+  expire: {type: Date, default:null},
+  msg: {type: String},
+  dataType: {type:String}
   //BK, EK
-  type: {type: String},
-  expire: {type: Date},
-  count: {type: Number, default: 0},
-  maxCount: {type: Number, default: 0}
+  // type: {type: String},
+  // count: {type: Number, default: 0},
+  // maxCount: {type: Number, default: 0}
 },{
   timestamps: true
 })

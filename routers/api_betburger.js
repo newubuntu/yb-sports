@@ -22,6 +22,15 @@ const ax = axios.create({
   // timeout: 1000,
 });
 
+const ax2 = axios.create({
+  baseURL: "https://rest-api-pr.betburger.com",
+  headers: {
+    'Content-Type': 'application/x-www-form-urlencoded',
+    'Accept' : 'application/json'
+  }
+  // timeout: 1000,
+});
+
 module.exports = MD=>{
   let {
     setGameData,
@@ -86,6 +95,34 @@ module.exports = MD=>{
   }
 
 
+  // router.get("/test", async (req, res)=>{
+  //   // let list = await loadArbs("betburger1", "Live", 10);
+  //
+  //
+  //   let list = await betburgerEventProcess("betburger1");
+  //
+  //   res.json(list);
+  //
+  //   // let list = await Promise.all([
+  //   //   // loadArbs("betburger1", true, 10),
+  //   //   null,
+  //   //   loadArbs("betburger1", false, 10, [244183721])
+  //   // ]);
+  //   //
+  //   // list.forEach((a,i)=>{
+  //   //   console.log(['live', 'prematch'][i], a?a.length:0);
+  //   // })
+  //   //
+  //   // list = list.filter(a=>!!a).flat();
+  //   //
+  //   // // console.error(list);
+  //   // console.error(list.length);
+  //   //
+  //   // res.json(list);
+  //
+  //   // io.to("admin").emit("sound", {name:"refreshToken", loop:1});
+  // })
+
   function init(){
     new CronJob('*/3 * * * * *', function() {
       let dataType = "betburger1";
@@ -98,29 +135,69 @@ module.exports = MD=>{
     }).start();
   }
 
-  async function betburgerEventProcess(dataType){
-    let list = await loadArbs(dataType);
-    // console.log("??", list);
+  function haveToRefreshToken(list){
+    // console.log(list);
+    for(let i=0; i<list.length; i++){
+      if(!(list[i].bookmaker_id == 1 || list[i].bookmaker_id == 10)){
+        return true;
+      }
+    }
+  }
 
-    if(list){
-      list = reGroup(list.map((data,i)=>{
-        return makeData(wrapData(data), i);
-      })).filter(check);
-      list.forEach(calcProfit);
-      list.sort(profitSort);
-      list = list.map(bets=>{
-        // console.log(bets[0].id);
-        return bets.reduce((r,v)=>{
-          r[v.bookmaker] = v;
+  async function betburgerEventProcess(dataType){
+    let list = await Promise.all([
+      loadArbs(dataType, true, 10),
+      loadArbs(dataType, false, 10)
+    ]);
+
+    list.forEach((a,i)=>{
+      console.log(['live', 'prematch'][i], a?a.length/2:0);
+    })
+
+    list = list.filter(a=>!!a).flat();
+
+    if(haveToRefreshToken(list)){
+      console.log("!!!!! have to change betburger api token !!!!!")
+      list = null;
+      io.to("admin").emit("sound", {name:"refreshToken", loop:1});
+    }
+
+    if(list && list.length){
+      list = reGroup(list).map(bets=>{
+        return calcProfit(bets.map((data,i)=>{
+          return makeData(wrapData(data), i);
+        }))
+      })
+      .filter(check)
+      .map(bets=>{
+        return bets.reduce((r,bet)=>{
+          r[bet.bookmaker] = bet;
           return r;
         }, {});
       })
+
+      // list = reGroup(list.map((data,i)=>{
+      //   return makeData(wrapData(data), i);
+      // }));
+      // if(!test){
+      //   list = list.filter(check);
+      // }
+      // // list.forEach(calcProfit);
+      // // live와 prematch를 분리하기위해 정렬은 생략(이미 정렬되어 넘어옴)
+      // // list.sort(profitSort);
+      // list = list.map(bets=>{
+      //   // console.log(bets[0].id);
+      //   return bets.reduce((r,v)=>{
+      //     r[v.bookmaker] = v;
+      //     return r;
+      //   }, {});
+      // })
       console.log(`receive gamedata ${dataType}: ` + list.length, (new Date()).toLocaleTimeString());
       await setGameData(JSON.stringify(list), dataType);
     }else{
-      await setGameData('[]', dataType);
+      await setGameData('empty', dataType);
     }
-
+    return list;
     // io.to(room_checker).emit("gamedata", list);
   }
 
@@ -128,6 +205,7 @@ module.exports = MD=>{
     let p = calc.profitP(bets[0].odds, bets[1].odds, 1);
     bets[0].profitP = p;
     bets[1].profitP = p;
+    return bets;
   }
 
   function profitSort(a,b){
@@ -212,61 +290,94 @@ module.exports = MD=>{
   }
 
   function check(bets){
+    // console.error("bets", bets);
     if(!bets || bets.length < 2) return;
-    if(bets[0].bookmaker == bets[1].bookmaker) return;
-    if(!(bets[0].bookmaker == "bet365" || bets[0].bookmaker == "pinnacle")){
-      console.log("!! another bookmaker", bets[0].bookmaker);
+    if(bets[0].bookmaker == bets[1].bookmaker){
+      console.log("!! same bookmaker");
       return;
     }
-    if(!(bets[1].bookmaker == "bet365" || bets[1].bookmaker == "pinnacle")){
-      console.log("!! another bookmaker", bets[1].bookmaker);
-      return;
-    }
+    // if(!(bets[0].bookmaker == "bet365" || bets[0].bookmaker == "pinnacle")){
+    //   console.log("!! another bookmaker", bets[0].bookmaker);
+    //   return;
+    // }
+    // if(!(bets[1].bookmaker == "bet365" || bets[1].bookmaker == "pinnacle")){
+    //   console.log("!! another bookmaker", bets[1].bookmaker);
+    //   return;
+    // }
     if((!bets[0].team && !bets[0].side) || (!bets[1].team && !bets[1].side)){
       console.log("!! not found team or side");
       return;
     }
     if(bets[0].sports == "E-Sports") return;
     if(bets[0].swapTeams || bets[1].swapTeams){
+      console.log("!! swap teams");
       return;
     }
 
     if(bets[0].handicap && (bets[0].handicap % 1 == 0.25 || bets[0].handicap % 1 == 0.75)){
+      console.log("!! 0.25 0.75 handicap");
       return;
     }
     if(bets[1].handicap && (bets[1].handicap % 1 == 0.25 || bets[1].handicap % 1 == 0.75)){
+      console.log("!! 0.25 0.75 handicap");
       return;
     }
-    if(bets[0].betburgerEventId !== bets[1].betburgerEventId) return;
+    if(bets[0].betburgerEventId !== bets[1].betburgerEventId){
+      console.log("!! same betburger event id");
+      return;
+    }
 
     return true;
   }
 
   function reGroup(list){
-    return list.reduce((r,v,i)=>{
-      if(i%2==0){
-        r.push([]);
+    let g = {};
+    list.forEach(a=>{
+      if(!g[a.event_id]) g[a.event_id] = [];
+      g[a.event_id].push(a);
+    })
+    for(let o in g){
+      if(g[o].length > 2){
+        console.error("!! bets length > 2")
+        delete g[o];
+      }else if(g[o].length < 2){
+        console.error("!! bets length < 2")
+        delete g[o];
       }
-      r[r.length-1].push(v);
-      return r;
-    }, [])
-  }
-
-  async function loadArbs(dataType){
-    let setting = await getSetting();
-    let filterId, token, count;
-    if(setting){
-      filterId = setting[dataType+'FilterId'];
-      // console.log(dataType, filterId);
-      token = setting.betburgerApiToken;
-      count = setting.betburgerPerPage;
     }
 
-    if(filterId === undefined){
+    return Object.keys(g).map(k=>g[k]);
+    // console.error("list", list);
+    // console.error("g", g);
+    // console.error("r", r);
+
+    // return list.reduce((r,v,i)=>{
+    //   if(i%2==0){
+    //     r.push([]);
+    //   }
+    //   r[r.length-1].push(v);
+    //   return r;
+    // }, [])
+  }
+
+  async function loadArbs(dataType, isLive=true, perPage=20, exclude){
+    let setting = await getSetting();
+    let filterId, token;//, count;
+    let arbsType = isLive ? "Live" : "Prematch";
+    if(setting){
+      filterId = setting[dataType+arbsType+'FilterId'];
+      // console.log(dataType, filterId);
+      token = setting.betburgerApiToken;
+      // count = setting.betburgerPerPage;
+    }
+
+    console.error(dataType, arbsType, perPage, filterId);
+
+    if(!filterId){
       return null;
     }
 
-    if(token === undefined){
+    if(!token){
       console.error("wrong betburger settings");
       return null;
     }
@@ -274,18 +385,33 @@ module.exports = MD=>{
     let data = {
       access_token: token,
       search_filter: filterId,
-      per_page: count || 20,
+      // per_page: forcePerPage || count || 20,
+      per_page: perPage,
       grouped: 1,
       show_event_arbs: true,
       sort_by: "percent"
     }
+    // if(exclude){
+    //   data["excluded_events"] = exclude;
+    // }
+    // data['search_filter%5B%5D'] = filterId;
+    // data['excluded_events%5B%5D'] = ;
 
     const params = new URLSearchParams();
     for(let o in data){
       params.append(o, data[o]);
+
+      // if(Array.isArray(data[o])){
+      //   for(let i in data[o]){
+      //     params.append(o, data[o][i]);
+      //   }
+      // }else{
+      //   params.append(o, data[o]);
+      // }
     }
 
-    return ax.post("/api/v1/arbs/bot_pro_search", params)
+    let a = arbsType=="Live"?ax:ax2;
+    return a.post("/api/v1/arbs/bot_pro_search", params)
     .then(res=>{
       return res.data?res.data.bets:null
     })

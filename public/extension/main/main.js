@@ -111,10 +111,17 @@ async function onMessage(message){
       betOption = data.betOption;
       optionName = data.optionName;
       $("#optionName").html(`[${optionName}]`);
-      document.title = betOption.dataType + ' ' + (betOption.dataChannel||'1') + "채널";
+
+
       if(betOption.action == "checkBetmax"){
         setupMode("dev");
         requestAnimationFrame(animate);
+        document.title = 'type'+betOption.dataType.replace(/[^0-9]/g,'')+ ' ' + (betOption.dataChannel||'1') + "채널";
+        if(!(/betburger(1|2)/.test(betOption.dataType))){
+          log("체크기 옵션에서 데이터 타입설정이 잘못됐습니다.", "danger", true);
+        }
+      }else{
+        document.title = (betOption.dataChannel||'1') + "채널";
       }
 
       if(!betOption){
@@ -535,9 +542,74 @@ function getEventMark(id){
   return em;
 }
 
-function benEvent(data, key, time, msg){
-  let ids = getEventIds(data);
-  let id = ids[key];
+var eventKeyGetter = {
+  PK: function(){return this.data.pinnacle.id},
+  POK: function(){return this.data.pinnacle.id + this.data.pinnacle.odds},
+  BK: function(){return this.data.bet365.id},
+  BOK: function(){return this.data.bet365.id + this.data.bet365.odds},
+  //origin bet365 event id + odds  key
+  // OBOK: data.bet365.eventId + data.bet365.odds,
+  OBOK: function(){return this.data.bet365.bookmakerDirectLink + this.data.bet365.odds},
+  //origin bet365 event id + odds + id  key
+  // OBOIK: data.bet365.eventId + data.bet365.odds + account.id,
+  // OBOIK: data.bet365.bookmakerDirectLink + data.bet365.odds + account.id,
+  // matchId: data.pinnacle.id + ':' + data.bet365.id
+  EK: function(){return this.data.pinnacle.betburgerEventId},
+  EBOK: function(){return this.data.pinnacle.betburgerEventId + this.data.bet365.odds},
+  EPOK: function(){return this.data.pinnacle.betburgerEventId + this.data.pinnacle.odds}
+}
+
+Object.defineProperty(eventKeyGetter, "data", {
+  value: null,
+  enumerable: false,
+  writable: true
+})
+
+function getEventKeyNames(){
+  return Object.keys(eventKeyGetter);
+}
+
+function getEventKey(data, keyName){
+  if(eventKeyGetter[keyName]){
+    eventKeyGetter.data = data;
+    return eventKeyGetter[keyName]();
+  }
+  return null;
+}
+
+function getEventKeys(data){
+  eventKeyGetter.data = data;
+  return Object.keys(eventKeyGetter).reduce((r,key)=>{
+    r[key] = eventKeyGetter[key]();
+    return r;
+  },{})
+  // return {
+  //   PK: data.pinnacle.id,
+  //   POK: data.pinnacle.id + data.pinnacle.odds,
+  //   BK: data.bet365.id,
+  //   BOK: data.bet365.id + data.bet365.odds,
+  //   //origin bet365 event id + odds  key
+  //   // OBOK: data.bet365.eventId + data.bet365.odds,
+  //   OBOK: data.bet365.bookmakerDirectLink + data.bet365.odds,
+  //   //origin bet365 event id + odds + id  key
+  //   // OBOIK: data.bet365.eventId + data.bet365.odds + account.id,
+  //   OBOIK: data.bet365.bookmakerDirectLink + data.bet365.odds + account.id,
+  //   // matchId: data.pinnacle.id + ':' + data.bet365.id
+  //   EK: data.pinnacle.betburgerEventId,
+  //   EBOK: data.pinnacle.betburgerEventId + data.bet365.odds,
+  //   EPOK: data.pinnacle.betburgerEventId + data.pinnacle.odds,
+  // }
+}
+
+// function benEventToServer(key, time, msg){
+//   api.benEvent()
+// }
+
+
+function benEvent(data, key, time, msg, sendServer){
+  // let ids = getEventIds(data);
+  // let id = ids[key];
+  let id = getEventKey(data, key);
   if(time <= 0){
     console.log("이벤트 영구제외", key, id);
     log(`이벤트 영구제외: ${msg?msg:''}`, "warning", true);
@@ -549,6 +621,9 @@ function benEvent(data, key, time, msg){
     },time);
   }
   getEventMark(id).ben = true;
+  if(sendServer){
+    api.benEvent({id, dataType:betOption.dataType, betburgerEventId:data.bet365.betburgerEventId, time, msg});
+  }
 }
 
 function clearBenEvent(id){
@@ -565,21 +640,22 @@ function isBenEvent(data, keyName){
       id = data;
     }
   }else{
-    let ids = getEventIds(data);
-    id = ids[keyName];
+    // let ids = getEventIds(data);
+    // id = ids[keyName];
+    id = getEventKey(data, keyName);
   }
   if(id){
     return hasEventMark(id) && (!!getEventMark(id).ben);
   }
 }
 
-function lineFindFailCount(id){
-  return getEventMark(id).lineFindFailCount;
-}
-
-function lineFindFailCountUp(id){
-  return ++getEventMark(id).lineFindFailCount;
-}
+// function lineFindFailCount(id){
+//   return getEventMark(id).lineFindFailCount;
+// }
+//
+// function lineFindFailCountUp(id){
+//   return ++getEventMark(id).lineFindFailCount;
+// }
 
 // function profitMatchFailCountUp(id){
 //   return ++getEventMark(id).profitMatchFailCount;
@@ -644,6 +720,8 @@ async function findMatch2(data){
       return;
     }
 
+    data.bet365.originOdds = data.bet365.odds;
+
     isCheckingMatch = true;
     if(betOption.action == "yb"){
       await userYbProcess(currentGameData.betburger);
@@ -679,7 +757,7 @@ function exceptEventCheckByFomula(data){
 function dataFilter(data){
   // if(!data) return false;
 
-  let ids = getEventIds(data);
+  let ids = getEventKeys(data);
   for(let key in ids){
     if(isBenEvent(ids[key])){
       console.log(`제외된 이벤트: ${key} ${ids[key]}`);
@@ -853,7 +931,7 @@ async function commonProcess(data, noCheckBalance){
   if(!checkType){
     //: 벳삼 타입 다름
     log(`배팅취소: 벳삼 타입다름`, "danger", true);
-    benEvent(data, "BK", 0);
+    benEvent(data, "BK", 0, '', true);
     return emptyObj;
   }
 
@@ -898,8 +976,12 @@ async function commonProcess(data, noCheckBalance){
 
   if(!checkOddsForBet365(data)){
     log(`배팅취소`, "danger", true);
-    benEvent(data, "OBOK", 20000, "벳삼 최소배당 미만");
+    benEvent(data, "OBOK", 20000, "벳삼 최소배당 미만", true);
     return emptyObj;
+  }
+
+  if(checkFallOdds(data)){
+    return;
   }
 
   setBet365RandomStake(data, data.bet365.stake);
@@ -964,7 +1046,7 @@ async function bet365PlacebetProcess(data, bet365Info){
       // }
 
       if(!checkOddsForBet365(data)){
-        benEvent(data, "OBOK", 20000, "벳삼 최소배당 미만");
+        benEvent(data, "OBOK", 20000, "벳삼 최소배당 미만", true);
         break;
       }
 
@@ -973,7 +1055,7 @@ async function bet365PlacebetProcess(data, bet365Info){
         if(!checkType){
           //: 벳삼 타입 다름
           log(`벳365 배팅실패: 벳삼 타입다름`, "danger", true);
-          benEvent(data, "BK", 0);
+          benEvent(data, "BK", 0, '', true);
           break;
         }
       }
@@ -1086,10 +1168,10 @@ async function bet365PlacebetProcess(data, bet365Info){
             // console.error("noChangeOddsAcceptCount", noChangeOddsAcceptCount);
             // console.error("result.status", result.status);
 
-            if(noChangeOddsAcceptCount >= 3){
+            if(noChangeOddsAcceptCount >= 7){
               // 배당이 안바뀐 accept버튼이 3회 이상 출현시 해당 이벤트를 OBOIK벤
               log(`벳365 배팅실패: 배팅 막힘`, "danger", true);
-              benEvent(data, "OBOIK", 0, "배팅 막힘");
+              benEvent(data, "OBOK", 0, "배팅 막힘", true);
               break;
             }else{
               log(`벳365 같은배당 acceptChange. 다시시도(${noChangeOddsAcceptCount})`, "danger", true);
@@ -1149,7 +1231,7 @@ async function bet365PlacebetProcess(data, bet365Info){
       sendDataToServer("updateMoney", result.money);
     }
     sendDataToServer("addBetCount", {id:account.id});
-    benEvent(data, "OBOK", 0, `배팅완료`);
+    benEvent(data, "OBOK", 0, `배팅완료`, !data.bet365.isLive);
   }
 
   // if(noChangeOddsAcceptCount >= 3){
@@ -1235,24 +1317,7 @@ async function userYbProcess(data){
 
 
 
-function getEventIds(data){
-  return {
-    PK: data.pinnacle.id,
-    POK: data.pinnacle.id + data.pinnacle.odds,
-    BK: data.bet365.id,
-    BOK: data.bet365.id + data.bet365.odds,
-    //origin bet365 event id + odds  key
-    // OBOK: data.bet365.eventId + data.bet365.odds,
-    OBOK: data.bet365.bookmakerDirectLink + data.bet365.odds,
-    //origin bet365 event id + odds + id  key
-    // OBOIK: data.bet365.eventId + data.bet365.odds + account.id,
-    OBOIK: data.bet365.bookmakerDirectLink + data.bet365.odds + account.id,
-    // matchId: data.pinnacle.id + ':' + data.bet365.id
-    EK: data.pinnacle.betburgerEventId,
-    EBOK: data.pinnacle.betburgerEventId + data.bet365.odds,
-    EPOK: data.pinnacle.betburgerEventId + data.pinnacle.odds,
-  }
-}
+
 
 function updateBet365Link(data){
   data.bet365.betLink = data.bet365.betLink.replace(/~(\d+\.?\d*)&/, (origin, found)=>{
@@ -1355,7 +1420,7 @@ async function openBet365AndGetInfo(data, forApi){
       log(bet365Info.message, "danger", true);
     }
     if(bet365Info.benKey){
-      benEvent(data, bet365Info.benKey, bet365Info.benTime, bet365Info.benMsg);
+      benEvent(data, bet365Info.benKey, bet365Info.benTime, bet365Info.benMsg, bet365Info.toServer);
     }
     if(bet365Info.stopMatch){
       stopMatch(true);
@@ -1623,7 +1688,7 @@ function checkOddsForBet365(data){
 }
 
 function openBet365EveryBrowser(data){
-  sendDataToServer("inputGameUrl", {link:data.bet365.betLink, dataChannel:betOption.dataChannel||'1'});
+  sendDataToServer("inputGameUrl", {link:data.bet365.betLink, dataChannel:betOption.dataChannel||'1', isLive:data.bet365.isLive});
 }
 
 function activeMainEveryBrowser(){
@@ -1663,7 +1728,7 @@ async function betmaxCheckProcess(betmaxInfo, data){
 
   if(betmaxInfo == null){
     log(`배팅취소: 벳365 이벤트 사라짐`, 'danger', true);
-    benEvent(data, "BK", 7000);
+    benEvent(data, "BK", 7000, '', true);
     return;
   }
 
@@ -1685,14 +1750,14 @@ async function betmaxCheckProcess(betmaxInfo, data){
 
   if(betmaxInfo.status == "false" || betmaxInfo.status == "fail"){
     log(`배팅취소: ${betmaxInfo.message}`, "danger", true);
-    benEvent(data, "BK", 7000);
+    benEvent(data, "BK", 7000, '', true);
     return;
   }
 
   let checkType = await checkGameType(data, betmaxInfo.info);
   if(!checkType){
     log(`배팅취소: 벳삼 타입 다름`, "danger", true);
-    benEvent(data, "BK", 0);
+    benEvent(data, "BK", 0, '', true);
     return;
   }
 
@@ -1734,7 +1799,7 @@ async function betmaxCheckProcess(betmaxInfo, data){
     data.bet365.odds = betmaxInfo.info.odds;
     if(!checkOddsForBet365(data)){
       log(`배팅취소`, "danger", true);
-      benEvent(data, "OBOK", 20000, "벳삼 최소배당 미만");
+      benEvent(data, "OBOK", 20000, "벳삼 최소배당 미만", true);
       return;
     }
     checkProfit = validProfitP(data.bet365.odds, data.pinnacle.odds);
@@ -1748,6 +1813,14 @@ async function betmaxCheckProcess(betmaxInfo, data){
   return checkProfit;
 }
 
+function checkFallOdds(data){
+  if(betOption.usePassFallOdds == 'y'){
+    if(data.bet365.originOdds - data.bet365.odds >= parseFloat(betOption.passFallOdds)){
+      log(`배팅취소: 떨어진배당 ${betOption.passFallOdds} 이상`, "danger", true);
+    }
+  }
+}
+
 async function checkBetmaxProcess(data){
   console.log(data);
   // let ids = getEventIds(data);
@@ -1755,7 +1828,7 @@ async function checkBetmaxProcess(data){
 
   if(!checkOddsForBet365(data)){
     log(`배팅취소`, "danger", true);
-    benEvent(data, "OBOK", 20000, "벳삼 최소배당 미만");
+    benEvent(data, "OBOK", 20000, "벳삼 최소배당 미만", true);
     return;
   }
 
@@ -1808,7 +1881,7 @@ async function checkBetmaxProcess(data){
     }else{
       console.error(line.lineData.status);
       log(`라인찾기실패: ${line.lineData.status}`, "danger", true);
-      benEvent(data, "PK", 0);
+      benEvent(data, "PK", 0, '', true);
       return;
       // let count = lineFindFailCountUp(ids.peId);
       // if(count >= 2){
@@ -1817,7 +1890,7 @@ async function checkBetmaxProcess(data){
     }
   }else{
     log(`이벤트로드 실패`, "danger", true);
-    benEvent(data, "PK", 0);
+    benEvent(data, "PK", 0, '', true);
     return;
   }
 
@@ -1841,7 +1914,7 @@ async function checkBetmaxProcess(data){
 
     if(!checkBet365TeamName(data, bet365Info)){
       log(`배팅취소: 벳삼 팀이름 다름`, "danger", true);
-      benEvent(data, "BK", 0);
+      benEvent(data, "BK", 0, '', true);
       //data.bet365.betburgerEventId, 0);
       return;
     }
@@ -1850,7 +1923,7 @@ async function checkBetmaxProcess(data){
 
     if(!checkType){
       log(`배팅취소: 벳삼 타입 다름`, "danger", true);
-      benEvent(data, "BK", 0);
+      benEvent(data, "BK", 0, '', true);
       // benEvent(data.bet365.betburgerEventId, 0);
       return;
     }
@@ -1873,7 +1946,7 @@ async function checkBetmaxProcess(data){
 
     if(!checkOddsForBet365(data)){
       log(`배팅취소`, "danger", true);
-      benEvent(data, "OBOK", 20000, "벳삼 최소배당 미만");
+      benEvent(data, "OBOK", 20000, "벳삼 최소배당 미만", true);
       return;
     }
 
@@ -1887,11 +1960,13 @@ async function checkBetmaxProcess(data){
       return;
     }
 
+
+
     // betmax 확인전에는 수익률로만 판단
     checkProfit = profitPValidation(data);
 
     if(!checkProfit){
-      benEvent(data, "EBOK", 10000);
+      benEvent(data, "EBOK", 10000, '', true);
       // benEvent(data.bet365.betburgerEventId, 10000);
       log(`배팅취소`, 'danger', true);
       return;
@@ -1990,13 +2065,12 @@ async function checkBetmaxProcess(data){
       bdata._id = betResult.data.uniqueRequestId;
       bdata.bookmaker = betmaxInfo;
       bdata.dataChannel = betOption.dataChannel||'1';
-      sendDataToServer("inputGameData", {data:bdata, betburgerEventId:data.bet365.betburgerEventId});
-      // benEvent(data, "BOK", 0, "데이터 수집");
-      benEvent(data, "OBOK", 0, "데이터 수집");
+      sendDataToServer("inputGameData", {data:bdata, betburgerEventId:data.bet365.betburgerEventId, isLive:data.bet365.isLive});
+      // benEvent(data, "OBOK", 0, "데이터 수집");
       return true;
     }else{
       log(`배팅취소`, 'danger', true);
-      sendDataToServer("inputGameData", {data:null, betburgerEventId:data.bet365.betburgerEventId});
+      //sendDataToServer("inputGameData", {data:null, betburgerEventId:data.bet365.betburgerEventId, isLive:data.bet365.isLive});
     }
 
     //////////////
@@ -2304,7 +2378,10 @@ function animate(){
   if(performance.now() - pullTime > pullGab){
     pullTime = performance.now();
     if(flag.bet365LoginComplete && flag.isMatching && !isCheckingMatch){
-      sendDataToServer("pullGameData", betOption.dataType);
+      sendDataToServer("pullGameData", {
+        dataType: betOption.dataType,
+        livePrematch: betOption.livePrematch
+      });
     }
   }
   requestAnimationFrame(animate);
@@ -2483,12 +2560,22 @@ async function init(){
     // #210402 일단 랜덤 대기시간 없애고 전체 배팅 시도해보자
     // await delay(Math.random() * 5000);
 
-    setData("gamedata", data);
+    // setData("gamedata", data);
     if(!flag.isMatching) return;
     // sendData("gamedata", data, "bg");
     // let gd = JSON.parse(data);
     // console.log("gamedata", data);
     //
+
+    if(data){
+      if(data.isLive && !betOption.livePrematch.live){
+        return;
+      }
+      if(!data.isLive && !betOption.livePrematch.prematch){
+        return;
+      }
+    }
+
     findMatch2(data);
   })
 
@@ -2502,6 +2589,15 @@ async function init(){
     if(isCheckingMatch) return;
 
     console.log("receive gameurl");
+
+    if(data){
+      if(data.isLive && !betOption.livePrematch.live){
+        return;
+      }
+      if(!data.isLive && !betOption.livePrematch.prematch){
+        return;
+      }
+    }
 
     if(!data || !data.link){
       activeMain();

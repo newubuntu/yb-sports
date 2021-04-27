@@ -934,7 +934,8 @@ function bet365JS(){
             message: "제거된 이벤트",
             benKey: "BK",
             benTime: 0,
-            benMsg: "제거된 이벤트"
+            benMsg: "제거된 이벤트",
+            toServer: true
           };
           setInitMessage(null);
           window.location.href = "https://www.bet365.com";

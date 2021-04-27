@@ -137,6 +137,10 @@ function setupAPI(email){
 
     loadAccountInfo(id){
       return ax("/load_account/" + id);
+    },
+
+    benEvent(data){
+      return ax("/ben_event", data, "POST");
     }
   }
 }

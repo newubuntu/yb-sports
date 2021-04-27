@@ -87,6 +87,41 @@ let Vapp;
       ],
       type: "select"
     },
+    {
+      name: "라이브/프리매치",
+      key: "livePrematch",
+      list: [{
+        name: "라이브",
+        value: "live"
+      },{
+        name: "프리매치",
+        value: "prematch"
+      }],
+      value: {
+        "live": true,
+        "prematch": false
+      },
+      type: "checkbox"
+    },
+    {
+      type: "hr"
+    },
+    {
+      name: "떨어진배당 처리 사용여부",
+      key: "usePassFallOdds",
+      list: ['y', 'n'],
+      value: "n",
+      type: "radio"
+    },
+    {
+      name: "떨어진배당 처리",
+      key: "passFallOdds",
+      value: 0.01,
+      step: 0.01,
+      min: 0.01,
+      type: "number",
+      help: "이 수치 이상 배당이 떨어질경우 배팅하지 않음"
+    },
     // {
     //   name: "배팅방식",
     //   key: "betType",
@@ -146,13 +181,13 @@ let Vapp;
       append: "%",
       help: "(수신기 전용)"
     },
-    {
-      name: "벨류 고정 betmax",
-      key: "customBetmax",
-      value: 20,
-      type: "number",
-      prepend: "$"
-    },
+    // {
+    //   name: "벨류 고정 betmax",
+    //   key: "customBetmax",
+    //   value: 20,
+    //   type: "number",
+    //   prepend: "$"
+    // },
     {
       name: "betmax 제한",
       key: "maxBetmax",
@@ -160,6 +195,9 @@ let Vapp;
       type: "number",
       // help: "체크기 옵션",
       prepend: "$"
+    },
+    {
+      type: "hr"
     },
     {
       name: "조건부 betmax제한 사용여부",
@@ -248,6 +286,9 @@ let Vapp;
           prepend: "betmax4"
         }
       ]
+    },
+    {
+      type: "hr"
     },
     {
       name: "이벤트 제외 조건 (벳365)",
@@ -766,6 +807,7 @@ let Vapp;
               form.value[key[1]] = event.target.checked;
               // console.error(key, form);
             }else if(form.type == 'radio'){
+              // console.error(event.target.checked, key);
               if(event.target.checked){
                 form.value = key[1];
               }
