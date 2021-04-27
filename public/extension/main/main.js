@@ -974,15 +974,18 @@ async function commonProcess(data, noCheckBalance){
     updateBet365Stake(data);
   }
 
+  if(checkFallOdds(data)){
+    benEvent(data, "OBOK", 20000, "떨어진 배당", true);
+    return;
+  }
+
   if(!checkOddsForBet365(data)){
     log(`배팅취소`, "danger", true);
     benEvent(data, "OBOK", 20000, "벳삼 최소배당 미만", true);
     return emptyObj;
   }
 
-  if(checkFallOdds(data)){
-    return;
-  }
+
 
   setBet365RandomStake(data, data.bet365.stake);
   checkProfit = profitAllValidation(data);
@@ -1791,6 +1794,10 @@ async function betmaxCheckProcess(betmaxInfo, data){
 
   log(`betmax: $${betmaxInfo.betmax}, odds: ${betmaxInfo.info.odds}`, null, true);
 
+  if(checkFallOdds(data)){
+    benEvent(data, "OBOK", 20000, "떨어진 배당", true);
+    return;
+  }
 
   data.bet365.stake = round(betmaxInfo.betmax, 2);
   updatePncStake(data);
@@ -1817,6 +1824,7 @@ function checkFallOdds(data){
   if(betOption.usePassFallOdds == 'y'){
     if(data.bet365.originOdds - data.bet365.odds >= parseFloat(betOption.passFallOdds)){
       log(`배팅취소: 떨어진배당 ${betOption.passFallOdds} 이상`, "danger", true);
+      return true;
     }
   }
 }
