@@ -89,6 +89,7 @@ module.exports = MD=>{
     uuidv4
   } = MD;
 
+  let job1, job2;
 
   if(argv[0] == "master" || process.env.NODE_ENV === undefined){
     init();
@@ -123,16 +124,28 @@ module.exports = MD=>{
   //   // io.to("admin").emit("sound", {name:"refreshToken", loop:1});
   // })
 
+
+  function stopJob(){
+    if(job1){
+      job1.stop();
+    }
+    if(job2){
+      job2.stop();
+    }
+  }
+
   function init(){
-    new CronJob('*/3 * * * * *', function() {
+    job1 = new CronJob('*/3 * * * * *', function() {
       let dataType = "betburger1";
       betburgerEventProcess(dataType);
-    }).start();
+    });
+    job1.start();
 
-    new CronJob('*/3 * * * * *', function() {
+    job2 = new CronJob('*/3 * * * * *', function() {
       let dataType = "betburger2";
       betburgerEventProcess(dataType);
-    }).start();
+    })
+    job2.start();
   }
 
   function haveToRefreshToken(list){
@@ -146,7 +159,9 @@ module.exports = MD=>{
 
   async function betburgerEventProcess(dataType){
     let list = await Promise.all([
+
       loadArbs(dataType, true, 10),
+      // null,
       loadArbs(dataType, false, 10)
     ]);
 
@@ -163,11 +178,24 @@ module.exports = MD=>{
     }
 
     if(list && list.length){
+      // let temp = JSON.stringify(list);
+
       list = reGroup(list).map(bets=>{
-        return calcProfit(bets.map((data,i)=>{
-          return makeData(wrapData(data), i);
-        }))
+        /// test
+        let l;
+        try{
+          l = calcProfit(bets.map((data,i)=>{
+            return makeData(wrapData(data), i);
+          }))
+        }catch(e){
+          // stopJob();
+          // console.log(temp);
+          console.error(e);
+        }
+
+        return l;
       })
+      .filter(a=>!!a)
       .filter(check)
       .map(bets=>{
         return bets.reduce((r,bet)=>{
@@ -314,16 +342,16 @@ module.exports = MD=>{
       return;
     }
 
-    if(bets[0].handicap && (bets[0].handicap % 1 == 0.25 || bets[0].handicap % 1 == 0.75)){
+    if(bets[0].handicap && (Math.abs(bets[0].handicap) % 1 == 0.25 || Math.abs(bets[0].handicap) % 1 == 0.75)){
       console.log("!! 0.25 0.75 handicap");
       return;
     }
-    if(bets[1].handicap && (bets[1].handicap % 1 == 0.25 || bets[1].handicap % 1 == 0.75)){
+    if(bets[1].handicap && (Math.abs(bets[1].handicap) % 1 == 0.25 || Math.abs(bets[1].handicap) % 1 == 0.75)){
       console.log("!! 0.25 0.75 handicap");
       return;
     }
     if(bets[0].betburgerEventId !== bets[1].betburgerEventId){
-      console.log("!! same betburger event id");
+      console.log("!! not same betburger event id");
       return;
     }
 
@@ -349,16 +377,46 @@ module.exports = MD=>{
     //
     // return Object.keys(g).map(k=>g[k]);
 
-    let l = list.reduce((r,v,i)=>{
-      if(i%2==0){
-        r.push([]);
+
+    // console.log("!!!", JSON.parse(JSON.stringify(list)));
+    // let a = list.length;
+    let f;
+    let p = [];
+    let l = [];
+    for(let i=0; i<list.length; i++){
+      if(!f){
+        if(i+1 < list.length && list[i].event_id == list[i+1].event_id){
+          f = list[i];
+          p = [f];
+        }
+      }else if(f.event_id == list[i].event_id){
+        p.push(list[i]);
+        l.push(p);
+        f = null;
       }
-      r[r.length-1].push(v);
-      return r;
-    }, [])
+    }
 
     // console.log("???", l);
+    // console.log(a/2, l.length);
+
     return l;
+
+    // let g = [];
+    // list.forEach(bet=>{
+    //   if(!g[bet.event_id]) g[bet.event_id] = [];
+    //   g[bet.event_id].push(a);
+    // })
+    //
+    // let l = list.reduce((r,v,i)=>{
+    //   if(i%2==0){
+    //     r.push([]);
+    //   }
+    //   r[r.length-1].push(v);
+    //   return r;
+    // }, [])
+    //
+
+    // return l;
   }
 
   async function loadArbs(dataType, isLive=true, perPage=20, exclude){
