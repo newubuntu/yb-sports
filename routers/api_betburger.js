@@ -372,7 +372,7 @@ module.exports = MD=>{
           data.bets.find(b=>b.id==a.bet2_id)
         ]
       }).filter(bets=>{
-        return bets[0].event_id == bets[1].event_id;
+        return (bets[0] && bets[1]) && bets[0].event_id == bets[1].event_id;
       })
     }
   }
