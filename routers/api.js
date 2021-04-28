@@ -688,16 +688,15 @@ module.exports = io=>{
         }
 
         await setGameData(JSON.stringify(gd), dataType);
-        
+
         // let tempData = await getRedis("gamedata_"+dataType);
         // console.log("@ check", tempData);
         // if(tempData == "temp"){
         //   console.log("@ restore");
         //   await setRedis("gamedata_"+dataType, JSON.stringify(gd));
         // }
+        return r;
       }
-
-      return r;
     }
   }
 
