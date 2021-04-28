@@ -608,7 +608,7 @@ module.exports = io=>{
   async function pullGameData(opt){
     let {dataType, livePrematch} = opt;
     let data = await getRedis("gamedata_"+dataType);
-    // console.log("@pull", Array.isArray(data)&&data.length, {livePrematch});
+    console.log("@pull", Array.isArray(data)&&data.length, {livePrematch});
     if(data){
 
       // empty는 실제 가져온 데이터가 없을때 넣어주고있다.

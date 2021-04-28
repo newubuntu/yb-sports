@@ -331,33 +331,34 @@ module.exports = MD=>{
   }
 
   function reGroup(list){
-    let g = {};
-    list.forEach(a=>{
-      if(!g[a.event_id]) g[a.event_id] = [];
-      g[a.event_id].push(a);
-    })
-    for(let o in g){
-      if(g[o].length > 2){
-        console.error("!! bets length > 2")
-        delete g[o];
-      }else if(g[o].length < 2){
-        console.error("!! bets length < 2")
-        delete g[o];
-      }
-    }
-
-    return Object.keys(g).map(k=>g[k]);
-    // console.error("list", list);
-    // console.error("g", g);
-    // console.error("r", r);
-
-    // return list.reduce((r,v,i)=>{
-    //   if(i%2==0){
-    //     r.push([]);
+    // let g = {};
+    // list.forEach(a=>{
+    //   if(!g[a.event_id]) g[a.event_id] = [];
+    //   g[a.event_id].push(a);
+    // })
+    //
+    // for(let o in g){
+    //   if(g[o].length > 2){
+    //     console.error("!! bets length > 2")
+    //     delete g[o];
+    //   }else if(g[o].length < 2){
+    //     console.error("!! bets length < 2")
+    //     delete g[o];
     //   }
-    //   r[r.length-1].push(v);
-    //   return r;
-    // }, [])
+    // }
+    //
+    // return Object.keys(g).map(k=>g[k]);
+
+    let l = list.reduce((r,v,i)=>{
+      if(i%2==0){
+        r.push([]);
+      }
+      r[r.length-1].push(v);
+      return r;
+    }, [])
+
+    console.log("???", l);
+    return l;
   }
 
   async function loadArbs(dataType, isLive=true, perPage=20, exclude){
