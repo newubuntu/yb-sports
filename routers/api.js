@@ -612,9 +612,6 @@ module.exports = io=>{
         return null;
       }
 
-      console.log("@ set temp");
-      await setRedis("gamedata_"+dataType, "temp");
-
       let gd;
       try{
         gd = JSON.parse(data);
@@ -622,6 +619,9 @@ module.exports = io=>{
         console.error("gamedata parsing error. data:", data);
         return;
       }
+
+      console.log("@ set temp");
+      await setRedis("gamedata_"+dataType, "temp");
 
       // console.log("gamedata length:", gd.length);
       console.log("@ gd", !!gd);
@@ -637,15 +637,12 @@ module.exports = io=>{
           }
 
           if(typeof livePrematch === "object"){
-            if(r.isLive && !livePrematch.live){
+            if(r.bet365.isLive && !livePrematch.live){
               console.log("- is no live");
               r = null;
               continue;
             }
-            if(!r.isLive && !livePrematch.prematch){
-              console.log("@@@r", r);
-              console.log("isLive", r.isLive);
-              console.log("prematch", livePrematch.prematch);
+            if(!r.bet365.isLive && !livePrematch.prematch){
               console.log("- is no prematch");
               r = null;
               continue;
