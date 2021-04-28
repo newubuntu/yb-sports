@@ -91,37 +91,37 @@ module.exports = MD=>{
 
 
   if(argv[0] == "master" || process.env.NODE_ENV === undefined){
-    init();
+    // init();
   }
 
 
-  // router.get("/test", async (req, res)=>{
-  //   // let list = await loadArbs("betburger1", "Live", 10);
-  //
-  //
-  //   let list = await betburgerEventProcess("betburger1");
-  //
-  //   res.json(list);
-  //
-  //   // let list = await Promise.all([
-  //   //   // loadArbs("betburger1", true, 10),
-  //   //   null,
-  //   //   loadArbs("betburger1", false, 10, [244183721])
-  //   // ]);
-  //   //
-  //   // list.forEach((a,i)=>{
-  //   //   console.log(['live', 'prematch'][i], a?a.length:0);
-  //   // })
-  //   //
-  //   // list = list.filter(a=>!!a).flat();
-  //   //
-  //   // // console.error(list);
-  //   // console.error(list.length);
-  //   //
-  //   // res.json(list);
-  //
-  //   // io.to("admin").emit("sound", {name:"refreshToken", loop:1});
-  // })
+  router.get("/test", async (req, res)=>{
+    // let list = await loadArbs("betburger1", "Live", 10);
+
+
+    let list = await betburgerEventProcess("betburger1");
+
+    res.json(list);
+
+    // let list = await Promise.all([
+    //   // loadArbs("betburger1", true, 10),
+    //   null,
+    //   loadArbs("betburger1", false, 10, [244183721])
+    // ]);
+    //
+    // list.forEach((a,i)=>{
+    //   console.log(['live', 'prematch'][i], a?a.length:0);
+    // })
+    //
+    // list = list.filter(a=>!!a).flat();
+    //
+    // // console.error(list);
+    // console.error(list.length);
+    //
+    // res.json(list);
+
+    // io.to("admin").emit("sound", {name:"refreshToken", loop:1});
+  })
 
   function init(){
     new CronJob('*/3 * * * * *', function() {

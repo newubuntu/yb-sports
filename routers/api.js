@@ -603,7 +603,7 @@ module.exports = io=>{
   async function pullGameData(opt){
     let {dataType, livePrematch} = opt;
     let data = await getRedis("gamedata_"+dataType);
-    // console.log("@pull", data);
+    console.log("@pull", !!data);
     if(data){
 
       // empty는 실제 가져온 데이터가 없을때 넣어주고있다.
@@ -612,7 +612,7 @@ module.exports = io=>{
         return null;
       }
 
-      // console.log("@ set temp");
+      console.log("@ set temp");
       await setRedis("gamedata_"+dataType, "temp");
 
       let gd;
@@ -624,24 +624,27 @@ module.exports = io=>{
       }
 
       // console.log("gamedata length:", gd.length);
-      // console.log("@ gd", gd);
+      console.log("@ gd", !!gd);
 
       if(gd){
         let r;
         for(let i=0; i<gd.length; i++){
           r = gd[i];
           if(r && await isLockEvent(r.bet365.betburgerEventId, dataType)){
-            // console.log("- isLocked");
+            console.log("- isLocked");
+            r = null;
             continue;
           }
 
           if(typeof livePrematch === "object"){
             if(r.isLive && !livePrematch.live){
-              // console.log("- is no live");
+              console.log("- is no live");
+              r = null;
               continue;
             }
             if(!r.isLive && !livePrematch.prematch){
-              // console.log("- is no prematch");
+              console.log("- is no prematch");
+              r = null;
               continue;
             }
           }
@@ -664,6 +667,9 @@ module.exports = io=>{
 
           if(ben){
             console.log("@ ben event:", bet.betburgerEventId);
+            gd.splice(i, 1);
+            i--;
+            r = null;
             continue;
           }
 
@@ -677,9 +683,9 @@ module.exports = io=>{
         }
 
         let tempData = await getRedis("gamedata_"+dataType);
-        // console.log("@ check", tempData);
+        console.log("@ check", tempData);
         if(tempData == "temp"){
-          // console.log("@ restore");
+          console.log("@ restore");
           await setRedis("gamedata_"+dataType, JSON.stringify(gd));
         }
         return r;
