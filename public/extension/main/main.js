@@ -682,7 +682,7 @@ async function findMatch(data){
     if(betOption.action == "checkBetmax"){
       let f = await checkBetmaxProcess(data);
       if(!f){
-        activeMainEveryBrowser();
+        activeMainEveryBrowser(data.bet365.isLive);
       }else{
         /// test
         // stopMatch(true);
@@ -1694,8 +1694,8 @@ function openBet365EveryBrowser(data){
   sendDataToServer("inputGameUrl", {link:data.bet365.betLink, dataChannel:betOption.dataChannel||'1', isLive:data.bet365.isLive});
 }
 
-function activeMainEveryBrowser(){
-  sendDataToServer("inputGameUrl", {link:null, dataChannel:betOption.dataChannel||'1'});
+function activeMainEveryBrowser(isLive){
+  sendDataToServer("inputGameUrl", {link:null, dataChannel:betOption.dataChannel||'1', isLive});
 }
 
 let cancelGetBetmaxFlag;
@@ -2598,14 +2598,14 @@ async function init(){
 
     console.log("receive gameurl");
 
-    // if(data){
-    //   if(data.bet365.isLive && !betOption.livePrematch.live){
-    //     return;
-    //   }
-    //   if(!data.bet365.isLive && !betOption.livePrematch.prematch){
-    //     return;
-    //   }
-    // }
+    if(data){
+      if(data.isLive && !betOption.livePrematch.live){
+        return;
+      }
+      if(!data.isLive && !betOption.livePrematch.prematch){
+        return;
+      }
+    }
 
     if(!data || !data.link){
       activeMain();
