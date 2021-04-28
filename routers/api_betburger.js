@@ -330,10 +330,12 @@ module.exports = MD=>{
       return;
     }
 
-    if(bets[0].betType !== bets[1].betType){
-      console.log("!! not same betType");
-      return;
-    }
+    // 타입이 다를수있넹. 주석처리한다.
+    // if(bets[0].betType !== bets[1].betType){
+    //   console.log("!! not same betType");
+    //   return;
+    // }
+
     // if(!(bets[0].bookmaker == "bet365" || bets[0].bookmaker == "pinnacle")){
     //   console.log("!! another bookmaker", bets[0].bookmaker);
     //   return;
