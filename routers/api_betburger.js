@@ -180,7 +180,8 @@ module.exports = MD=>{
     if(list && list.length){
       // let temp = JSON.stringify(list);
 
-      list = reGroup(list).map(bets=>{
+      // list = reGroup(list)
+      list = list.map(bets=>{
         /// test
         let l;
         try{
@@ -324,6 +325,11 @@ module.exports = MD=>{
       console.log("!! same bookmaker");
       return;
     }
+
+    if(bets[0].betType !== bets[1].betType){
+      console.log("!! not same betType");
+      return;
+    }
     // if(!(bets[0].bookmaker == "bet365" || bets[0].bookmaker == "pinnacle")){
     //   console.log("!! another bookmaker", bets[0].bookmaker);
     //   return;
@@ -356,6 +362,19 @@ module.exports = MD=>{
     }
 
     return true;
+  }
+
+  function makeBetsGroup(data){
+    if(data){
+      return data.arbs.map(a=>{
+        return [
+          data.bets.find(b=>b.id==a.bet1_id),
+          data.bets.find(b=>b.id==a.bet2_id)
+        ]
+      }).filter(bets=>{
+        return bets[0].event_id == bets[1].event_id;
+      })
+    }
   }
 
   function reGroup(list){
@@ -472,7 +491,8 @@ module.exports = MD=>{
     let a = arbsType=="Live"?ax:ax2;
     return a.post("/api/v1/arbs/bot_pro_search", params)
     .then(res=>{
-      return res.data?res.data.bets:null
+      // return res.data?res.data.bets:null
+      return makeBetsGroup(res.data);
     })
     .catch(e=>{
       console.error(e);
