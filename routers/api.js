@@ -597,11 +597,11 @@ module.exports = io=>{
 
   async function setGameData(data, dataType){
     // console.log("@@setGameData", data);
-    let d = await getRedis("gamedata_"+dataType);
-    if(d == "temp"){
-      console.log("@ pass setgame")
-      return;
-    }
+    // let d = await getRedis("gamedata_"+dataType);
+    // if(d == "temp"){
+    //   console.log("@ pass setgame")
+    //   return;
+    // }
     return setRedis("gamedata_"+dataType, data);
   }
 
@@ -625,11 +625,11 @@ module.exports = io=>{
         return;
       }
 
-      console.log("@ set temp");
-      await setRedis("gamedata_"+dataType, "temp");
+      // console.log("@ set temp");
+      // await setRedis("gamedata_"+dataType, "temp");
 
       // console.log("gamedata length:", gd.length);
-      console.log("@ gd", !!gd);
+      // console.log("@ gd", !!gd);
 
       if(gd){
         let r;
@@ -687,15 +687,17 @@ module.exports = io=>{
           // return r;
         }
 
-        let tempData = await getRedis("gamedata_"+dataType);
-        console.log("@ check", tempData);
-        if(tempData == "temp"){
-          console.log("@ restore");
-          await setRedis("gamedata_"+dataType, JSON.stringify(gd));
-        }
-        return r;
+        await setGameData(JSON.stringify(gd), dataType);
+        
+        // let tempData = await getRedis("gamedata_"+dataType);
+        // console.log("@ check", tempData);
+        // if(tempData == "temp"){
+        //   console.log("@ restore");
+        //   await setRedis("gamedata_"+dataType, JSON.stringify(gd));
+        // }
       }
-      // await setGameData(JSON.stringify(gd), dataType);
+
+      return r;
     }
   }
 
