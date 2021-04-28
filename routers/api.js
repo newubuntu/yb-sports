@@ -914,7 +914,7 @@ module.exports = io=>{
       betburgerEventId: betburgerEventId,
       dataType: dataType
     })
-    console.log("@ben event", bet);
+    console.log("@ben event", ben);
     res.json({
       status: "success"
     })
