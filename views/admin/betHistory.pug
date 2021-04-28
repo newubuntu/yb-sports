@@ -194,6 +194,36 @@ block view
                       //-input.form-control.search-email(type="text" :value="email?email:''" v-on:change="changeSearchEmail")              
                   .form-group
                     button.btn.btn-primary(type="button" v-on:click="reload(0)") 찾기
+              span.float-right(style="margin-right:54px")
+                .form-inline
+                  .form-group
+                    .input-group
+                      .input-group-prepend
+                        .input-group-text 배당조건1
+                      input.form-control.search-odds1(type="number" step="0.1" min="1.1" :value="odds1?odds1:''" v-on:change="changeSearchOdds1")
+                      .input-group-append
+                        select.form-control.search-oddscon1(v-on:change="changeSearchOddsCon1" :value="oddsCon1||''")
+                          option(value="") --------
+                          option(value="<") 보다 작음
+                          option(value="<=") 보다 작거나 같음
+                          option(value="==") 같음
+                          option(value=">") 보다 큼
+                          option(value=">=") 보다 크거나 같음
+                          option(value="!=") 같지않음
+                  .form-group
+                    .input-group
+                      .input-group-prepend
+                        .input-group-text 배당조건2
+                      input.form-control.search-odds2(type="number" step="0.1" min="1.1" :value="odds2?odds2:''" v-on:change="changeSearchOdds2")
+                      .input-group-append
+                        select.form-control.search-oddscon2(v-on:change="changeSearchOddsCon2" :value="oddsCon2||''")
+                          option(value="") --------
+                          option(value="<") 보다 작음
+                          option(value="<=") 보다 작거나 같음
+                          option(value="==") 같음
+                          option(value=">") 보다 큼
+                          option(value=">=") 보다 크거나 같음
+                          option(value="!=") 같지않음
               //-span.float-right(style="margin-right:30px;")
                 .form-inline
                   .form-group

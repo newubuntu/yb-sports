@@ -68,6 +68,10 @@ let Vapp;
       betId: null,
       eventName: null,
       betType: null,
+      odds1: null,
+      oddsCon1: null,
+      odds2: null,
+      oddsCon2: null,
       result: {},
       users: [],
       forms: [],
@@ -210,6 +214,22 @@ let Vapp;
         this.betType = $('.search-bettype').val().trim();
       },
 
+      changeSearchOdds1(){
+        this.odds1 = parseFloat($('.search-odds1').val().trim());
+      },
+
+      changeSearchOddsCon1(){
+        this.oddsCon1 = $('.search-oddscon1').val().trim();
+      },
+
+      changeSearchOdds2(){
+        this.odds2 = parseFloat($('.search-odds2').val().trim());
+      },
+
+      changeSearchOddsCon2(){
+        this.oddsCon2 = $('.search-oddscon2').val().trim();
+      },
+
       getSide(item, who){
         let obj = item.event.betburger[who];
         if(obj.side){
@@ -252,7 +272,11 @@ let Vapp;
           status:this.status,
           betId:this.betId,
           eventName: this.eventName,
-          betType: this.betType
+          betType: this.betType,
+          odds1: this.odds1,
+          oddsCon1: this.oddsCon1,
+          odds2: this.odds2,
+          oddsCon2: this.oddsCon2
         }
       },
 
@@ -267,18 +291,22 @@ let Vapp;
 
       async loadList(curPage=0, tab=0, opt={}){//accountId){
         // accountId = accountId||this.accountId;
-        let {accountId, email, status, betId, eventName, betType} = opt;
+        let {accountId, email, status, betId, eventName, betType, odds1, oddsCon1, odds2, oddsCon2} = opt;
         this.accountId = accountId;
         this.email = email;
         this.status = status;
         this.betId = betId;
         this.eventName = eventName;
         this.betType = betType;
+        this.odds1 = odds1;
+        this.oddsCon1 = oddsCon1;
+        this.odds2 = odds2;
+        this.oddsCon2 = oddsCon2;
         let range = startPicker.getRange();
         range.end = new Date(range.end.getTime() + (1000*60*60*24 - 1000));
         // console.log("date range", range);
         // console.log("loadList page", curPage);
-        let query = {curPage, accountId, email, status, range, betId, eventName, betType};
+        let query = {curPage, accountId, email, status, range, betId, eventName, betType, odds1, oddsCon1, odds2, oddsCon2};
         switch(tab){
           case 0: // 전체
           break;

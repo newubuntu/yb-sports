@@ -75,13 +75,22 @@ module.exports = MD=>{
     });
   }))
 
+  let bdhMap = {'<':'$lt', '<=':'$lte', '>':'$gt', '>=':'$gte', '==':'$eq', '!=':'$not'};
   router.post("/get_bets", task(async (req, res)=>{
     let {
       ids, offset, limit, curPage, sportName, accountId, admin,
-      email, status, range, betId, eventName, betType
+      email, status, range, betId, eventName, betType, odds1, oddsCon1, odds2, oddsCon2
     } = req.body;
-    let query = {user:req.user._id, event:{$ne:null}, sportName};
+    // let query = {user:req.user._id, event:{$ne:null}, sportName};
+    let query = {};
 
+    let $and = [
+      {event:{$ne:null}}
+    ];
+
+    if(sportName){
+      $and.push({sportName});
+    }
 
     let user;
     if(admin){
@@ -89,37 +98,59 @@ module.exports = MD=>{
       if(email){
         user = await User.findOne({email}).select(["_id", "money"]).lean();
         if(user){
-          query.user = user._id;
+          // query.user = user._id;
+          $and.push({user:user._id});
         }else{
-          query.user = null;
+          // query.user = null;
+          $and.push({user:null});
         }
       }
+    }else{
+      $and.push({user:req.user._id});
     }
 
-    for(let o in query){
-      if(query[o] === undefined){
-        delete query[o];
-      }
-    }
+    // for(let o in query){
+    //   if(query[o] === undefined){
+    //     delete query[o];
+    //   }
+    // }
 
     if(ids){
-      query._id = ids;
+      // query._id = ids;
+      $and.push({_id:{$in:ids}});
+    }
+
+
+    if(oddsCon1 && odds1){
+      let q = {};
+      q[bdhMap[oddsCon1]] = odds1;
+      $and.push({bookmakerOdds:q});
+    }
+
+    if(oddsCon2 && odds2){
+      let q = {};
+      q[bdhMap[oddsCon2]] = odds2;
+      $and.push({bookmakerOdds:q});
     }
 
     if(status){
-      query.betStatus = status;
+      // query.betStatus = status;
+      $and.push({betStatus:status});
     }
 
     if(betType){
-      query.betType = betType;
+      // query.betType = betType;
+      $and.push({betType:betType});
     }
 
     if(accountId){
       let account = await Account.findOne({id:accountId});
       if(account){
-        query.account = account._id;
+        // query.account = account._id;
+        $and.push({account:account._id});
       }else{
-        query.account = null;
+        // query.account = null;
+        $and.push({account:null});
       }
     }
 
@@ -179,19 +210,27 @@ module.exports = MD=>{
       // query.eventName = {$regex: '.*' + eventName + '.*'};
     // }
     if(betId){
-      query.betId = betId;
+      // query.betId = betId;
+      $and.push({betId});
     }
 
     if(eventName){
-      query.eventName = eventName;
+      // query.eventName = eventName;
+      $and.push({eventName});
     }
 
     if(range){
-      query.createdAt= {
+      // query.createdAt= {
+      //   $gte: new Date(range.start),
+      //   $lte: new Date(range.end)
+      // }
+      $and.push({createdAt: {
         $gte: new Date(range.start),
         $lte: new Date(range.end)
-      }
+      }})
     }
+
+    query = {$and};
 
     console.log("query", query, {offset, limit});
 
