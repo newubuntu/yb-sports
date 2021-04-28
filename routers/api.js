@@ -671,7 +671,7 @@ module.exports = io=>{
           })
 
           if(ben){
-            console.log("@ ben event:", bet.betburgerEventId);
+            console.log("@ ben event:", ben.betburgerEventId);
             gd.splice(i, 1);
             i--;
             r = null;

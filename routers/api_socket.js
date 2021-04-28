@@ -267,27 +267,27 @@ module.exports = MD=>{
         // })
 
         socket.on("joinDataReceiver", bid=>{
-          console.log("####joinDataReceiver", socket.id, bid);
+          // console.log("####joinDataReceiver", socket.id, bid);
           socket.join(room_checker);
           // io.$.join("__data_receiver__", socket);
         })
 
         socket.on("joinDataReceiver2", (bid)=>{
-          console.log("####joinDataReceiver2");
+          // console.log("####joinDataReceiver2");
           socket.join(room_bettor);
           // socket.join(room_bettor+':'+dataChannel);
           // io.$.join("__data_receiver2__", socket);
         })
 
         socket.on("leaveDataReceiver", bid=>{
-          console.log("####leaveDataReceiver", socket.id, bid);
+          // console.log("####leaveDataReceiver", socket.id, bid);
           socket.leave(room_checker);
           // leaveRegex(socket, new RegExp(`^${room_checker}.*`));
           // io.$.leave("__data_receiver__", socket);
         })
 
         socket.on("leaveDataReceiver2", bid=>{
-          console.log("####leaveDataReceiver2");
+          // console.log("####leaveDataReceiver2");
           socket.leave(room_bettor);
           // leaveRegex(socket, new RegExp(`^${room_bettor}.*`));
           // io.$.leave("__data_receiver2__", socket);
