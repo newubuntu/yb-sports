@@ -2598,14 +2598,14 @@ async function init(){
 
     console.log("receive gameurl");
 
-    if(data){
-      if(data.isLive && !betOption.livePrematch.live){
-        return;
-      }
-      if(!data.isLive && !betOption.livePrematch.prematch){
-        return;
-      }
-    }
+    // if(data){
+    //   if(data.bet365.isLive && !betOption.livePrematch.live){
+    //     return;
+    //   }
+    //   if(!data.bet365.isLive && !betOption.livePrematch.prematch){
+    //     return;
+    //   }
+    // }
 
     if(!data || !data.link){
       activeMain();
