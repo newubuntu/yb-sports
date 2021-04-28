@@ -370,9 +370,9 @@ module.exports = MD=>{
 
   function makeBetsGroup(data){
     if(data){
-      console.log(data.arbs);
-      console.log(data.bets);
-      let l = data.arbs.map(a=>{
+      // console.log(data.arbs);
+      // console.log(data.bets);
+      return data.arbs.map(a=>{
         return [
           data.bets.find(b=>b.id==a.bet1_id),
           data.bets.find(b=>b.id==a.bet2_id)
@@ -380,8 +380,8 @@ module.exports = MD=>{
       }).filter(bets=>{
         return (bets[0] && bets[1]) && bets[0].event_id == bets[1].event_id;
       })
-      console.log(l);
-      return l;
+      // console.log(l);
+      // return l;
     }
   }
 
