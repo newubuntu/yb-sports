@@ -670,8 +670,20 @@ module.exports = io=>{
             ]
           })
 
+          if(!ben){
+            let benCount = await BenEvent.count({
+              $and: [
+                {key:getEventKey(r, "OBOK")},
+                {createdAt: {$gte: new Date(Date.now()-1000*60*30)}}
+              ]
+            })
+            if(benCount > 5){
+              ben = true;
+            }
+          }
+
           if(ben){
-            console.log("@ ben event:", ben.betburgerEventId);
+            console.log("@ ben event");
             gd.splice(i, 1);
             i--;
             r = null;
@@ -731,6 +743,9 @@ module.exports = io=>{
   unlockEventAll("betburger2");
 
   let MD = {
+    getEventKeyNames,
+    getEventKeys,
+    getEventKey,
     isLockEvent,
     lockEvent,
     unlockEvent,

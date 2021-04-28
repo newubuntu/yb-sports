@@ -33,6 +33,9 @@ const ax2 = axios.create({
 
 module.exports = MD=>{
   let {
+    getEventKeyNames,
+    getEventKeys,
+    getEventKey,
     setGameData,
     pullGameData,
     util,
@@ -100,9 +103,29 @@ module.exports = MD=>{
   //   // let list = await loadArbs("betburger1", "Live", 10);
   //
   //
-  //   let list = await betburgerEventProcess("betburger1");
+  //   // let list = await betburgerEventProcess("betburger1");
+  //   // res.json(list);
   //
-  //   res.json(list);
+  //
+  //   // let ben = await BenEvent.create({
+  //   //   key: "test",
+  //   //   expire: null,
+  //   //   msg: "test1",
+  //   //   betburgerEventId: 12345,
+  //   //   dataType: "test1"
+  //   // })
+  //   //
+  //   // res.json(ben);
+  //
+  //   let ben = await BenEvent.count({
+  //     $and: [
+  //       {key:"test"},
+  //       {createdAt: {$gte: new Date(Date.now()-1000*60*60)}}
+  //     ]
+  //   })
+  //
+  //   res.json(ben);
+  //
   //
   //   // let list = await Promise.all([
   //   //   // loadArbs("betburger1", true, 10),
