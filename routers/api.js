@@ -595,7 +595,7 @@ module.exports = io=>{
   let room_checker = "__data_receiver__";
   let room_bettor = "__data_receiver2__";
 
-  function setGameData(data, dataType){
+  async function setGameData(data, dataType){
     // console.log("@@setGameData", data);
     let data = await getRedis("gamedata_"+dataType);
     if(data == "temp"){
