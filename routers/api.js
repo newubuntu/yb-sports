@@ -599,6 +599,7 @@ module.exports = io=>{
     // console.log("@@setGameData", data);
     let d = await getRedis("gamedata_"+dataType);
     if(d == "temp"){
+      console.log("@ pass setgame")
       return;
     }
     return setRedis("gamedata_"+dataType, data);
@@ -642,12 +643,12 @@ module.exports = io=>{
 
           if(typeof livePrematch === "object"){
             if(r.bet365.isLive && !livePrematch.live){
-              console.log("- is no live");
+              // console.log("- is no live");
               r = null;
               continue;
             }
             if(!r.bet365.isLive && !livePrematch.prematch){
-              console.log("- is no prematch");
+              // console.log("- is no prematch");
               r = null;
               continue;
             }
@@ -905,13 +906,14 @@ module.exports = io=>{
 
   router.post("/ben_event", task(async (req, res)=>{
     let {id, dataType, betburgerEventId, time, msg} = req.body;
-    await BenEvent.create({
+    let ben = await BenEvent.create({
       key: id,
       expire: time == 0 ? null : new Date(Date.now()+time),
       msg: msg,
       betburgerEventId: betburgerEventId,
       dataType: dataType
     })
+    console.log("@ben event", bet);
     res.json({
       status: "success"
     })
