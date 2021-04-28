@@ -151,7 +151,11 @@ module.exports = MD=>{
   function haveToRefreshToken(list){
     // console.log(list);
     for(let i=0; i<list.length; i++){
-      if(!(list[i].bookmaker_id == 1 || list[i].bookmaker_id == 10)){
+      let bets = list[i];
+      if(!(bets[0].bookmaker_id == 1 || bets[0].bookmaker_id == 10)){
+        return true;
+      }
+      if(!(bets[1].bookmaker_id == 1 || bets[1].bookmaker_id == 10)){
         return true;
       }
     }
@@ -166,7 +170,7 @@ module.exports = MD=>{
     ]);
 
     list.forEach((a,i)=>{
-      console.log(dataType, ['live', 'prematch'][i], a?a.length/2:0);
+      console.log(dataType, ['live', 'prematch'][i], a?a.length:0);
     })
 
     list = list.filter(a=>!!a).flat();
@@ -366,7 +370,9 @@ module.exports = MD=>{
 
   function makeBetsGroup(data){
     if(data){
-      return data.arbs.map(a=>{
+      console.log(data.arbs);
+      console.log(data.bets);
+      let l = data.arbs.map(a=>{
         return [
           data.bets.find(b=>b.id==a.bet1_id),
           data.bets.find(b=>b.id==a.bet2_id)
@@ -374,6 +380,8 @@ module.exports = MD=>{
       }).filter(bets=>{
         return (bets[0] && bets[1]) && bets[0].event_id == bets[1].event_id;
       })
+      console.log(l);
+      return l;
     }
   }
 
