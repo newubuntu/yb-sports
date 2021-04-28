@@ -597,8 +597,8 @@ module.exports = io=>{
 
   async function setGameData(data, dataType){
     // console.log("@@setGameData", data);
-    let data = await getRedis("gamedata_"+dataType);
-    if(data == "temp"){
+    let d = await getRedis("gamedata_"+dataType);
+    if(d == "temp"){
       return;
     }
     return setRedis("gamedata_"+dataType, data);
