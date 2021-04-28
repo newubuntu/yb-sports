@@ -643,6 +643,7 @@ module.exports = io=>{
               continue;
             }
             if(!r.isLive && !livePrematch.prematch){
+              console.log("@@@r", r);
               console.log("isLive", r.isLive);
               console.log("prematch", livePrematch.prematch);
               console.log("- is no prematch");
