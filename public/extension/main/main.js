@@ -677,7 +677,7 @@ async function findMatch(data){
     // data.bet365.betLink = data.bet365.betLink.replace("/dl/sportsbookredirect?", "/dl/sportsbookredirect/?");
     // console.error("betLink test", data.bet365.betLink);
 
-    data.betburger.bet365.originOdds = data.betburger.bet365.odds;
+    data.bet365.originOdds = data.bet365.odds;
 
     isCheckingMatch = true;
     if(betOption.action == "checkBetmax"){
