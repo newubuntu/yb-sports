@@ -671,7 +671,7 @@ module.exports = io=>{
           })
 
           if(!ben){
-            let benCount = await BenEvent.count({
+            let benCount = await BenEvent.countDocuments({
               $and: [
                 {key:getEventKey(r, "OBOK")},
                 {createdAt: {$gte: new Date(Date.now()-1000*60*30)}}
