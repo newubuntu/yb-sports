@@ -603,8 +603,8 @@ module.exports = io=>{
   async function pullGameData(opt){
     let {dataType, livePrematch} = opt;
     let data = await getRedis("gamedata_"+dataType);
-    console.log("@pull", !!data);
     if(data){
+      console.log("@pull");
 
       // empty는 실제 가져온 데이터가 없을때 넣어주고있다.
       // temp는 pullGameData처리중에 임시로 데이터를 비울때 사용(다른 체크기가 못잡도록 하기위해)
@@ -643,6 +643,8 @@ module.exports = io=>{
               continue;
             }
             if(!r.isLive && !livePrematch.prematch){
+              console.log("isLive", r.isLive);
+              console.log("prematch", livePrematch.prematch);
               console.log("- is no prematch");
               r = null;
               continue;
