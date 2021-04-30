@@ -561,9 +561,9 @@ module.exports = io=>{
     // OBOIK: data.bet365.eventId + data.bet365.odds + account.id,
     // OBOIK: data.bet365.bookmakerDirectLink + data.bet365.odds + account.id,
     // matchId: data.pinnacle.id + ':' + data.bet365.id
-    EK: function(){return this.data.pinnacle.betburgerEventId},
-    EBOK: function(){return this.data.pinnacle.betburgerEventId + this.data.bet365.odds},
-    EPOK: function(){return this.data.pinnacle.betburgerEventId + this.data.pinnacle.odds}
+    EK: function(){return this.data.pinnacle.arbHash},
+    EBOK: function(){return this.data.pinnacle.arbHash + this.data.bet365.odds},
+    EPOK: function(){return this.data.pinnacle.arbHash + this.data.pinnacle.odds}
   }
 
   Object.defineProperty(eventKeyGetter, "data", {

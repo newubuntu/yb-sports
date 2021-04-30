@@ -207,7 +207,7 @@ module.exports = MD=>{
     if(list && list.length){
       // let temp = JSON.stringify(list);
 
-      // list = reGroup(list)
+
       list = list.map(bets=>{
         /// test
         let l;
@@ -232,22 +232,7 @@ module.exports = MD=>{
         }, {});
       })
 
-      // list = reGroup(list.map((data,i)=>{
-      //   return makeData(wrapData(data), i);
-      // }));
-      // if(!test){
-      //   list = list.filter(check);
-      // }
-      // // list.forEach(calcProfit);
-      // // live와 prematch를 분리하기위해 정렬은 생략(이미 정렬되어 넘어옴)
-      // // list.sort(profitSort);
-      // list = list.map(bets=>{
-      //   // console.log(bets[0].id);
-      //   return bets.reduce((r,v)=>{
-      //     r[v.bookmaker] = v;
-      //     return r;
-      //   }, {});
-      // })
+
       console.log(`receive gamedata ${dataType}: ` + list.length, (new Date()).toLocaleTimeString());
       await setGameData(JSON.stringify(list), dataType);
     }else{
@@ -299,7 +284,15 @@ module.exports = MD=>{
       }else{
         betType = "MONEYLINE";
       }
-      team = homeAway == "home" ? "Team1" : "Team2";
+      if(data.bet_type.indexOf("Handicap1") > -1){
+        homeAway == "home";
+        team = "Team1";
+      }else if(data.bet_type.indexOf("Handicap2") > -1){
+        homeAway == "away";
+        team = "Team2";
+      }else{
+        team = homeAway == "home" ? "Team1" : "Team2";
+      }
     }
 
     let type = {
@@ -326,6 +319,7 @@ module.exports = MD=>{
       id: data.id,
       eventId: data.direct_link.split('|')[0].split('/')[0],
       betburgerEventId: data.event_id,
+      arbHash: data.arbHash,
       directLink: data.direct_link,
       bookmakerDirectLink: data.bookmaker_event_direct_link,
       bookmaker: data.bookmaker,
@@ -398,10 +392,17 @@ module.exports = MD=>{
       // console.log(data.arbs);
       // console.log(data.bets);
       return data.arbs.map(a=>{
-        return [
+        let arr = [
           data.bets.find(b=>b.id==a.bet1_id),
           data.bets.find(b=>b.id==a.bet2_id)
-        ]
+        ];
+        arr.forEach(bet=>{
+          if(bet){
+            bet.arbHash = a.arb_hash;
+          }
+        })
+
+        return arr;
       }).filter(bets=>{
         return (bets[0] && bets[1]) && bets[0].event_id == bets[1].event_id;
       })
@@ -410,66 +411,7 @@ module.exports = MD=>{
     }
   }
 
-  function reGroup(list){
-    // let g = {};
-    // list.forEach(a=>{
-    //   if(!g[a.event_id]) g[a.event_id] = [];
-    //   g[a.event_id].push(a);
-    // })
-    //
-    // for(let o in g){
-    //   if(g[o].length > 2){
-    //     console.error("!! bets length > 2")
-    //     delete g[o];
-    //   }else if(g[o].length < 2){
-    //     console.error("!! bets length < 2")
-    //     delete g[o];
-    //   }
-    // }
-    //
-    // return Object.keys(g).map(k=>g[k]);
 
-
-    // console.log("!!!", JSON.parse(JSON.stringify(list)));
-    // let a = list.length;
-    let f;
-    let p = [];
-    let l = [];
-    for(let i=0; i<list.length; i++){
-      if(!f){
-        if(i+1 < list.length && list[i].event_id == list[i+1].event_id){
-          f = list[i];
-          p = [f];
-        }
-      }else if(f.event_id == list[i].event_id){
-        p.push(list[i]);
-        l.push(p);
-        f = null;
-      }
-    }
-
-    // console.log("???", l);
-    // console.log(a/2, l.length);
-
-    return l;
-
-    // let g = [];
-    // list.forEach(bet=>{
-    //   if(!g[bet.event_id]) g[bet.event_id] = [];
-    //   g[bet.event_id].push(a);
-    // })
-    //
-    // let l = list.reduce((r,v,i)=>{
-    //   if(i%2==0){
-    //     r.push([]);
-    //   }
-    //   r[r.length-1].push(v);
-    //   return r;
-    // }, [])
-    //
-
-    // return l;
-  }
 
   async function loadArbs(dataType, isLive=true, perPage=20, exclude){
     let setting = await getSetting();
