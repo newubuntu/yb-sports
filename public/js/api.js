@@ -393,6 +393,10 @@ let api = (()=>{
       return ax("/get_bets", opt, "POST");
     },
 
+    getAnalysis(opt){
+      return ax("/get_analysis", opt||{}, "POST");
+    },
+
     loadLogs(bid){
       return ax("/load_logs/" + bid, null, "GET", null, true);
     },

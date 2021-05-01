@@ -815,6 +815,7 @@ module.exports = io=>{
   require('./api_approval')(MD);
   require('./api_bet_history')(MD);
   require('./api_betburger')(MD);
+  require('./api_analysis')(MD);
 
   require('./api_schedule')(MD);
 

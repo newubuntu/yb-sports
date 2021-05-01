@@ -460,6 +460,10 @@
       name: "배팅기록",
       admin: true
     },{
+      link: "/admin/analysis",
+      name: "분석",
+      admin: true
+    },{
       link: "/admin/dashboard",
       name: "[마스터] 원격 대시보드",
       admin: true,
