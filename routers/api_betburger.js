@@ -107,6 +107,7 @@ module.exports = MD=>{
   //   // res.json(list);
   //
   //
+  //
   //   // let ben = await BenEvent.create({
   //   //   key: "test",
   //   //   expire: null,
@@ -117,14 +118,14 @@ module.exports = MD=>{
   //   //
   //   // res.json(ben);
   //
-  //   let ben = await BenEvent.count({
-  //     $and: [
-  //       {key:"test"},
-  //       {createdAt: {$gte: new Date(Date.now()-1000*60*60)}}
-  //     ]
-  //   })
-  //
-  //   res.json(ben);
+  //   // let ben = await BenEvent.count({
+  //   //   $and: [
+  //   //     {key:"test"},
+  //   //     {createdAt: {$gte: new Date(Date.now()-1000*60*60)}}
+  //   //   ]
+  //   // })
+  //   //
+  //   // res.json(ben);
   //
   //
   //   // let list = await Promise.all([

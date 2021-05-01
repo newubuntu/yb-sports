@@ -61,6 +61,27 @@ module.exports = async MD=>{
     console.error("you must be set pinnacle ID/PW");
   }
 
+  // router.get("/test", async (req, res)=>{
+  //   // let list = await loadArbs("betburger1", "Live", 10);
+  //
+  //
+  //   // let list = await betburgerEventProcess("betburger1");
+  //   // res.json(list);
+  //
+  //   // let p = await papi.getBets({betIds:"1318901205"});
+  //   let p = await BetData.aggregate()
+  //   .match({betStatus:"ACCEPTED"})
+  //   .group({
+  //     _id: '$betId'
+  //   })
+  //
+  //
+  //
+  //   console.log(p);
+  //
+  //   res.json({});
+  // })
+
   // let cycleTime = 1000 * 60 * 60 * 1;
 
   // setInterval(process, cycleTime);
@@ -163,12 +184,16 @@ module.exports = async MD=>{
 
   async function eventSettledCheckProcess(){
     console.log("============ bet result process ============", (new Date()).toLocaleString());
-    let list = await BetData.find({betStatus:"ACCEPTED"}).select(["betId", "event"]).lean();
+    // let list = await BetData.find({betStatus:"ACCEPTED"}).select(["betId", "event"]).lean();
+    let ids = await BetData.aggregate()
+    .match({betStatus:"ACCEPTED"})
+    .group({_id: '$betId'});
+    ids = ids.map(a=>a._id);
     // 여기서 이미 결과처리 완료된 이벤트가 있으면 어떻게 처리하냐? papi호출전에 정리되는게 맞다.
     // 하지만, 보통 배팅결과처리가 배팅과 비슷한시기에 되지는 않기때문에,,, 괜찮을듯.
-    if(list.length == 0) return;
+    if(ids.length == 0) return;
 
-    let ids = list.map(d=>d.betId);
+    // let ids = list.map(d=>d.betId);
     let results = await papi.getBets({betIds:ids.join()});
     // console.log("results:", results);
     if(Array.isArray(results.straightBets)){
