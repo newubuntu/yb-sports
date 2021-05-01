@@ -320,7 +320,7 @@ module.exports = MD=>{
   }))
 
   router.get("/get_user_email_list", authAdmin, task(async (req, res)=>{
-    let users = await User.find({}).select("email").lean();
+    let users = await User.find({email:{$ne:null}}).select("email").lean();
     res.json({
       status: "success",
       data: users

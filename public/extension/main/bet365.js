@@ -676,7 +676,8 @@ function bet365JS(){
       }else{
         log("완료?"+res.data.br, "warning", true);
         await delay(50);
-        if(res.data.br && res.data.ts !== undefined && res.data.bt[0].br){
+        if(res.data.br && res.data.ts !== undefined && res.data.bt[0].br && res.data.la[0] && res.data.la[0].ak){
+        // if(res.data.br && res.data.ts !== undefined && res.data.bt[0].br){
           log("완료1", "warning", true);
           _result.status = "success";
           _result.stake = res.data.ts;
@@ -1200,9 +1201,10 @@ function bet365JS(){
           let itv = setTimeout(()=>{
             if(!complete){
               complete = true;
+              log("배팅 타임아웃!", "warning", true);
               resolve(null);
             }
-          }, 10000);
+          }, 1000 * 60);
           placeBetDirect(data).then(r=>{
             if(!complete){
               complete = true;

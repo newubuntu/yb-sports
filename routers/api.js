@@ -1258,7 +1258,7 @@ module.exports = io=>{
       total: {$sum:'$withdraw'}
     });
 
-    let users = await User.find({}).select("email authority master").lean();
+    let users = await User.find({email:{$ne:null}}).select("email authority master").lean();
 
     // console.log("????", query, list);
     console.log("sum", sum);
@@ -1376,7 +1376,7 @@ module.exports = io=>{
       total: {$sum:'$money'}
     });
 
-    let users = await User.find({}).select("email master").lean();
+    let users = await User.find({email:{$ne:null}}).select("email master").lean();
     // let sum = await DepositLog.aggregate([
     //   {
     //     $group: {
