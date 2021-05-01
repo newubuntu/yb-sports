@@ -669,7 +669,8 @@ function bet365JS(){
         // 폐쇄계정
         _result.status = "restriction";
         _result.message = "폐쇄된 계정";
-      }else if(res.data.br && res.data.ts !== undefined && res.data.bt[0].br && res.data.la[0] && res.data.la[0].ak){
+      // }else if(res.data.br && res.data.ts !== undefined && res.data.bt[0].br && res.data.la[0] && res.data.la[0].ak){
+      }else if(res.data.br && res.data.bt[0].br && res.data.la[0] && res.data.la[0].ak){
         _result.status = "success";
         _result.stake = res.data.ts;
         _result.money = await loadMoney();
