@@ -98,14 +98,18 @@ let Vapp;
     // console.error("??", name, data, period);
     if(!charts[name]) return;
     if(data.length){
+      let check = {};
       let labels = data.map(d=>{
+        if(check[d._id.label]) return null;
         if(period == "week"){
+          check[d._id.label] = 1;
           let dt = getDateOfWeek(d._id.label);
           return getDateString(dt) + '~'
         }else{
+          check[d._id.label] = 1;
           return d._id.label;
         }
-      })
+      }).filter(a=>!!a)
 
       let datasets;
       let max = -9999999, min = 9999999;
