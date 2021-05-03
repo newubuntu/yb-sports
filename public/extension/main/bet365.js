@@ -618,7 +618,7 @@ function bet365JS(){
     //   console.error("계정정보 없음.");
     // }
 
-    log("배팅!", "warning", true);
+    // log("배팅!", "warning", true);
     let res = await axios({
       method: "post",
       url: "https://www.bet365.com/BetsWebAPI/placebet?betGuid=" + betGuid,
@@ -635,7 +635,7 @@ function bet365JS(){
     //od가 숫자로만 2자리로 구성되어있으면
     //odds가 2라면 od가 22이런식으로 올때가있다. 확인해주자
     _od = odCheck(_od, odds);
-    log("인포1", "warning", true);
+    // log("인포1", "warning", true);
     if(_od){
       info = await getBetslipInfoForAPI(_od);
       if(!info){
@@ -646,7 +646,7 @@ function bet365JS(){
     }else{
       info = await getBetslipInfoForAPI(odds);
     }
-    log("인포2", "warning", true);
+    // log("인포2", "warning", true);
 
     let _result = {stake:originStake};
     _result.info = info;
@@ -674,15 +674,15 @@ function bet365JS(){
       // }else if(res.data.br && res.data.ts !== undefined && res.data.bt[0].br && res.data.la[0] && res.data.la[0].ak){
       // }else if(res.data.br && res.data.bt[0].br && res.data.la[0] && res.data.la[0].ak){
       }else{
-        log("완료?"+res.data.br, "warning", true);
-        await delay(50);
+        // log("완료?"+res.data.br, "warning", true);
+        // await delay(50);
         if(res.data.br && res.data.ts !== undefined && res.data.bt[0].br && res.data.la[0] && res.data.la[0].ak){
         // if(res.data.br && res.data.ts !== undefined && res.data.bt[0].br){
-          log("완료1", "warning", true);
+          // log("완료1", "warning", true);
           _result.status = "success";
           _result.stake = res.data.ts;
           _result.money = await loadMoney();
-          log("완료2", "warning", true);
+          // log("완료2", "warning", true);
         }else{
           _result.status = "noReturn";
         }

@@ -335,7 +335,7 @@ var Sound = {
 //   }
 // }
 
-function getDatePickerOption(){
+function getDatePickerOption({dateSelected}={}){
   let days = "일,월,화,수,목,금,토".split(',');
   return {
     id: 1,
@@ -344,11 +344,37 @@ function getDatePickerOption(){
     customOverlayMonths: ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'],
     overlayButton: "확인",
     overlayPlaceholder: "년도",
-    dateSelected: new Date(),
+    dateSelected: dateSelected||new Date(),
     formatter: (input, date, instance) => {
       const value = date.toLocaleDateString() + " (" + days[date.getDay()] + ")";
       input.value = value;
     },
     position : 'tl'
   }
+}
+
+function getRgba(type, alphaP=100){
+  return coreui.Utils.hexToRgba(coreui.Utils.getStyle('--'+type, document.getElementsByClassName('c-app')[0]), alphaP);
+}
+
+function getColor(type){
+  return coreui.Utils.getStyle('--'+type, document.getElementsByClassName('c-app')[0])
+}
+
+function getDateOfWeek(w, y) {
+  let d = (1 + (w - 1) * 7); // 1st of January + 7 days for each week
+  return new Date(y===undefined?new Date().getFullYear():y, 0, d);
+}
+
+function hexToRgbA(hex, a){
+    var c;
+    if(/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)){
+        c= hex.substring(1).split('');
+        if(c.length== 3){
+            c= [c[0], c[0], c[1], c[1], c[2], c[2]];
+        }
+        c= '0x'+c.join('');
+        return 'rgba('+[(c>>16)&255, (c>>8)&255, c&255].join(',')+','+a+')';
+    }
+    throw new Error('Bad Hex');
 }

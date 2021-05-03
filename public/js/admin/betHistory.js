@@ -27,7 +27,7 @@ let Vapp;
       name: "상태",
       key: "betStatus",
       value: "",
-      list: ["WON", "LOSE", "REFUNDED", "CANCELLED"],
+      list: ["ACCEPTED", "WON", "LOSE", "REFUNDED", "CANCELLED"],
       type: "select"
     }
   ]
@@ -389,7 +389,7 @@ let Vapp;
         if(result){
           let editItemData = this.getEditItemData();
           editItemData.editTarget = result;
-          console.error(editItemData);
+          // console.error(editItemData);
 
           let res = await api.updateBetdata(editItemData);
           if(res.status == "success"){

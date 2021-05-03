@@ -197,6 +197,14 @@ let Vapp;
       prepend: "$"
     },
     {
+      name: "betmax 제한(축구)",
+      key: "maxBetmaxForSoccer",
+      value: 10,
+      type: "number",
+      // help: "체크기 옵션",
+      prepend: "$"
+    },
+    {
       type: "hr"
     },
     {

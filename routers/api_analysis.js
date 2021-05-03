@@ -67,8 +67,8 @@ module.exports = MD=>{
   let bdhMap = {'<':'$lt', '<=':'$lte', '>':'$gt', '>=':'$gte', '==':'$eq', '!=':'$not'};
   router.post("/get_analysis", authAdmin, task(async (req, res)=>{
     let {
-      ids, offset, limit, curPage, sportName, accountId, admin,
-      email, status, range, betId, eventName, betType, odds1, oddsCon1, odds2, oddsCon2
+      sports, period,
+      emails, range, betTypes, odds1, oddsCon1, odds2, oddsCon2
     } = req.body;
     // let query = {user:req.user._id, event:{$ne:null}, sportName};
     let query = {};
@@ -77,37 +77,27 @@ module.exports = MD=>{
       {event:{$ne:null}}
     ];
 
-    if(sportName){
-      $and.push({sportName});
+    if(sports && sports.length){
+      $and.push({sportName:{$in:sports}});
     }
 
-    let user;
-    if(admin){
-      delete query.user;
-      if(email){
-        user = await User.findOne({email}).select(["_id", "money"]).lean();
-        if(user){
-          // query.user = user._id;
-          $and.push({user:user._id});
-        }else{
-          // query.user = null;
-          $and.push({user:null});
-        }
-      }
-    }else{
-      $and.push({user:req.user._id});
-    }
-
-    // for(let o in query){
-    //   if(query[o] === undefined){
-    //     delete query[o];
+    // let user;
+    // if(admin){
+    //   delete query.user;
+    //   if(email){
+    //     user = await User.findOne({email}).select(["_id", "money"]).lean();
+    //     if(user){
+    //       // query.user = user._id;
+    //       $and.push({user:user._id});
+    //     }else{
+    //       // query.user = null;
+    //       $and.push({user:null});
+    //     }
     //   }
+    // }else{
+    //   $and.push({user:req.user._id});
     // }
 
-    if(ids){
-      // query._id = ids;
-      $and.push({_id:{$in:ids}});
-    }
 
 
     if(oddsCon1 && odds1){
@@ -122,90 +112,8 @@ module.exports = MD=>{
       $and.push({bookmakerOdds:q});
     }
 
-    if(status){
-      // query.betStatus = status;
-      $and.push({betStatus:status});
-    }
-
-    if(betType){
-      // query.betType = betType;
-      $and.push({betType:betType});
-    }
-
-    if(accountId){
-      let account = await Account.findOne({id:accountId});
-      if(account){
-        // query.account = account._id;
-        $and.push({account:account._id});
-      }else{
-        // query.account = null;
-        $and.push({account:null});
-      }
-    }
-
-    let limitCount = 50;
-
-    if(curPage !== undefined){
-      // 페이지가 설정되었으면, 그에 맞춰서 limit, offset 계산
-      limit = limitCount;//config.ACCOUNT_LIST_COUNT_PER_PAGE;
-      offset = curPage * limit;
-    }else{
-      // 페이지가 설정안되었다면. 전달된 limit, offset 사용
-      // 전달된 limit, offset이 없으면 기본값사용
-      if(limit === undefined){
-        limit = limitCount;//config.ACCOUNT_LIST_COUNT_PER_PAGE;
-      }
-      if(offset === undefined){
-        offset = 0;
-      }
-
-      curPage = offset / limit;
-    }
-
-    let populateObjList = [
-      {
-        path: 'account',
-        model: Account,
-        options: {
-          select: '-pw -skrillId -skrillPw -skrillCode'
-        }
-      },
-      {
-        path: 'user',
-        model: User,
-        select: '-password'
-      }
-    ]
-    let eventPopulateObj = {
-      path: 'event',
-      model: Event
-    }
-
-
-
-    populateObjList.push(eventPopulateObj);
-    //
-    // console.error("?", sports);
-    // if(sportName){
-    //   eventPopulateObj.match = {
-    //     sportName: sports
-    //   }
-    // }
-
-    // console.error("range", range);
-
-    // if(eventName){
-      // 특문을 완전히 처리할게 아니라면 아래는 쓰면 안된다.
-      // query.eventName = {$regex: '.*' + eventName + '.*'};
-    // }
-    if(betId){
-      // query.betId = betId;
-      $and.push({betId});
-    }
-
-    if(eventName){
-      // query.eventName = eventName;
-      $and.push({eventName});
+    if(betTypes && betTypes.length){
+      $and.push({betType:{$in:betTypes}});
     }
 
     if(range){
@@ -219,119 +127,120 @@ module.exports = MD=>{
       }})
     }
 
-    query = {$and};
-
-    console.log("query", query, {offset, limit});
-
-    // 전체숫자는 limit되지 않은숫자여야하므로 이 count방법을 유지한다.
-    let count = await BetData.countDocuments(query);
-    let pageLength = Math.ceil(count / limit);// 0 ~
-    let maxPage = pageLength - 1;
-    // console.log("account count", count);
-    let startPage = Math.floor(curPage / config.PAGE_COUNT) * config.PAGE_COUNT;
-    let endPage = Math.min(startPage + config.PAGE_COUNT-1, maxPage);
-
-    let list = await BetData.find(query)
-    // .select(["-password"])
-    .sort({createdAt:-1})
-    .limit(limit)
-    .skip(offset)
-    .populate(populateObjList)
-    .lean();
-
-    // 이런식으로 하면 aggregate 합산에는 반영안됨
-    // if(betType){
-    //   list = list.filter(bd=>bd.event.betType==betType);
-    // }
-    // list = list.slice(offset*limit, offset*limit+limit);
-
-    let totalMoney = 0;
-    // list.reduce((r,v)=>r+v.user.money, 0);
-    // let users = await BetData.aggregate()
-    // .match(query)
-    // .group({
-    //   _id: '$user'
-    // })
-
-    let accounts, users;
-    if(admin){
-      if(user){
-        totalMoney = user.money;
-      }else{
-        let u = await User.aggregate()
-        .group({
-          _id: 'null',
-          totalMoney:{$sum:"$money"}
-        })
-
-        if(u[0]){
-          totalMoney = u[0].totalMoney;
-        }
-      }
-      users = await User.find({}).select("email").lean();
-    }else{
-      accounts = await Account.find({user:req.user._id}).select("id").lean();
+    let groupMap = {
+      day: {$dateToString:{ format: "%Y-%m-%d", date: "$createdAt"}},
+      week: {$week: "$createdAt"},
+      month: {$dateToString:{ format: "%Y-%m", date: "$createdAt"}},
+      year: {$dateToString:{ format: "%Y", date: "$createdAt"}}
     }
 
+    // let gm = JSON.parse(JSON.stringify(groupMap[period]));
+    // _id = {};
+    // if(sports && sports.length){
+    //   _id['sports'] = '$sportName';
+    // }
+    // _id['label'] = groupMap[period];
+    // if(period){
+    //   period
+    // }
 
-    let resultObj;
+    query = {$and};
 
+    console.log("query", query);
 
-    resultObj = await BetData.aggregate()
+    let mainChart = await BetData.aggregate()
     .match(query)
     .group({
-      _id: 'null',
-      result: {
-        $accumulator: {
-          init: function(){
-            return {notYetBetSumBookmaker:0, notYetBetSum:0, betSum:0, returnSum:0, resultSum:0, profit:0, notYetprofit:0};
-          },
-          accumulate: function(state, siteOdds, siteStake, bookmakerStake, betStatus){
-            state.betSum += siteStake;
-            let rt = 0;
-            if(betStatus == "WON"){
-              rt = siteOdds * siteStake;
-            }else if(betStatus == "REFUNDED" || betStatus == "CANCELLED"){
-              rt = siteStake;
-            }
-            if(betStatus == "ACCEPTED"){
-              state.notYetprofit += siteOdds * siteStake - (siteStake + bookmakerStake);
-              state.notYetBetSum += siteStake;
-              state.notYetBetSumBookmaker += bookmakerStake;
-            }else if(betStatus == "WON" || betStatus == "LOSE"){
-              state.profit += siteOdds * siteStake - (siteStake + bookmakerStake);
-            }
-            state.returnSum += rt;
-            state.resultSum += siteStake - rt;
-            return state;
-          },
-          accumulateArgs: ["$siteOdds", "$siteStake", "$bookmakerStake", "$betStatus"],
-          merge: function(state1, state2){
-            return {
-              betSum: state1.betSum + state2.betSum,
-              notYetBetSum: state1.notYetBetSum + state2.notYetBetSum,
-              notYetBetSumBookmaker: state1.notYetBetSumBookmaker + state2.notYetBetSumBookmaker,
-              returnSum: state1.returnSum + state2.returnSum,
-              resultSum: state1.resultSum + state2.resultSum,
-              profit: state1.profit + state2.profit,
-              notYetprofit: state1.notYetprofit + state2.notYetprofit
-            }
-          },
-          finalize: function(state) {
-            return state;
-          },
-          lang: "js"
-        }
-      }
-    });
+      _id: {
+        label: groupMap[period]
+      },
+      siteProfit: {$sum: {
+        $cond: [
+          {$eq: ["$betStatus", "LOSE"]},
+          "$siteStake",
+          {$cond:[
+            {$or:[
+              {$eq:["$betStatus", "REFUNDED"]},
+              {$eq:["$betStatus", "CANCELLED"]}
+            ]},
+            0,
+            {$subtract:[0, {$multiply: ["$siteStake", {$subtract:["$siteOdds",1]}]} ]}
+          ]}
+        ]
+      }},
+      // bookmakerRisk: {$sum: "$bookmakerStake"},
+      bookmakerProfit: {$sum: {
+        $cond: [
+          {$eq: ["$betStatus", "LOSE"]},
+          {$multiply: ["$bookmakerStake", {$subtract:["$bookmakerOdds",1]}]},
+          {$cond:[
+            {$or:[
+              {$eq:["$betStatus", "REFUNDED"]},
+              {$eq:["$betStatus", "CANCELLED"]}
+            ]},
+            0,
+            {$subtract:[0,"$bookmakerStake"]}
+          ]}
+        ]
+      }}
+    })
+    .sort({_id:1});
 
-    let result = resultObj[0] ? resultObj[0].result : {};
-    result.totalMoney = totalMoney;
-    console.log("aggregate result", result);
+    let sportsChart = await BetData.aggregate()
+    .match(query)
+    .group({
+      _id: {
+        label: groupMap[period],
+        key: "$sportName"
+      },
+      bookmakerProfit: {$sum: {
+        $cond: [
+          {$eq: ["$betStatus", "LOSE"]},
+          {$multiply: ["$bookmakerStake", {$subtract:["$bookmakerOdds",1]}]},
+          {$cond:[
+            {$or:[
+              {$eq:["$betStatus", "REFUNDED"]},
+              {$eq:["$betStatus", "CANCELLED"]}
+            ]},
+            0,
+            {$subtract:[0,"$bookmakerStake"]}
+          ]}
+        ]
+      }}
+    })
+    .sort({_id:1});
+
+    let betTypeChart = await BetData.aggregate()
+    .match(query)
+    .group({
+      _id: {
+        label: groupMap[period],
+        key: "$betType"
+      },
+      bookmakerProfit: {$sum: {
+        $cond: [
+          {$eq: ["$betStatus", "LOSE"]},
+          {$multiply: ["$bookmakerStake", {$subtract:["$bookmakerOdds",1]}]},
+          {$cond:[
+            {$or:[
+              {$eq:["$betStatus", "REFUNDED"]},
+              {$eq:["$betStatus", "CANCELLED"]}
+            ]},
+            0,
+            {$subtract:[0,"$bookmakerStake"]}
+          ]}
+        ]
+      }}
+    })
+    .sort({_id:1});
+
+    // let result = resultObj[0] ? resultObj[0].result : {};
+    // result.totalMoney = totalMoney;
+    // console.log("aggregate result", mainData);
 
     res.json({
       status: "success",
-      data: {list, result, accounts, users, curPage, startPage, endPage, maxPage, count, pageCount:config.PAGE_COUNT}
+      data: {result:{mainChart, sportsChart, betTypeChart}, period}
     });
   }))
 }

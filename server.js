@@ -613,7 +613,11 @@
         if(req.session.pages.find(page=>page.link==req.url)){
           res.render( '.'+req.url, req.pageData );
         }else{
-          res.redirect(req.pages[0].code);
+          if(req.pages){
+            res.redirect(req.pages[0].link);
+          }else{
+            res.redirect('/');
+          }
         }
       })
     }else{
@@ -635,7 +639,12 @@
       if(req.session.pages.find(page=>page.link==req.url)){
         res.render( '.'+req.url, req.pageData );
       }else{
-        res.redirect(req.pages[0].code);
+        // res.redirect(req.pages[0].link);
+        if(req.pages){
+          res.redirect(req.pages[0].link);
+        }else{
+          res.redirect('/');
+        }
       }
     })
   })

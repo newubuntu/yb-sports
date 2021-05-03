@@ -1337,7 +1337,7 @@ function randomRatio(){
   return Math.random() * (end-start) + start;
 }
 
-function getMaxBetmax(odds){
+function getMaxBetmax(odds, sports){
   if(betOption.useMaxBetmaxByOdds == 'y' && typeof betOption.maxBetmaxByOdds === "object"){
     let obj = betOption.maxBetmaxByOdds;
     // let odds = data.bet365.odds;
@@ -1354,9 +1354,17 @@ function getMaxBetmax(odds){
       }
       i++;
     }
-    return betOption.maxBetmax;
+    if(sports == "Soccer" && betOption.maxBetmaxForSoccer !== undefined){
+      return betOption.maxBetmaxForSoccer;
+    }else{
+      return betOption.maxBetmax;
+    }
   }else{
-    return betOption.maxBetmax;
+    if(sports == "Soccer" && betOption.maxBetmaxForSoccer !== undefined){
+      return betOption.maxBetmaxForSoccer;
+    }else{
+      return betOption.maxBetmax;
+    }
   }
 }
 
@@ -1364,7 +1372,7 @@ function updateBet365Stake(data){
   // 유저 양빵단계의 벳삼 배당 변동시에는 벳삼 stake를 다시 계산해주고 판단한다.
   data.bet365.stake = round(calc.stakeB(data.pinnacle.odds, data.bet365.odds, data.pinnacle.stake), 2);
   let stakeRatio = getStakeRatio();
-  let maxBetmax = getMaxBetmax(data.bet365.odds);
+  let maxBetmax = getMaxBetmax(data.bet365.odds, data.bet365.sports);
 
   if(data.bet365.stake > maxBetmax * stakeRatio){
     data.bet365.stake = round(maxBetmax * stakeRatio * randomRatio(), 2);
@@ -1787,7 +1795,7 @@ async function betmaxCheckProcess(betmaxInfo, data){
   // log(`stake 증폭: $${betmaxInfo.betmax}(${round(stakeRatio*100)}%)`, null, true);
 
   // 벳맥스체크에서는 원래값을 그냥보내고 배팅기에서 절삭처리하도록 변경한다.
-  let maxBetmax = getMaxBetmax(data.bet365.odds);
+  let maxBetmax = getMaxBetmax(data.bet365.odds, data.bet365.sports);
   if(betmaxInfo.betmax > maxBetmax){
     log(`betmax 제한값 초과. 절삭: $${maxBetmax}`, null, true);
     betmaxInfo.betmax = maxBetmax;
