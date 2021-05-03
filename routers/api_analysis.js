@@ -212,6 +212,7 @@ module.exports = MD=>{
 
     let betTypeChart = await BetData.aggregate()
     .match(query)
+    .match({betType:{$ne:null}})
     .group({
       _id: {
         label: groupMap[period],
