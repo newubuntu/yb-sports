@@ -273,7 +273,7 @@ let Vapp;
           },
           elements: {
             point: {
-              radius: 4,
+              radius: 2,
               hitRadius: 10,
               hoverRadius: 4,
               hoverBorderWidth: 3
