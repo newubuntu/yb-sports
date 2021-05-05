@@ -106,16 +106,16 @@ block view
                     //- .small.text-mutedSeptember 2019
                   .btn-toolbar.d-none.d-md-block(role="toolbar" aria-label="Toolbar with buttons")
                     .btn-group.btn-group-toggle.mx-3(data-toggle="buttons")
-                      label.btn.btn-outline-secondary(@click="reload({period:'day'})")
-                        input(id="option1" type="radio" name="options" autocomplete="off")
+                      label.btn.btn-outline-secondary.active(@click="reload({period:'day'})")
+                        input(id="option1" type="radio" name="options" autocomplete="off" checked="")
                         |Day          
-                      label.btn.btn-outline-secondary.active(@click="reload({period:'week'})")
-                        input(id="option2" type="radio" name="options" autocomplete="off" checked="")
+                      label.btn.btn-outline-secondary(@click="reload({period:'week'})")
+                        input(id="option2" type="radio" name="options" autocomplete="off")
                         |Week
                       label.btn.btn-outline-secondary(@click="reload({period:'month'})")
                         input(id="option3" type="radio" name="options" autocomplete="off")
                         |Month
-                      label.btn.btn-outline-secondary(@click="reload({period:'year'})")
+                      //- label.btn.btn-outline-secondary(@click="reload({period:'year'})")
                         input(id="option4" type="radio" name="options" autocomplete="off")
                         |Year                          
                     //- button.btn.btn-primary(type="button")
@@ -123,6 +123,20 @@ block view
                         use(xlink:href="/vendors/@coreui/icons/svg/free.svg#cil-cloud-download")          
                 .c-chart-wrapper(style="height:300px;margin-top:40px;")
                   canvas.chart(id="mainChart" height="300")
+              div
+                .d-flex.justify-content-between
+                  div
+                    h4.card-title.mb-0 배당별 그래프
+                    //- .small.text-mutedSeptember 2019                  
+                .c-chart-wrapper(style="height:300px;margin-top:40px;")
+                  canvas.chart(id="oddsChart" height="300")
+              div
+                .d-flex.justify-content-between
+                  div
+                    h4.card-title.mb-0 배팅금액별 그래프
+                    //- .small.text-mutedSeptember 2019                  
+                .c-chart-wrapper(style="height:300px;margin-top:40px;")
+                  canvas.chart(id="stakeChart" height="300")
               div
                 .d-flex.justify-content-between
                   div

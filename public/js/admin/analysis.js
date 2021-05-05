@@ -83,7 +83,9 @@ let Vapp;
   let charts = {
     mainChart: null,
     sportsChart: null,
-    betTypeChart: null
+    betTypeChart: null,
+    // oddsChart: null,
+    // stakeChart: null
   };
 
   function updateChartAll(data){
@@ -96,6 +98,8 @@ let Vapp;
 
   function updateChart(name, data, period){
     // console.error("??", name, data, period);
+
+
     if(!charts[name]) return;
     if(data.length){
       let check = {};
@@ -206,7 +210,7 @@ let Vapp;
         console.error("not found chart element", name);
         continue;
       }
-      charts[name] = new Chart(el, {
+      let cfg = {
         type: 'line',
         // data: {
         //   labels: [],
@@ -238,6 +242,10 @@ let Vapp;
         //     data: [65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65]
         //   }]
         // },
+
+
+
+
         options: {
           maintainAspectRatio: false,
           legend: {
@@ -265,14 +273,15 @@ let Vapp;
           },
           elements: {
             point: {
-              radius: 0,
+              radius: 4,
               hitRadius: 10,
               hoverRadius: 4,
               hoverBorderWidth: 3
             }
           }
         }
-      });
+      }
+      charts[name] = new Chart(el, cfg);
     }
   }
 
@@ -315,7 +324,7 @@ let Vapp;
       oddsCon1: null,
       odds2: null,
       oddsCon2: null,
-      period: "week",
+      period: "day",
       result: {}
       // users: [],
       // user: user
@@ -450,6 +459,7 @@ let Vapp;
 
           sports: ms_sports._selection.map(a=>a.value),
           betTypes: ms_bettype._selection.map(a=>a.value),
+          users: ms_user._selection.map(a=>a.value),
           // profitMains: ms_profit_main._selection.map(a=>a.value),
           emails: ms_user._selection.map(a=>a.value),
 
@@ -476,6 +486,7 @@ let Vapp;
         let {
           sports,
           betTypes,
+          users,
           // profitMains,
           emails,
           period,
@@ -503,7 +514,7 @@ let Vapp;
         let query = {
           sports,
           betTypes,
-          // profitMains,
+          users,
           emails,
           range,
           period,

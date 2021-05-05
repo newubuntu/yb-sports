@@ -205,6 +205,14 @@ let Vapp;
       prepend: "$"
     },
     {
+      name: "betmax 제한(농구)",
+      key: "maxBetmaxForBasketball",
+      value: 10,
+      type: "number",
+      // help: "체크기 옵션",
+      prepend: "$"
+    },
+    {
       type: "hr"
     },
     {

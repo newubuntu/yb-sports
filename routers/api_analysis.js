@@ -67,7 +67,7 @@ module.exports = MD=>{
   let bdhMap = {'<':'$lt', '<=':'$lte', '>':'$gt', '>=':'$gte', '==':'$eq', '!=':'$not'};
   router.post("/get_analysis", authAdmin, task(async (req, res)=>{
     let {
-      sports, period,
+      sports, period, users,
       emails, range, betTypes, odds1, oddsCon1, odds2, oddsCon2
     } = req.body;
     // let query = {user:req.user._id, event:{$ne:null}, sportName};
@@ -116,6 +116,10 @@ module.exports = MD=>{
       $and.push({betType:{$in:betTypes}});
     }
 
+    if(users && users.length){
+      $and.push({email:{$in:users}});
+    }
+
     if(range){
       // query.createdAt= {
       //   $gte: new Date(range.start),
@@ -159,27 +163,37 @@ module.exports = MD=>{
           {$eq: ["$betStatus", "LOSE"]},
           "$siteStake",
           {$cond:[
-            {$or:[
-              {$eq:["$betStatus", "REFUNDED"]},
-              {$eq:["$betStatus", "CANCELLED"]}
-            ]},
-            0,
-            {$subtract:[0, {$multiply: ["$siteStake", {$subtract:["$siteOdds",1]}]} ]}
+            {$eq:["$betStatus", "WON"]},
+            {$subtract:[0, {$multiply: ["$siteStake", {$subtract:["$siteOdds",1]}]} ]},
+            0
+            // {$or:[
+            //   {$eq:["$betStatus", "REFUNDED"]},
+            //   {$eq:["$betStatus", "CANCELLED"]}
+            // ]},
+            // 0,
+            // {$subtract:[0, {$multiply: ["$siteStake", {$subtract:["$siteOdds",1]}]} ]}
           ]}
         ]
       }},
-      // bookmakerRisk: {$sum: "$bookmakerStake"},
+      // bookmakerProfitP: {$avg: {
+      //   $cond: [
+      //     {$eq: ["$betStatus", "LOSE"]},
+      //     {$subtract:["$bookmakerOdds", 1]},
+      //     {$cond:[
+      //       {$eq:["$betStatus", "WON"]},
+      //       {$subtract:[0, {$subtract:["$bookmakerOdds", 1]}]},
+      //       0
+      //     ]}
+      //   ]
+      // }},
       bookmakerProfit: {$sum: {
         $cond: [
           {$eq: ["$betStatus", "LOSE"]},
           {$multiply: ["$bookmakerStake", {$subtract:["$bookmakerOdds",1]}]},
           {$cond:[
-            {$or:[
-              {$eq:["$betStatus", "REFUNDED"]},
-              {$eq:["$betStatus", "CANCELLED"]}
-            ]},
-            0,
-            {$subtract:[0,"$bookmakerStake"]}
+            {$eq:["$betStatus", "WON"]},
+            {$subtract:[0,"$bookmakerStake"]},
+            0
           ]}
         ]
       }}
@@ -198,12 +212,9 @@ module.exports = MD=>{
           {$eq: ["$betStatus", "LOSE"]},
           {$multiply: ["$bookmakerStake", {$subtract:["$bookmakerOdds",1]}]},
           {$cond:[
-            {$or:[
-              {$eq:["$betStatus", "REFUNDED"]},
-              {$eq:["$betStatus", "CANCELLED"]}
-            ]},
-            0,
-            {$subtract:[0,"$bookmakerStake"]}
+            {$eq:["$betStatus", "WON"]},
+            {$subtract:[0,"$bookmakerStake"]},
+            0
           ]}
         ]
       }}
@@ -223,12 +234,9 @@ module.exports = MD=>{
           {$eq: ["$betStatus", "LOSE"]},
           {$multiply: ["$bookmakerStake", {$subtract:["$bookmakerOdds",1]}]},
           {$cond:[
-            {$or:[
-              {$eq:["$betStatus", "REFUNDED"]},
-              {$eq:["$betStatus", "CANCELLED"]}
-            ]},
-            0,
-            {$subtract:[0,"$bookmakerStake"]}
+            {$eq:["$betStatus", "WON"]},
+            {$subtract:[0,"$bookmakerStake"]},
+            0
           ]}
         ]
       }}

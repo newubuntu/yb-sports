@@ -1354,17 +1354,17 @@ function getMaxBetmax(odds, sports){
       }
       i++;
     }
-    if(sports == "Soccer" && betOption.maxBetmaxForSoccer !== undefined){
-      return betOption.maxBetmaxForSoccer;
-    }else{
+  }
+  
+  switch(sports){
+    case "Soccer":
+      return betOption.maxBetmaxForSoccer || betOption.maxBetmax;
+
+    case "Basketball":
+      return betOption.maxBetmaxForBasketball || betOption.maxBetmax;
+
+    default:
       return betOption.maxBetmax;
-    }
-  }else{
-    if(sports == "Soccer" && betOption.maxBetmaxForSoccer !== undefined){
-      return betOption.maxBetmaxForSoccer;
-    }else{
-      return betOption.maxBetmax;
-    }
   }
 }
 
