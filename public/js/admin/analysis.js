@@ -289,7 +289,8 @@ let Vapp;
 
   function setupDatePicker() {
     let today = new Date();
-    let sd = new Date(today.getFullYear(), today.getMonth(), 1);
+    // let sd = new Date(today.getFullYear(), today.getMonth(), 1);
+    let sd = new Date(today.getTime() - 1000*60*60*24*7);
     startPicker = datepicker('.start-date', getDatePickerOption({dateSelected:sd}));
     endPicker = datepicker('.end-date', getDatePickerOption());
   }
