@@ -144,29 +144,34 @@ let Vapp;
           data: datas[1]
         }]
       }else{
-        let datas = {};
-        let list = [];
+        // let datas;// = {};
+        // let list = [];
         let keys = {};
-        // data.forEach(d=>{
-        //   if(!datas[d._id.label]){
-        //     datas[d._id.label] = {};
-        //   }
-        //   if(!datas[d._id.label][d._id.key]){
-        //     datas[d._id.label][d._id.key] = [];
-        //     list.push({data:datas[d._id.key], label:d._id.key});
-        //   }
-        // })
-        data.forEach(d=>{
-          if(!datas[d._id.key]){
-            keys[d._id.key] = 1;
-            // datas[d._id.key] = [];
-            // list.push({data:datas[d._id.key], label:d._id.key});
+        datas = data.reduce((r,d)=>{
+          if(!r[d._id.label]){
+            r[d._id.label] = {};
           }
-          // datas[d._id.key].push(round(d.bookmakerProfit,2));
-          d[d._id.key] = round(d.bookmakerProfit,2);
+          if(!r[d._id.label][d._id.key]){
+            keys[d._id.key] = 1;
+            r[d._id.label][d._id.key] = [];
+          }
+
+          r[d._id.label][d._id.key].push(d);
           max = Math.max(max, d.bookmakerProfit);
           min = Math.min(min, d.bookmakerProfit);
-        })
+          return r;
+        }, {})
+
+        // data.forEach(d=>{
+        //   if(!datas[d._id.key]){
+        //     keys[d._id.key] = 1;
+        //     datas[d._id.key] = [];
+        //     list.push({data:datas[d._id.key], label:d._id.key});
+        //   }
+        //   datas[d._id.key].push(round(d.bookmakerProfit,2));
+        //   max = Math.max(max, d.bookmakerProfit);
+        //   min = Math.min(min, d.bookmakerProfit);
+        // })
 
 
         // datasets = list.map(data=>{
@@ -183,15 +188,13 @@ let Vapp;
         //   }
         // })
 
-        keys = Object.keys(keys);
-        datasets = keys.map(key=>{
+        datasets = Object.keys(keys).map(key=>{
           let color = randomColor();
           return {
             label: key,
-            data: data,
-            parsing: {
-              yAxisKey: key
-            },
+            data: data.map(d=>{
+              return d[key] === undefined ? NaN : d[key]
+            }),
             backgroundColor: hexToRgbA(color, 0.1),
             borderColor: color,
             pointHoverBackgroundColor: '#fff',
