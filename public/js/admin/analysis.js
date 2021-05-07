@@ -190,7 +190,7 @@ let Vapp;
             label: key,
             data: data,
             parsing: {
-              xAxisKey: key
+              yAxisKey: key
             },
             backgroundColor: hexToRgbA(color, 0.1),
             borderColor: color,
