@@ -188,7 +188,7 @@ let Vapp;
           let color = randomColor();
           return {
             label: key,
-            data: ,
+            data: data,
             parsing: {
               xAxisKey: key
             },
