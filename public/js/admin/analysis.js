@@ -113,7 +113,7 @@ let Vapp;
           check[d._id.label] = 1;
           return d._id.label;
         }
-      }).filter(a=>!!a)
+      }).filter(a=>!!a);
 
       let datasets;
       let max = -9999999, min = 9999999;
@@ -146,27 +146,56 @@ let Vapp;
       }else{
         let datas = {};
         let list = [];
+        let keys = {};
+        // data.forEach(d=>{
+        //   if(!datas[d._id.label]){
+        //     datas[d._id.label] = {};
+        //   }
+        //   if(!datas[d._id.label][d._id.key]){
+        //     datas[d._id.label][d._id.key] = [];
+        //     list.push({data:datas[d._id.key], label:d._id.key});
+        //   }
+        // })
         data.forEach(d=>{
           if(!datas[d._id.key]){
-            datas[d._id.key] = [];
-            list.push({data:datas[d._id.key], label:d._id.key});
+            keys[d._id.key] = 1;
+            // datas[d._id.key] = [];
+            // list.push({data:datas[d._id.key], label:d._id.key});
           }
-          datas[d._id.key].push(round(d.bookmakerProfit,2));
+          // datas[d._id.key].push(round(d.bookmakerProfit,2));
+          d[d._id.key] = round(d.bookmakerProfit,2);
           max = Math.max(max, d.bookmakerProfit);
           min = Math.min(min, d.bookmakerProfit);
         })
 
-        datasets = list.map(data=>{
+
+        // datasets = list.map(data=>{
+        //   let color = randomColor();
+        //   // console.error("??", color);
+        //   return {
+        //     label: data.label,
+        //     backgroundColor: hexToRgbA(color, 0.1),
+        //     borderColor: color,
+        //     pointHoverBackgroundColor: '#fff',
+        //     borderWidth: 2,
+        //     // lineTension: 0.5,
+        //     data: data.data
+        //   }
+        // })
+
+        keys = Object.keys(keys);
+        datasets = keys.map(key=>{
           let color = randomColor();
-          // console.error("??", color);
           return {
-            label: data.label,
+            label: key,
+            data: ,
+            parsing: {
+              xAxisKey: key
+            },
             backgroundColor: hexToRgbA(color, 0.1),
             borderColor: color,
             pointHoverBackgroundColor: '#fff',
-            borderWidth: 2,
-            // lineTension: 0.5,
-            data: data.data
+            borderWidth: 2
           }
         })
       }
