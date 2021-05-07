@@ -145,18 +145,17 @@ let Vapp;
         }]
       }else{
         // let datas;// = {};
-        // let list = [];
+        let list = [];
         let keys = {};
         datas = data.reduce((r,d)=>{
           if(!r[d._id.label]){
-            r[d._id.label] = {};
+            list.push(r[d._id.label] = {});
           }
           if(!r[d._id.label][d._id.key]){
             keys[d._id.key] = 1;
-            r[d._id.label][d._id.key] = [];
           }
 
-          r[d._id.label][d._id.key].push(d);
+          r[d._id.label][d._id.key] = round(d.bookmakerProfit, 2);
           max = Math.max(max, d.bookmakerProfit);
           min = Math.min(min, d.bookmakerProfit);
           return r;
@@ -187,12 +186,13 @@ let Vapp;
         //     data: data.data
         //   }
         // })
+        // console.error(list);
 
         datasets = Object.keys(keys).map(key=>{
           let color = randomColor();
           return {
             label: key,
-            data: data.map(d=>{
+            data: list.map(d=>{
               return d[key] === undefined ? NaN : d[key]
             }),
             backgroundColor: hexToRgbA(color, 0.1),
@@ -466,6 +466,7 @@ let Vapp;
 
         // updateChartOptions(newOptions, false);
         // console.error("?");
+        
         updateChartAll(data);
 
         // if(data.result){
