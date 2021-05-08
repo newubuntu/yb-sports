@@ -447,9 +447,8 @@ function bgJS(){
       // sendData("foundLocalhost", null, PN_MAIN, true);
       await removeCache();
       log("localhost발생. 캐시제거", "danger", true);
-      localStorage.removeItem('browser');
-      // console.error("@@@ setInitMessage: reLogin");
-      // setData("setBet365InitMessage", {com:"reLogin"});
+      localStorage.removeItem('browser');      
+      setData("setBet365InitMessage", null);
       // await sendData("localhostProcess", null, PN_B365);
 
       // sendData("foundLocalhost", null, PN_MAIN, true);
