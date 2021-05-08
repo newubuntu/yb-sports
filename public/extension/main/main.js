@@ -848,6 +848,10 @@ function getNextData(){
 }
 
 function getStakeRatio(){
+  if(accountInfo && accountInfo.limited){
+    return 0.9;
+  }
+
   let stakeRatio = 1;
   let p = parseFloat(betOption.stakeRatioP);
   if(!isNaN(p)){
@@ -858,6 +862,16 @@ function getStakeRatio(){
     }
   }
   return stakeRatio;
+}
+
+function reCalcStake(data, odds){
+  data.bet365.stake = calcBetmax(data.bet365.betType, odds) * getStakeRatio();
+  if(betOption.useFloorStake == "y"){
+    data.bet365.stake = Math.floor(data.bet365.stake);
+  }else{
+    data.bet365.stake = round(data.bet365.stake, 2);
+  }
+  updatePncStake(data);
 }
 
 async function commonProcess(data, noCheckBalance){
@@ -951,37 +965,36 @@ async function commonProcess(data, noCheckBalance){
     }
   }
 
+  let oStake = data.bet365.stake;
+
+  reCalcStake(data, data.bet365.odds);
+
   let stakeRatio = 1;
   if(!accountInfo.limited){
     // if(betOption.stakeRatioP !== undefined){
       stakeRatio = getStakeRatio();
       if(stakeRatio != 1){
-        log(`stake 증폭: ${round(data.bet365.stake, 2)}->${round(data.bet365.stake*stakeRatio, 2)} (${round(stakeRatio*100)}%)`, null, true);
+        log(`stake 증폭: ${round(oStake, 2)}->${data.bet365.stake} (${round(stakeRatio*100)}%)`, null, true);
       }
     // }
   }else{
     log("리밋계정 증폭적용 X", "warning", true);
-    stakeRatio = 0.9;
   }
-
-  changeOddsBet365Process(data, bet365Info.odds);
-  // if(changeOddsBet365Process(data, bet365Info.odds)){
-  //   // updateBet365Stake(data);
-  //   updatePncStake(data);
-  // }
 
   if(checkFallOdds(data)){
     benEvent(data, "OBOK", 20000, "떨어진 배당", true);
     return;
   }
 
-  if(betOption.useFloorStake == "y"){
-    data.bet365.stake = Math.floor(data.bet365.stake * stakeRatio);
-  }else{
-    data.bet365.stake = round(data.bet365.stake * stakeRatio, 2);
-  }
-  updatePncStake(data);
 
+
+
+
+  changeOddsBet365Process(data, bet365Info.odds);
+  // if(changeOddsBet365Process(data, bet365Info.odds)){
+  //   // updateBet365Stake(data);
+  //   updatePncStake(data);
+  // }
 
 
   if(!checkOddsForBet365(data)){
@@ -1167,7 +1180,8 @@ async function bet365PlacebetProcess(data, bet365Info, isDirect=true){
         }
 
         //#210508 더이상 리밋계정배팅을 진행하지 않는다. localhost이슈
-        break;
+        // 리밋이 될때가있으므로 일단은 진행은 막지않는다.
+        // break;
       }else if(result.status == "acceptChange"){
         // let prevOdds = data.bet365.odds;
         noReturnCount = 0;
@@ -1410,8 +1424,14 @@ function changeOddsBet365Process(data, odds){
   if(data.bet365.odds != odds){
     log(`벳365 배당변동: ${data.bet365.odds} -> ${odds}`, data.bet365.odds < odds ? "info" : "danger", true);
     data.bet365.odds = odds;
-    data.bet365.stake = round(calcBetmax(odds) * getStakeRatio(), 2);
-    updatePncStake(data);
+    // data.bet365.stake = calcBetmax(odds) * getStakeRatio();
+    // if(betOption.useFloorStake == "y"){
+    //   data.bet365.stake = Math.floor(data.bet365.stake);
+    // }else{
+    //   data.bet365.stake = round(data.bet365.stake, 2);
+    // }
+    // updatePncStake(data);
+    reCalcStake(data, odds);
     return true;
     // // 유저 양빵단계의 벳삼 배당 변동시에는 벳삼 stake를 다시 계산해주고 판단한다.
     // data.bet365.stake = calc.stakeB(data.pinnacle.odds, data.bet365.odds, data.pinnacle.stake);
@@ -1751,15 +1771,19 @@ async function getBetmax(data, delayT=0){
   }
   activeBet365();
   log(`betmax 확인시작`, null, true);
-  return sendData("getBetmax", null, PN_B365).then(async d=>{
+  return sendData("getBetmax", {betType:data.bet365.betType}, PN_B365).then(async d=>{
     // betmaxInfo = d;
     activeMain();
     return d;
   })
 }
 
-function calcBetmax(odds){
-  return 20 / odds;
+function calcBetmax(betType, odds){
+  if(betType == "MONEYLINE"){
+    return 20 / odds;
+  }else{
+    return 20 / odds * 0.6;
+  }
 }
 
 async function betmaxCheckProcess(betmaxInfo, data){
@@ -1850,7 +1874,7 @@ async function betmaxCheckProcess(betmaxInfo, data){
   }
 
   //#210508
-  betmaxInfo.betmax = round(calcBetmax(betmaxInfo.info.odds), 2);
+  betmaxInfo.betmax = round(calcBetmax(data.bet365.betType, betmaxInfo.info.odds), 2);
   log(`betmax: $${betmaxInfo.betmax}, odds: ${betmaxInfo.info.odds}`, null, true);
 
   data.bet365.stake = betmaxInfo.betmax;

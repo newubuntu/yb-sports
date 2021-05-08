@@ -700,8 +700,12 @@ function bet365JS(){
     return _result;
   }
 
-  function calcBetmax(odds){
-    return 20 / odds;
+  function calcBetmax(betType, odds){
+    if(betType == "MONEYLINE"){
+      return 20 / odds;
+    }else{
+      return 20 / odds * 0.6;
+    }
   }
 
   function findDummy(){
@@ -1455,7 +1459,9 @@ function bet365JS(){
         localStorage.removeItem("cancelBetmax");
         localStorage.removeItem("cancelBetmaxComplete");
         localStorage.setItem("betmaxComplete", false);
+
         await (async ()=>{
+          let betType = data.betType;
           let betmax, count = 0, info, balance, status = {};
           let stake = 0.2;
           while(1){
@@ -1515,7 +1521,7 @@ function bet365JS(){
                 console.error("##", {od, odds:info.odds, ns:betslipData.data.ns});
               }
 
-              betmax = calcBetmax(info.odds);
+              betmax = calcBetmax(betType, info.odds);
               resolveData = {
                 balance, betmax, info, betData, betslipData
               }
