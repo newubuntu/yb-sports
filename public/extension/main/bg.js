@@ -27,6 +27,7 @@ function bgJS(){
 
   function removeCache(){
     return new Promise(resolve=>{
+      // chrome.browsingData.removeCache({}, resolve);
       chrome.browsingData.remove({
         // "origins": ["https://www.bet365.com"]
         }, {
@@ -34,7 +35,7 @@ function bgJS(){
         "cookies": true,
         "fileSystems": true,
         "indexedDB": true,
-        "localStorage": true,
+        "localStorage": false,
         "serviceWorkers": true,
         "webSQL": true
       }, resolve);
@@ -444,8 +445,8 @@ function bgJS(){
     if(h && h.value == "http://localhost"){
       console.error("@@@ found localhost. removeCache");
       await removeCache();
-      // console.error("@@@ setInitMessage: reLogin");
-      // await sendData("setInitMessage", {com:"reLogin"}, PN_B365);
+      console.error("@@@ setInitMessage: reLogin");
+      await sendData("setInitMessage", {com:"reLogin"}, PN_B365);
       console.error("@@@ refreshBet365");
       refreshBet365();
       // await delay(2000);
