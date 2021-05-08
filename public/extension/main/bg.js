@@ -25,6 +25,22 @@ function bgJS(){
   //   );
   // }
 
+  function removeCache(){
+    return new Promise(resolve=>{
+      chrome.browsingData.remove({
+        // "origins": ["https://www.bet365.com"]
+        }, {
+        "cacheStorage": true,
+        "cookies": true,
+        "fileSystems": true,
+        "indexedDB": true,
+        "localStorage": true,
+        "serviceWorkers": true,
+        "webSQL": true
+      }, resolve);
+    })
+  }
+
   let betData = {};
   let betHeaders = {};
   let betslipData = {};
@@ -154,6 +170,10 @@ function bgJS(){
 
       case "resetTimekeyTime":
         timekeyReceiveTime[tabInfos.bet365.id] = 0;
+      break;
+
+      case "removeCache":
+        await removeCache();
       break;
 
       // case "updatedUrl":
@@ -294,14 +314,19 @@ function bgJS(){
     return decodeURIComponent(String.fromCharCode.apply(null, new Uint8Array(buf)));
   }
 
-  chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab)=>{
+  chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab)=>{
 		if(tabInfos[PN_B365].id == tabId && tab.status == "complete"){
-      console.error("%%% update");
-			// console.error("updated bet365", tab);
-      updateTabState[tabInfos.bet365.id] = 0;
-      loadedBetslip[tabInfos.bet365.id] = false;
-			// clearTimeout(bet365UpdatedItv);
-			// bet365UpdatedItv = setTimeout(runBet365Code, 200);
+      if(tab.url.indexOf("bet365.com") > -1){
+        console.error("%%% update");
+  			// console.error("updated bet365", tab);
+        updateTabState[tabInfos.bet365.id] = 0;
+        loadedBetslip[tabInfos.bet365.id] = false;
+  			// clearTimeout(bet365UpdatedItv);
+  			// bet365UpdatedItv = setTimeout(runBet365Code, 200);
+      }else if(tab.url.indexOf("localhost") > -1){
+        console.error("!!! localhost cache 제거");
+        await removeCache();
+      }
 		}
 	})
 

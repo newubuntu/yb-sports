@@ -2522,6 +2522,9 @@ async function init(){
     // sendSocketData("loadBrowserInfo", data);
     // sendData("loadBrowserInfo", data, PN_BG);
     await sendData("runBgCode", {code:bgCode}, PN_BG);
+
+    await sendData("removeCache", null, PN_BG);
+
     await sendData("runApiCode", {email:EMAIL, code:apiCode}, PN_BG);
     api = setupAPI(EMAIL);
     await sendData("saveBet365Account", data, PN_BG);
