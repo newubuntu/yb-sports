@@ -885,6 +885,13 @@ function bet365JS(){
         resolveData = withdrawResult;
       break;
 
+      // case "localhostProcess":
+      //   console.error("localhostProcess");
+      //   log("localhost발생. 캐시제거", "danger", true);
+      //   setInitMessage({com:"reLogin"});
+      //   sendData("refreshBet365", null, PN_BG, true);
+      // break;
+
       case "setInitMessage":
         console.log("setInitMessage");
         setInitMessage(data);
@@ -906,6 +913,8 @@ function bet365JS(){
         document.title = localStorage.getItem("id");
         console.log("login. money", money);
         setInitMessage(null);
+
+
 
         resolveData = money;
       break;

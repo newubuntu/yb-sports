@@ -35,7 +35,7 @@ function bgJS(){
         "cookies": true,
         "fileSystems": true,
         "indexedDB": true,
-        "localStorage": false,
+        "localStorage": true,
         "serviceWorkers": true,
         "webSQL": true
       }, resolve);
@@ -444,14 +444,17 @@ function bgJS(){
     })
     if(h && h.value == "http://localhost"){
       console.error("@@@ found localhost. removeCache");
+      // sendData("foundLocalhost", null, PN_MAIN, true);
       await removeCache();
       log("localhost발생. 캐시제거", "danger", true);
-      console.error("@@@ setInitMessage: reLogin");
-      setData("setBet365InitMessage", {com:"reLogin"});
+      localStorage.removeItem('browser');
+      // console.error("@@@ setInitMessage: reLogin");
+      // setData("setBet365InitMessage", {com:"reLogin"});
       // await sendData("localhostProcess", null, PN_B365);
+      sendData("foundLocalhost", null, PN_MAIN, true);
+      
       console.error("@@@ refreshBet365");
       refreshBet365();
-      sendData("foundLocalhost", null, PN_MAIN, true);
       // await delay(2000);
       // sendData("reLogin", null, PN_B365);
     }
