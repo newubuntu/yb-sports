@@ -1170,6 +1170,8 @@ async function bet365PlacebetProcess(data, bet365Info, isDirect=true){
         }
       }else if(result.status == "foundBetmax"){
         changeOddsBet365Process(data, result.info.odds);
+        data.bet365.stake = result.betmax;
+        updatePncStake(data);
         // setBet365RandomStake(data, result.betmax);
         fixedBetmax = true;
         everBeenFixedBetmax = result.betmax;
