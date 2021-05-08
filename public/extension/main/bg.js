@@ -437,7 +437,7 @@ function bgJS(){
     }
     console.error("HEADER", details);
   }, {
-		"urls": ["https://www.bet365.com/BetsWebAPI/*"],
+		"urls": ["https://www.bet365.com/*"],
 		"types": ["xmlhttprequest"]
 	}, ["extraHeaders", "responseHeaders"]);
 
