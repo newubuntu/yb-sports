@@ -941,7 +941,7 @@ function bet365JS(){
       break;
 
       case "bet365LoginComplete":
-        sessionActivityProcess();
+        // sessionActivityProcess();
       break;
 
       case "setBetOption":
