@@ -422,15 +422,24 @@ function bgJS(){
   }, ["responseHeaders"]);
 
 
-  chrome.webRequest.onBeforeRequest.addListener(function (details) {
+  // chrome.webRequest.onBeforeRequest.addListener(function (details) {
+  //   if(tabInfos.bet365.id != details.tabId){
+  //     return;
+  //   }
+	// 	console.error("$$$check", details.url, details);
+	// }, {
+	// 	"urls": ["https://www.bet365.com/BetsWebAPI/*"],
+	// 	"types": ["xmlhttprequest"]
+	// }, ["extraHeaders", "requestBody"]);
+  chrome.webRequest.onHeadersReceived.addListener(function (details) {
     if(tabInfos.bet365.id != details.tabId){
       return;
     }
-		console.error("$$$check", details.url, details);    
-	}, {
+    console.error("HEADER", details);
+  }, {
 		"urls": ["https://www.bet365.com/BetsWebAPI/*"],
 		"types": ["xmlhttprequest"]
-	}, ["extraHeaders", "requestBody"]);
+	}, ["extraHeaders", "responseHeaders"]);
 
 
   chrome.webRequest.onBeforeRequest.addListener(function (details) {

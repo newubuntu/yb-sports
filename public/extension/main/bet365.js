@@ -47,6 +47,7 @@ function bet365JS(){
               }
             }, {once:true})
           }
+          /*
           else if(this.url.includes('//localhost')) {
             console.error("@@@ found request to localhost");
             if(sendData){
@@ -54,6 +55,7 @@ function bet365JS(){
               sendData("removeCache", null, PN_BG);
             }
           }
+          */
 
           return send.apply(this, arguments);
         };
