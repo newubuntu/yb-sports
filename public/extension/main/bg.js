@@ -444,8 +444,8 @@ function bgJS(){
     if(h && h.value == "http://localhost"){
       console.error("@@@ found localhost. removeCache");
       await removeCache();
-      console.error("@@@ setInitMessage: reLogin");
-      await sendData("setInitMessage", {com:"reLogin"}, PN_B365);
+      // console.error("@@@ setInitMessage: reLogin");
+      // await sendData("setInitMessage", {com:"reLogin"}, PN_B365);
       console.error("@@@ refreshBet365");
       refreshBet365();
       // await delay(2000);

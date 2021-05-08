@@ -747,6 +747,9 @@ function bet365JS(){
         _result.message = "폐쇄된 계정";
       // }else if(res.data.br && res.data.ts !== undefined && res.data.bt[0].br && res.data.la[0] && res.data.la[0].ak){
       // }else if(res.data.br && res.data.bt[0].br && res.data.la[0] && res.data.la[0].ak){
+      }else if(res.data.mi == "invalid_funds"){
+        _result.status = "invalidFunds";
+        _result.message = "배팅정보가 잘못됐습니다.";
       }else{
         // log("완료?"+res.data.br, "warning", true);
         // await delay(50);
