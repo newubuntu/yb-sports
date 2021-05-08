@@ -315,6 +315,9 @@ function bgJS(){
   }
 
   chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab)=>{
+    if(tabInfos[PN_B365].id == tabId){
+      console.error("@@@@@@@", changeInfo, tab);
+    }
 		if(tabInfos[PN_B365].id == tabId && tab.status == "complete"){
       if(tab.url.indexOf("bet365.com") > -1){
         console.error("%%% update");
