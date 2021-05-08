@@ -1410,7 +1410,7 @@ function changeOddsBet365Process(data, odds){
   if(data.bet365.odds != odds){
     log(`벳365 배당변동: ${data.bet365.odds} -> ${odds}`, data.bet365.odds < odds ? "info" : "danger", true);
     data.bet365.odds = odds;
-    data.bet365.stake = calcBetmax(odds) * getStakeRatio();
+    data.bet365.stake = round(calcBetmax(odds) * getStakeRatio(), 2);
     updatePncStake(data);
     return true;
     // // 유저 양빵단계의 벳삼 배당 변동시에는 벳삼 stake를 다시 계산해주고 판단한다.

@@ -95,7 +95,7 @@ module.exports = MD=>{
   let job1, job2;
 
   if(argv[0] == "master" || process.env.NODE_ENV === undefined){
-    init();
+    // init();
   }
 
 

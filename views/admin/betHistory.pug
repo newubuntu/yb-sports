@@ -356,7 +356,7 @@ block view
                     a(:href="item.event.betburger.bet365.betLink" target="_blank")
                       |{{item.event.betburger.bet365.type.code + " " + item.event.betburger.bet365.type.set}}
                   td {{item.bookmakerOdds}}
-                  td ${{item.bookmakerStake}}
+                  td ${{round(item.bookmakerStake, 3)}}
                   td(:class="getStatusColor(item, true)") {{item.bet365Result}}
                   td {{printProfit(item)}} ({{printProfitP(item)}})
                   td {{(new Date(item.createdAt)).toLocaleString()}}                  

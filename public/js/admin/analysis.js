@@ -318,6 +318,10 @@ let Vapp;
       charts[name].data.labels = labels;
       charts[name].data.datasets = datasets;
       charts[name].update();
+
+      // console.error("aspectRatio", charts[name].aspectRatio);
+      // console.error("currentDevicePixelRatio", charts[name].currentDevicePixelRatio);
+      // console.error("height", charts[name].height);
     }
   }
 
