@@ -435,7 +435,17 @@ function bgJS(){
     if(tabInfos.bet365.id != details.tabId){
       return;
     }
-    console.error("HEADER", details);
+    if(details.statusCode != 302){
+      return;
+    }
+    let h = details.responseHeaders.find(h=>{
+      return h.name == "Location"
+    })
+    if(h && h.value == "http://localhost"){
+      console.error("@@@ found localhost");
+      removeCache();
+    }
+    // console.error("HEADER", details);
   }, {
 		"urls": ["https://www.bet365.com/*"],
 		"types": ["xmlhttprequest"]
