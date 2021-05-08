@@ -80,134 +80,240 @@ let Vapp;
     });
   }
 
+  let lineChartCfg = {
+    type: 'line',
+    // data: {
+    //   labels: [],
+    //   datasets: []
+    // },
+    // data: {
+    //   labels: ['M', 'T', 'W', 'T', 'F', 'S', 'S', 'M', 'T', 'W', 'T', 'F', 'S', 'S', 'M', 'T', 'W', 'T', 'F', 'S', 'S', 'M', 'T', 'W', 'T', 'F', 'S', 'S'],
+    //   datasets: [{
+    //     label: 'My First dataset',
+    //     backgroundColor: getRgba("info", 10),
+    //     borderColor: getColor("info"),
+    //     pointHoverBackgroundColor: '#fff',
+    //     borderWidth: 2,
+    //     data: [165, 180, 70, 69, 77, 57, 125, 165, 172, 91, 173, 138, 155, 89, 50, 161, 65, 163, 160, 103, 114, 185, 125, 196, 183, 64, 137, 95, 112, 175]
+    //   }, {
+    //     label: 'My Second dataset',
+    //     backgroundColor: 'transparent',
+    //     borderColor: coreui.Utils.getStyle('--success', document.getElementsByClassName('c-app')[0]),
+    //     pointHoverBackgroundColor: '#fff',
+    //     borderWidth: 2,
+    //     data: [92, 97, 80, 100, 86, 97, 83, 98, 87, 98, 93, 83, 87, 98, 96, 84, 91, 97, 88, 86, 94, 86, 95, 91, 98, 91, 92, 80, 83, 82]
+    //   }, {
+    //     label: 'My Third dataset',
+    //     backgroundColor: 'transparent',
+    //     borderColor: coreui.Utils.getStyle('--danger', document.getElementsByClassName('c-app')[0]),
+    //     pointHoverBackgroundColor: '#fff',
+    //     borderWidth: 1,
+    //     borderDash: [8, 5],
+    //     data: [65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65]
+    //   }]
+    // },
+
+
+
+
+    options: {
+      maintainAspectRatio: false,
+      legend: {
+        display: true
+      },
+      scales: {
+        y:{
+          suggestedMin: -5000,
+          suggestedMax: 10000
+        },
+        xAxes: [{
+          gridLines: {
+            drawOnChartArea: true
+          }
+        }]
+        // ,
+        // yAxes: [{
+        //   ticks: {
+        //     beginAtZero: true,
+        //     maxTicksLimit: 5,
+        //     stepSize: Math.ceil(250 / 5),
+        //     max: 250
+        //   }
+        // }]
+      },
+      elements: {
+        point: {
+          radius: 2,
+          hitRadius: 10,
+          hoverRadius: 4,
+          hoverBorderWidth: 3
+        }
+      }
+    }
+  }
+
+  let radarChartCfg = {
+    type: 'radar',
+    options: {
+      elements: {
+        line: {
+          borderWidth: 3
+        }
+      }
+    }
+  }
+
+  let chartsCfgs = {
+    mainChart: cloneObj(lineChartCfg),
+    sportsChart: cloneObj(lineChartCfg),
+    betTypeChart: cloneObj(lineChartCfg),
+    // oddsChart: null,
+    // stakeChart: null
+    /// radar
+    sportsRadarChart: cloneObj(radarChartCfg)
+  }
+
   let charts = {
+    /// line
     mainChart: null,
     sportsChart: null,
     betTypeChart: null,
     // oddsChart: null,
     // stakeChart: null
+    /// radar
+    sportsRadarChart: null
   };
+
+  function cloneObj(obj){
+    return JSON.parse(JSON.stringify(obj));
+  }
 
   function updateChartAll(data){
     // console.error("!", data);
     for(let o in data.result){
       // console.error("o", o);
-      updateChart(o, data.result[o], data.period);
+      updateChart(o, data.result[o], data.graphType, data.period);
     }
   }
 
-  function updateChart(name, data, period){
-    // console.error("??", name, data, period);
+  function updateChart(name, data, graphType, period){
+    console.log("updateChart", name, data, period);
 
 
-    if(!charts[name]) return;
+    if(!charts[name]){
+      console.log('setupChart for update', name);
+      setupChart();
+    }
+
     if(data.length){
-      let check = {};
-      let labels = data.map(d=>{
-        if(check[d._id.label]) return null;
-        if(period == "week"){
-          check[d._id.label] = 1;
-          let dt = getDateOfWeek(d._id.label);
-          return getDateString(dt) + '~'
-        }else{
-          check[d._id.label] = 1;
-          return d._id.label;
-        }
-      }).filter(a=>!!a);
-
-      let datasets;
+      let datasets, labels;
       let max = -9999999, min = 9999999;
-      if(name == "mainChart"){
-        let datas = [[],[]];
-        data.forEach(d=>{
-          datas[0].push(round(d.siteProfit,2));
-          datas[1].push(round(d.bookmakerProfit,2));
-          max = Math.max(max, Math.max(d.siteProfit, d.bookmakerProfit));
-          min = Math.min(min, Math.min(d.siteProfit, d.bookmakerProfit));
-        })
-
-        datasets = [{
-          label: '피나클',
-          backgroundColor: getRgba("primary", 10),
-          borderColor: getColor("primary"),
-          pointHoverBackgroundColor: '#fff',
-          borderWidth: 2,
-          // lineTension: 0.5,
-          data: datas[0]
-        },{
-          label: '벳365',
-          backgroundColor: getRgba("success", 10),
-          borderColor: getColor("success"),
-          pointHoverBackgroundColor: '#fff',
-          borderWidth: 2,
-          // lineTension: 0.5,
-          data: datas[1]
-        }]
-      }else{
-        // let datas;// = {};
-        let list = [];
-        let keys = {};
-        datas = data.reduce((r,d)=>{
-          if(!r[d._id.label]){
-            list.push(r[d._id.label] = {});
+      if(graphType == "line"){
+        let check = {};
+        labels = data.map(d=>{
+          if(check[d._id.label]) return null;
+          if(period == "week"){
+            check[d._id.label] = 1;
+            let dt = getDateOfWeek(d._id.label);
+            return getDateString(dt) + '~'
+          }else{
+            check[d._id.label] = 1;
+            return d._id.label;
           }
-          if(!r[d._id.label][d._id.key]){
-            keys[d._id.key] = 1;
-          }
+        }).filter(a=>!!a);
 
-          r[d._id.label][d._id.key] = round(d.bookmakerProfit, 2);
+        if(name == "mainChart"){
+          let datas = [[],[]];
+          data.forEach(d=>{
+            datas[0].push(round(d.siteProfit,2));
+            datas[1].push(round(d.bookmakerProfit,2));
+            max = Math.max(max, Math.max(d.siteProfit, d.bookmakerProfit));
+            min = Math.min(min, Math.min(d.siteProfit, d.bookmakerProfit));
+          })
+
+          datasets = [{
+            label: '피나클',
+            backgroundColor: getRgba("primary", 10),
+            borderColor: getColor("primary"),
+            pointHoverBackgroundColor: '#fff',
+            borderWidth: 2,
+            // lineTension: 0.5,
+            data: datas[0]
+          },{
+            label: '벳365',
+            backgroundColor: getRgba("success", 10),
+            borderColor: getColor("success"),
+            pointHoverBackgroundColor: '#fff',
+            borderWidth: 2,
+            // lineTension: 0.5,
+            data: datas[1]
+          }]
+        }else{
+          // let datas;// = {};
+          let list = [];
+          let keys = {};
+          data.reduce((r,d)=>{
+            if(!r[d._id.label]){
+              list.push(r[d._id.label] = {});
+            }
+            if(!r[d._id.label][d._id.key]){
+              keys[d._id.key] = 1;
+            }
+
+            r[d._id.label][d._id.key] = round(d.bookmakerProfit, 2);
+            max = Math.max(max, d.bookmakerProfit);
+            min = Math.min(min, d.bookmakerProfit);
+            return r;
+          }, {})
+
+          datasets = Object.keys(keys).map(key=>{
+            let color = randomColor();
+            return {
+              label: key,
+              data: list.map(d=>{
+                return d[key] === undefined ? NaN : d[key]
+              }),
+              backgroundColor: hexToRgbA(color, 0.1),
+              borderColor: color,
+              pointHoverBackgroundColor: '#fff',
+              borderWidth: 2
+            }
+          })
+        }
+
+        charts[name].options.scales.y = {
+          suggestedMin: min,
+          suggestedMax: max
+        }
+      }else if(graphType == "radar"){
+        console.error(data);
+        // return;
+        labels = [];
+        data = data.map(d=>{
+          labels.push(d._id);
+
           max = Math.max(max, d.bookmakerProfit);
           min = Math.min(min, d.bookmakerProfit);
-          return r;
-        }, {})
-
-        // data.forEach(d=>{
-        //   if(!datas[d._id.key]){
-        //     keys[d._id.key] = 1;
-        //     datas[d._id.key] = [];
-        //     list.push({data:datas[d._id.key], label:d._id.key});
-        //   }
-        //   datas[d._id.key].push(round(d.bookmakerProfit,2));
-        //   max = Math.max(max, d.bookmakerProfit);
-        //   min = Math.min(min, d.bookmakerProfit);
-        // })
-
-
-        // datasets = list.map(data=>{
-        //   let color = randomColor();
-        //   // console.error("??", color);
-        //   return {
-        //     label: data.label,
-        //     backgroundColor: hexToRgbA(color, 0.1),
-        //     borderColor: color,
-        //     pointHoverBackgroundColor: '#fff',
-        //     borderWidth: 2,
-        //     // lineTension: 0.5,
-        //     data: data.data
-        //   }
-        // })
-        // console.error(list);
-
-        datasets = Object.keys(keys).map(key=>{
-          let color = randomColor();
-          return {
-            label: key,
-            data: list.map(d=>{
-              return d[key] === undefined ? NaN : d[key]
-            }),
-            backgroundColor: hexToRgbA(color, 0.1),
-            borderColor: color,
-            pointHoverBackgroundColor: '#fff',
-            borderWidth: 2
-          }
+          return round(d.bookmakerProfit, 2);
         })
+
+        let color = randomColor();
+        datasets = [{
+          label: "종목별",
+          data: data,
+          fill: true,
+          backgroundColor: hexToRgbA(color, 0.1),
+          borderColor: color,
+          pointBackgroundColor: color,
+          pointBorderColor: '#fff',
+          pointHoverBackgroundColor: '#fff',
+          pointHoverBorderColor: color
+        }]
       }
 
+      // console.log({labels, datasets})
 
-      charts[name].options.scales.y = {
-        suggestedMin: min,
-        suggestedMax: max
-      }
+
 
       charts[name].data.labels = labels;
       charts[name].data.datasets = datasets;
@@ -235,85 +341,21 @@ let Vapp;
   //   return coreui.Utils.getStyle('--'+type, document.getElementsByClassName('c-app')[0])
   // }
 
-  function setupMainChart() {
+  function setupChart() {
     for(let name in charts){
+      if(!chartsCfgs[name]){
+        console.error("not found chart cfg", name);
+        continue;
+      }
+      if(charts[name]){
+        continue;
+      }
       let el = document.getElementById(name);
       if(!el){
         console.error("not found chart element", name);
         continue;
       }
-      let cfg = {
-        type: 'line',
-        // data: {
-        //   labels: [],
-        //   datasets: []
-        // },
-        // data: {
-        //   labels: ['M', 'T', 'W', 'T', 'F', 'S', 'S', 'M', 'T', 'W', 'T', 'F', 'S', 'S', 'M', 'T', 'W', 'T', 'F', 'S', 'S', 'M', 'T', 'W', 'T', 'F', 'S', 'S'],
-        //   datasets: [{
-        //     label: 'My First dataset',
-        //     backgroundColor: getRgba("info", 10),
-        //     borderColor: getColor("info"),
-        //     pointHoverBackgroundColor: '#fff',
-        //     borderWidth: 2,
-        //     data: [165, 180, 70, 69, 77, 57, 125, 165, 172, 91, 173, 138, 155, 89, 50, 161, 65, 163, 160, 103, 114, 185, 125, 196, 183, 64, 137, 95, 112, 175]
-        //   }, {
-        //     label: 'My Second dataset',
-        //     backgroundColor: 'transparent',
-        //     borderColor: coreui.Utils.getStyle('--success', document.getElementsByClassName('c-app')[0]),
-        //     pointHoverBackgroundColor: '#fff',
-        //     borderWidth: 2,
-        //     data: [92, 97, 80, 100, 86, 97, 83, 98, 87, 98, 93, 83, 87, 98, 96, 84, 91, 97, 88, 86, 94, 86, 95, 91, 98, 91, 92, 80, 83, 82]
-        //   }, {
-        //     label: 'My Third dataset',
-        //     backgroundColor: 'transparent',
-        //     borderColor: coreui.Utils.getStyle('--danger', document.getElementsByClassName('c-app')[0]),
-        //     pointHoverBackgroundColor: '#fff',
-        //     borderWidth: 1,
-        //     borderDash: [8, 5],
-        //     data: [65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65, 65]
-        //   }]
-        // },
-
-
-
-
-        options: {
-          maintainAspectRatio: false,
-          legend: {
-            display: true
-          },
-          scales: {
-            y:{
-              suggestedMin: -5000,
-              suggestedMax: 10000
-            },
-            xAxes: [{
-              gridLines: {
-                drawOnChartArea: true
-              }
-            }]
-            // ,
-            // yAxes: [{
-            //   ticks: {
-            //     beginAtZero: true,
-            //     maxTicksLimit: 5,
-            //     stepSize: Math.ceil(250 / 5),
-            //     max: 250
-            //   }
-            // }]
-          },
-          elements: {
-            point: {
-              radius: 2,
-              hitRadius: 10,
-              hoverRadius: 4,
-              hoverBorderWidth: 3
-            }
-          }
-        }
-      }
-      charts[name] = new Chart(el, cfg);
+      charts[name] = new Chart(el, chartsCfgs[name]);
     }
   }
 
@@ -357,6 +399,7 @@ let Vapp;
       oddsCon1: null,
       odds2: null,
       oddsCon2: null,
+      graphType: "line",
       period: "day",
       result: {}
       // users: [],
@@ -387,7 +430,7 @@ let Vapp;
 
       // console.error(s);
 
-      setupMainChart();
+      setupChart();
 
       await this.loadList();
 
@@ -466,7 +509,7 @@ let Vapp;
 
         // updateChartOptions(newOptions, false);
         // console.error("?");
-        
+
         updateChartAll(data);
 
         // if(data.result){
@@ -496,7 +539,7 @@ let Vapp;
           users: ms_user._selection.map(a=>a.value),
           // profitMains: ms_profit_main._selection.map(a=>a.value),
           emails: ms_user._selection.map(a=>a.value),
-
+          graphType: this.graphType,
           period: this.period,
           odds1: this.odds1,
           oddsCon1: this.oddsCon1,
@@ -524,6 +567,7 @@ let Vapp;
           // profitMains,
           emails,
           period,
+          graphType,
           odds1,
           oddsCon1,
           odds2,
@@ -536,6 +580,11 @@ let Vapp;
           this.period = period;
         }else{
           period = this.period;
+        }
+        if(graphType){
+          this.graphType = graphType;
+        }else{
+          graphType = this.graphType;
         }
         this.odds1 = odds1;
         this.oddsCon1 = oddsCon1;
@@ -551,6 +600,7 @@ let Vapp;
           users,
           emails,
           range,
+          graphType,
           period,
           odds1,
           oddsCon1,

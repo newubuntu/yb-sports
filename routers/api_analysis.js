@@ -62,12 +62,137 @@ module.exports = MD=>{
     uuidv4
   } = MD;
 
-
+  let groupMap = {
+    day: {$dateToString:{ format: "%Y-%m-%d", date: "$createdAt"}},
+    week: {$week: "$createdAt"},
+    month: {$dateToString:{ format: "%Y-%m", date: "$createdAt"}},
+    year: {$dateToString:{ format: "%Y", date: "$createdAt"}}
+  }
 
   let bdhMap = {'<':'$lt', '<=':'$lte', '>':'$gt', '>=':'$gte', '==':'$eq', '!=':'$not'};
+
+  async function generateGraphData(query, graphType, period){
+    if(graphType == "line"){
+      let mainChart = await BetData.aggregate()
+      .match(query)
+      .group({
+        _id: {
+          label: groupMap[period]
+        },
+        siteProfit: {$sum: {
+          $cond: [
+            {$eq: ["$betStatus", "LOSE"]},
+            "$siteStake",
+            {$cond:[
+              {$eq:["$betStatus", "WON"]},
+              {$subtract:[0, {$multiply: ["$siteStake", {$subtract:["$siteOdds",1]}]} ]},
+              0
+              // {$or:[
+              //   {$eq:["$betStatus", "REFUNDED"]},
+              //   {$eq:["$betStatus", "CANCELLED"]}
+              // ]},
+              // 0,
+              // {$subtract:[0, {$multiply: ["$siteStake", {$subtract:["$siteOdds",1]}]} ]}
+            ]}
+          ]
+        }},
+        // bookmakerProfitP: {$avg: {
+        //   $cond: [
+        //     {$eq: ["$betStatus", "LOSE"]},
+        //     {$subtract:["$bookmakerOdds", 1]},
+        //     {$cond:[
+        //       {$eq:["$betStatus", "WON"]},
+        //       {$subtract:[0, {$subtract:["$bookmakerOdds", 1]}]},
+        //       0
+        //     ]}
+        //   ]
+        // }},
+        bookmakerProfit: {$sum: {
+          $cond: [
+            {$eq: ["$betStatus", "LOSE"]},
+            {$multiply: ["$bookmakerStake", {$subtract:["$bookmakerOdds",1]}]},
+            {$cond:[
+              {$eq:["$betStatus", "WON"]},
+              {$subtract:[0,"$bookmakerStake"]},
+              0
+            ]}
+          ]
+        }}
+      })
+      .sort({_id:1});
+
+      let sportsChart = await BetData.aggregate()
+      .match(query)
+      .group({
+        _id: {
+          label: groupMap[period],
+          key: "$sportName"
+        },
+        bookmakerProfit: {$sum: {
+          $cond: [
+            {$eq: ["$betStatus", "LOSE"]},
+            {$multiply: ["$bookmakerStake", {$subtract:["$bookmakerOdds",1]}]},
+            {$cond:[
+              {$eq:["$betStatus", "WON"]},
+              {$subtract:[0,"$bookmakerStake"]},
+              0
+            ]}
+          ]
+        }}
+      })
+      .sort({_id:1});
+
+      let betTypeChart = await BetData.aggregate()
+      .match(query)
+      .match({betType:{$ne:null}})
+      .group({
+        _id: {
+          label: groupMap[period],
+          key: "$betType"
+        },
+        bookmakerProfit: {$sum: {
+          $cond: [
+            {$eq: ["$betStatus", "LOSE"]},
+            {$multiply: ["$bookmakerStake", {$subtract:["$bookmakerOdds",1]}]},
+            {$cond:[
+              {$eq:["$betStatus", "WON"]},
+              {$subtract:[0,"$bookmakerStake"]},
+              0
+            ]}
+          ]
+        }}
+      })
+      .sort({_id:1});
+
+      return {mainChart, sportsChart, betTypeChart};
+    }else if(graphType == "radar"){
+      let sportsRadarChart = await BetData.aggregate()
+      .match(query)
+      .group({
+        _id: "$sportName",
+        bookmakerProfit: {$sum: {
+          $cond: [
+            {$eq: ["$betStatus", "LOSE"]},
+            {$multiply: ["$bookmakerStake", {$subtract:["$bookmakerOdds",1]}]},
+            {$cond:[
+              {$eq:["$betStatus", "WON"]},
+              {$subtract:[0,"$bookmakerStake"]},
+              0
+            ]}
+          ]
+        }}
+      })
+      .sort({_id:1});
+
+      return {sportsRadarChart}
+    }
+
+    return {};
+  }
+
   router.post("/get_analysis", authAdmin, task(async (req, res)=>{
     let {
-      sports, period, users,
+      sports, period, users, graphType,
       emails, range, betTypes, odds1, oddsCon1, odds2, oddsCon2
     } = req.body;
     // let query = {user:req.user._id, event:{$ne:null}, sportName};
@@ -80,25 +205,6 @@ module.exports = MD=>{
     if(sports && sports.length){
       $and.push({sportName:{$in:sports}});
     }
-
-    // let user;
-    // if(admin){
-    //   delete query.user;
-    //   if(email){
-    //     user = await User.findOne({email}).select(["_id", "money"]).lean();
-    //     if(user){
-    //       // query.user = user._id;
-    //       $and.push({user:user._id});
-    //     }else{
-    //       // query.user = null;
-    //       $and.push({user:null});
-    //     }
-    //   }
-    // }else{
-    //   $and.push({user:req.user._id});
-    // }
-
-
 
     if(oddsCon1 && odds1){
       let q = {};
@@ -131,12 +237,7 @@ module.exports = MD=>{
       }})
     }
 
-    let groupMap = {
-      day: {$dateToString:{ format: "%Y-%m-%d", date: "$createdAt"}},
-      week: {$week: "$createdAt"},
-      month: {$dateToString:{ format: "%Y-%m", date: "$createdAt"}},
-      year: {$dateToString:{ format: "%Y", date: "$createdAt"}}
-    }
+
 
     // let gm = JSON.parse(JSON.stringify(groupMap[period]));
     // _id = {};
@@ -152,96 +253,8 @@ module.exports = MD=>{
 
     console.log("query", query);
 
-    let mainChart = await BetData.aggregate()
-    .match(query)
-    .group({
-      _id: {
-        label: groupMap[period]
-      },
-      siteProfit: {$sum: {
-        $cond: [
-          {$eq: ["$betStatus", "LOSE"]},
-          "$siteStake",
-          {$cond:[
-            {$eq:["$betStatus", "WON"]},
-            {$subtract:[0, {$multiply: ["$siteStake", {$subtract:["$siteOdds",1]}]} ]},
-            0
-            // {$or:[
-            //   {$eq:["$betStatus", "REFUNDED"]},
-            //   {$eq:["$betStatus", "CANCELLED"]}
-            // ]},
-            // 0,
-            // {$subtract:[0, {$multiply: ["$siteStake", {$subtract:["$siteOdds",1]}]} ]}
-          ]}
-        ]
-      }},
-      // bookmakerProfitP: {$avg: {
-      //   $cond: [
-      //     {$eq: ["$betStatus", "LOSE"]},
-      //     {$subtract:["$bookmakerOdds", 1]},
-      //     {$cond:[
-      //       {$eq:["$betStatus", "WON"]},
-      //       {$subtract:[0, {$subtract:["$bookmakerOdds", 1]}]},
-      //       0
-      //     ]}
-      //   ]
-      // }},
-      bookmakerProfit: {$sum: {
-        $cond: [
-          {$eq: ["$betStatus", "LOSE"]},
-          {$multiply: ["$bookmakerStake", {$subtract:["$bookmakerOdds",1]}]},
-          {$cond:[
-            {$eq:["$betStatus", "WON"]},
-            {$subtract:[0,"$bookmakerStake"]},
-            0
-          ]}
-        ]
-      }}
-    })
-    .sort({_id:1});
 
-    let sportsChart = await BetData.aggregate()
-    .match(query)
-    .group({
-      _id: {
-        label: groupMap[period],
-        key: "$sportName"
-      },
-      bookmakerProfit: {$sum: {
-        $cond: [
-          {$eq: ["$betStatus", "LOSE"]},
-          {$multiply: ["$bookmakerStake", {$subtract:["$bookmakerOdds",1]}]},
-          {$cond:[
-            {$eq:["$betStatus", "WON"]},
-            {$subtract:[0,"$bookmakerStake"]},
-            0
-          ]}
-        ]
-      }}
-    })
-    .sort({_id:1});
-
-    let betTypeChart = await BetData.aggregate()
-    .match(query)
-    .match({betType:{$ne:null}})
-    .group({
-      _id: {
-        label: groupMap[period],
-        key: "$betType"
-      },
-      bookmakerProfit: {$sum: {
-        $cond: [
-          {$eq: ["$betStatus", "LOSE"]},
-          {$multiply: ["$bookmakerStake", {$subtract:["$bookmakerOdds",1]}]},
-          {$cond:[
-            {$eq:["$betStatus", "WON"]},
-            {$subtract:[0,"$bookmakerStake"]},
-            0
-          ]}
-        ]
-      }}
-    })
-    .sort({_id:1});
+    let result = await generateGraphData(query, graphType, period);
 
     // let result = resultObj[0] ? resultObj[0].result : {};
     // result.totalMoney = totalMoney;
@@ -249,7 +262,7 @@ module.exports = MD=>{
 
     res.json({
       status: "success",
-      data: {result:{mainChart, sportsChart, betTypeChart}, period}
+      data: {result, period, graphType}
     });
   }))
 }

@@ -15,9 +15,7 @@ const Vmoney = new Vue({
       return comma(Math.floor(v));
     }
   },
-  mounted: async function(){
-    $(this.$el).removeClass("pre-hide");
-
+  async created(){
     let res = await api.balance();
 
     if(res.status == "success"){
@@ -30,7 +28,27 @@ const Vmoney = new Vue({
     }else{
       modal("알림", "잔액 로딩 실패<br>" +  res.message);
     }
+    
+    this.$nextTick(function() {
+      $(this.$el).removeClass("pre-hide");
+    })
   }
+  // mounted: async function(){
+  //   $(this.$el).removeClass("pre-hide");
+  //
+  //   let res = await api.balance();
+  //
+  //   if(res.status == "success"){
+  //     // console.error(res);
+  //     this.money = {
+  //       site: res.data.money,
+  //       wallet: res.data.wallet,
+  //       bet365: res.data.bet365Money
+  //     }
+  //   }else{
+  //     modal("알림", "잔액 로딩 실패<br>" +  res.message);
+  //   }
+  // }
 })
 
 const Vmenu = new Vue({

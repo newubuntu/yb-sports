@@ -268,6 +268,7 @@ module.exports = MD=>{
   function makeData(data, index){
     let betType, team, side, handicap;
     let homeAway = index%2==0 ? "home" : "away";
+    /// test
     // if(data.swap_teams){
     //   homeAway = index%2==0 ? "away" : "home";
     // }else{
@@ -367,6 +368,7 @@ module.exports = MD=>{
       return;
     }
     if(bets[0].sports == "E-Sports") return;
+
     if(bets[0].swapTeams || bets[1].swapTeams){
       console.log("!! swap teams");
       return;

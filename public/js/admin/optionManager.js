@@ -188,124 +188,124 @@ let Vapp;
     //   type: "number",
     //   prepend: "$"
     // },
-    {
-      name: "betmax 제한",
-      key: "maxBetmax",
-      value: 20,
-      type: "number",
-      // help: "체크기 옵션",
-      prepend: "$"
-    },
-    {
-      name: "betmax 제한(축구)",
-      key: "maxBetmaxForSoccer",
-      value: 10,
-      type: "number",
-      // help: "체크기 옵션",
-      prepend: "$"
-    },
-    {
-      name: "betmax 제한(농구)",
-      key: "maxBetmaxForBasketball",
-      value: 10,
-      type: "number",
-      // help: "체크기 옵션",
-      prepend: "$"
-    },
-    {
-      type: "hr"
-    },
-    {
-      name: "조건부 betmax제한 사용여부",
-      key: "useMaxBetmaxByOdds",
-      list: ['y', 'n'],
-      value: "n",
-      type: "radio"
-    },
-    {
-      name: "조건부 betmax제한",
-      key: "maxBetmaxByOdds",
-      value: {
-        odds1: [10, 15],
-        betmax1: 3,
-        odds2: [9, 10],
-        betmax2: 4,
-        odds3: [8, 9],
-        betmax3: 5,
-        odds4: [7, 8],
-        betmax4: 6
-      },
-      type: "slideRangeMix",
-      list: [
-        {
-          type: "range",
-          name: "odds1",
-          max: 15,
-          min: 1,
-          step: 0.1,
-          prepend: "odds1"
-        },
-        {
-          type: "slide",
-          name: "betmax1",
-          max: 20,
-          min: 1,
-          step: 0.1,
-          prepend: "betmax1"
-        },
-        {
-          type: "range",
-          name: "odds2",
-          max: 15,
-          min: 1,
-          step: 0.1,
-          prepend: "odds2"
-        },
-        {
-          type: "slide",
-          name: "betmax2",
-          max: 20,
-          min: 1,
-          step: 0.1,
-          prepend: "betmax2"
-        },
-        {
-          type: "range",
-          name: "odds3",
-          max: 15,
-          min: 1,
-          step: 0.1,
-          prepend: "odds3"
-        },
-        {
-          type: "slide",
-          name: "betmax3",
-          max: 20,
-          min: 1,
-          step: 0.1,
-          prepend: "betmax3"
-        },
-        {
-          type: "range",
-          name: "odds4",
-          max: 15,
-          min: 1,
-          step: 0.1,
-          prepend: "odds4"
-        },
-        {
-          type: "slide",
-          name: "betmax4",
-          max: 20,
-          min: 1,
-          step: 0.1,
-          prepend: "betmax4"
-        }
-      ]
-    },
+    // {
+    //   name: "betmax 제한",
+    //   key: "maxBetmax",
+    //   value: 20,
+    //   type: "number",
+    //   // help: "체크기 옵션",
+    //   prepend: "$"
+    // },
+    // {
+    //   name: "betmax 제한(축구)",
+    //   key: "maxBetmaxForSoccer",
+    //   value: 10,
+    //   type: "number",
+    //   // help: "체크기 옵션",
+    //   prepend: "$"
+    // },
+    // {
+    //   name: "betmax 제한(농구)",
+    //   key: "maxBetmaxForBasketball",
+    //   value: 10,
+    //   type: "number",
+    //   // help: "체크기 옵션",
+    //   prepend: "$"
+    // },
     {
       type: "hr"
     },
+    // {
+    //   name: "조건부 betmax제한 사용여부",
+    //   key: "useMaxBetmaxByOdds",
+    //   list: ['y', 'n'],
+    //   value: "n",
+    //   type: "radio"
+    // },
+    // {
+    //   name: "조건부 betmax제한",
+    //   key: "maxBetmaxByOdds",
+    //   value: {
+    //     odds1: [10, 15],
+    //     betmax1: 3,
+    //     odds2: [9, 10],
+    //     betmax2: 4,
+    //     odds3: [8, 9],
+    //     betmax3: 5,
+    //     odds4: [7, 8],
+    //     betmax4: 6
+    //   },
+    //   type: "slideRangeMix",
+    //   list: [
+    //     {
+    //       type: "range",
+    //       name: "odds1",
+    //       max: 15,
+    //       min: 1,
+    //       step: 0.1,
+    //       prepend: "odds1"
+    //     },
+    //     {
+    //       type: "slide",
+    //       name: "betmax1",
+    //       max: 20,
+    //       min: 1,
+    //       step: 0.1,
+    //       prepend: "betmax1"
+    //     },
+    //     {
+    //       type: "range",
+    //       name: "odds2",
+    //       max: 15,
+    //       min: 1,
+    //       step: 0.1,
+    //       prepend: "odds2"
+    //     },
+    //     {
+    //       type: "slide",
+    //       name: "betmax2",
+    //       max: 20,
+    //       min: 1,
+    //       step: 0.1,
+    //       prepend: "betmax2"
+    //     },
+    //     {
+    //       type: "range",
+    //       name: "odds3",
+    //       max: 15,
+    //       min: 1,
+    //       step: 0.1,
+    //       prepend: "odds3"
+    //     },
+    //     {
+    //       type: "slide",
+    //       name: "betmax3",
+    //       max: 20,
+    //       min: 1,
+    //       step: 0.1,
+    //       prepend: "betmax3"
+    //     },
+    //     {
+    //       type: "range",
+    //       name: "odds4",
+    //       max: 15,
+    //       min: 1,
+    //       step: 0.1,
+    //       prepend: "odds4"
+    //     },
+    //     {
+    //       type: "slide",
+    //       name: "betmax4",
+    //       max: 20,
+    //       min: 1,
+    //       step: 0.1,
+    //       prepend: "betmax4"
+    //     }
+    //   ]
+    // },
+    // {
+    //   type: "hr"
+    // },
     {
       name: "이벤트 제외 조건 (벳365)",
       key: "exceptEventConditions",

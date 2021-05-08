@@ -198,6 +198,7 @@ module.exports = io=>{
 
   //for master.  재사용하기위해
   async function deposit(account, money){
+    return;
     // console.error("#########deposit");
     // let updateData = {
     //   depositStatus: 'complete',

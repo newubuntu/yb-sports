@@ -15,7 +15,8 @@ function bet365JS(){
 
   var MESSAGE = {
     RESTRICTIONS: "Certain restrictions may be applied to your account. If you have an account balance you can request to withdraw these funds now by going to the Withdrawal page in Members",
-    NEED_VERIFY: "In accordance with licensing conditions we are required to verify your age and identity. Certain restrictions may be applied to your account until we are able to verify your details. Please go to the Know Your Customer page in Members and provide the requested information."
+    NEED_VERIFY: "In accordance with licensing conditions we are required to verify your age and identity. Certain restrictions may be applied to your account until we are able to verify your details. Please go to the Know Your Customer page in Members and provide the requested information.",
+    MINIMUM_STAKE: "Please note that the minimum unit stake is"
   }
 
   function compareMessage(str, msg){
@@ -513,13 +514,19 @@ function bet365JS(){
       let bt = data.bt[0];
       let pt = bt.pt[0];
       if(pt.md && pt.md !== "Draw No Bet" && pt.md !== "Match Winner" && pt.md !== "Next Game" && pt.md !== "Most Corners"){
+        let h = $(".bss-NormalBetItem_Handicap").text().trim();
         if(pt.hd === undefined && pt.ha === undefined){
-          c++;
-          if(c < 4){
-            await delay(1000);
-            console.error("핸디없음 다시시도.", c);
-            log(`벳365정보에 핸디없음. 다시시도(${c})`, "danger", true);
-            continue;
+          if(h){
+            console.error("벳완료창 핸디값 사용", h);
+            pt.hd = h;
+          }else{
+            c++;
+            if(c < 4){
+              await delay(1000);
+              console.error("핸디없음 다시시도.", c);
+              log(`벳365정보에 핸디없음. 다시시도(${c})`, "danger", true);
+              continue;
+            }
           }
         }
       }
@@ -691,6 +698,10 @@ function bet365JS(){
 
     _result.data = res.data;
     return _result;
+  }
+
+  function calcBetmax(odds){
+    return 20 / odds;
   }
 
   function findDummy(){
@@ -1446,7 +1457,7 @@ function bet365JS(){
         localStorage.setItem("betmaxComplete", false);
         await (async ()=>{
           let betmax, count = 0, info, balance, status = {};
-
+          let stake = 0.2;
           while(1){
             if(localStorage.getItem("cancelBetmax")){
               console.error("cancelGetBetmax!");
@@ -1465,13 +1476,50 @@ function bet365JS(){
             let $placed = btns[2];
 
             let message;
+            message = betslipMessage();
+            if(message){
+              console.error("getbetmax message:", message);
+              if(compareMessage(message, MESSAGE.MINIMUM_STAKE)){
+                let minimumStake = parseFloat(message.replace(/[^0-9.]/g,''));
+                stake = minimumStake;
+                console.error("reset stake:", stake);
+              }
+            }
 
             if($placed){
-              console.error("체크기가 배팅돼버림");
-              resolveData = {
-                status: "placed",
-                message: "체크기가 배팅돼버림"
+              console.error("체크기 배팅됨");
+              // resolveData = {
+              //   status: "placed",
+              //   message: "체크기가 배팅돼버림"
+              // }
+
+              //#210508
+              console.log("complete");
+              balance = parseMoney($(".bs-Balance_Value").text());
+              // info = await getBetslipInfo();
+              info = await getBetslipInfoForAPI();
+              let betData = await sendData("getBetData", null, PN_BG);
+              let betslipData = await sendData("getBetslipData", null, PN_BG);
+              betslipData = JSON.parse(JSON.stringify(betslipData));
+              let m = betData.data.ns.match(/#o=([^#]+)/);
+              if(m && info){
+                let od = m[1];
+                od = odCheck(od, info.odds);
+                info.od = od
+                info.odds = odToOdds(od);
+
+                betslipData.data.ns = betslipData.data.ns.replace(/#o=([^#]+)/, function(f,m){
+                  return "#o=" + od;
+                })
+
+                console.error("##", {od, odds:info.odds, ns:betslipData.data.ns});
               }
+
+              betmax = calcBetmax(info.odds);
+              resolveData = {
+                balance, betmax, info, betData, betslipData
+              }
+
               break;
             }else if($placeBetBtn){
               if(status.afterPlaceBet){
@@ -1500,14 +1548,17 @@ function bet365JS(){
               status.afterPlaceBet = true;
               console.log("click placebet");
               await delay(200);
-              // await sendData("getBetmax", stake);
+
               balance = parseMoney($(".bs-Balance_Value").text());
-              let stake = Math.min(Math.floor(balance), 500);
-              if(isNaN(stake)){
-                stake = 500;
-              }
+              // let stake = Math.min(Math.floor(balance), 500);
+              // if(isNaN(stake)){
+              //   stake = 500;
+              // }
+              // if(await setStake(stake)){
               if(await setStake(stake)){
                 $placeBetBtn.click();
+                // await waitLoading();
+
               }else{
                 console.error("betslip input 사라짐");
                 // info = await getBetslipInfo();
@@ -1531,35 +1582,39 @@ function bet365JS(){
               status.afterPlaceBetCount = 0;
               betmax = await getBetmax(500);
               console.log("betmax", betmax);
-              if(betmax == null){
-                console.log("click accept");
-                $acceptBtn.click();
-              }else{
-                console.log("complete");
-                balance = parseMoney($(".bs-Balance_Value").text());
-                // info = await getBetslipInfo();
-                info = await getBetslipInfoForAPI();
-                let betData = await sendData("getBetData", null, PN_BG);
-                let betslipData = await sendData("getBetslipData", null, PN_BG);
-                betslipData = JSON.parse(JSON.stringify(betslipData));
-                let m = betData.data.ns.match(/#o=([^#]+)/);
-                if(m && info){
-                  let od = m[1];
-                  od = odCheck(od, info.odds);
-                  info.od = od
-                  info.odds = odToOdds(od);
 
-                  betslipData.data.ns = betslipData.data.ns.replace(/#o=([^#]+)/, function(f,m){
-                    return "#o=" + od;
-                  })
+              /// #210508
+              $acceptBtn.click();
 
-                  console.error("##", {od, odds:info.odds, ns:betslipData.data.ns});
-                }
-                resolveData = {
-                  balance, betmax, info, betData, betslipData
-                }
-                break;
-              }
+              // if(betmax == null){
+              //   console.log("click accept");
+              //   $acceptBtn.click();
+              // }else{
+              //   console.log("complete");
+              //   balance = parseMoney($(".bs-Balance_Value").text());
+              //   // info = await getBetslipInfo();
+              //   info = await getBetslipInfoForAPI();
+              //   let betData = await sendData("getBetData", null, PN_BG);
+              //   let betslipData = await sendData("getBetslipData", null, PN_BG);
+              //   betslipData = JSON.parse(JSON.stringify(betslipData));
+              //   let m = betData.data.ns.match(/#o=([^#]+)/);
+              //   if(m && info){
+              //     let od = m[1];
+              //     od = odCheck(od, info.odds);
+              //     info.od = od
+              //     info.odds = odToOdds(od);
+              //
+              //     betslipData.data.ns = betslipData.data.ns.replace(/#o=([^#]+)/, function(f,m){
+              //       return "#o=" + od;
+              //     })
+              //
+              //     console.error("##", {od, odds:info.odds, ns:betslipData.data.ns});
+              //   }
+              //   resolveData = {
+              //     balance, betmax, info, betData, betslipData
+              //   }
+              //   break;
+              // }
             }else{
               console.error("placeBet, acceptBtn 둘다 못찾음", count);
               count++;
