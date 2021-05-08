@@ -879,6 +879,11 @@ function bet365JS(){
         resolveData = withdrawResult;
       break;
 
+      case "setInitMessage":
+        console.log("setInitMessage");
+        setInitMessage(data);
+      break;
+
       case "reLogin":
         setInitMessage(message);
         console.log("re login start");
@@ -941,7 +946,7 @@ function bet365JS(){
       break;
 
       case "bet365LoginComplete":
-        // sessionActivityProcess();
+        sessionActivityProcess();
       break;
 
       case "setBetOption":

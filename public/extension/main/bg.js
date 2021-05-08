@@ -431,7 +431,7 @@ function bgJS(){
 	// 	"urls": ["https://www.bet365.com/BetsWebAPI/*"],
 	// 	"types": ["xmlhttprequest"]
 	// }, ["extraHeaders", "requestBody"]);
-  chrome.webRequest.onHeadersReceived.addListener(function (details) {
+  chrome.webRequest.onHeadersReceived.addListener(async function (details) {
     if(tabInfos.bet365.id != details.tabId){
       return;
     }
@@ -442,8 +442,14 @@ function bgJS(){
       return h.name == "Location"
     })
     if(h && h.value == "http://localhost"){
-      console.error("@@@ found localhost");
-      removeCache();
+      console.error("@@@ found localhost. removeCache");
+      await removeCache();
+      console.error("@@@ setInitMessage: reLogin");
+      await sendData("setInitMessage", {com:"reLogin"}, PN_B365);
+      console.error("@@@ refreshBet365");
+      refreshBet365();
+      // await delay(2000);
+      // sendData("reLogin", null, PN_B365);
     }
     // console.error("HEADER", details);
   }, {
