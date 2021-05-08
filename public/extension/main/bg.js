@@ -445,10 +445,13 @@ function bgJS(){
     if(h && h.value == "http://localhost"){
       console.error("@@@ found localhost. removeCache");
       await removeCache();
+      log("localhost발생. 캐시제거", "danger", true);
       console.error("@@@ setInitMessage: reLogin");
-      await sendData("setInitMessage", {com:"reLogin"}, PN_B365);
+      setData("setBet365InitMessage", {com:"reLogin"});
+      // await sendData("localhostProcess", null, PN_B365);
       console.error("@@@ refreshBet365");
       refreshBet365();
+      sendData("foundLocalhost", null, PN_MAIN, true);
       // await delay(2000);
       // sendData("reLogin", null, PN_B365);
     }

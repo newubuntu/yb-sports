@@ -100,6 +100,10 @@ async function onMessage(message){
       // sendDataToServer("log", data);
     break;
 
+    case "foundLocalhost":
+      isCheckingMatch = false;
+    break;
+
     case "bettingFail":
       isCheckingMatch = false;
     break;

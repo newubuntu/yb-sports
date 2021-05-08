@@ -750,6 +750,9 @@ function bet365JS(){
       }else if(res.data.mi == "invalid_funds"){
         _result.status = "invalidFunds";
         _result.message = "배팅정보가 잘못됐습니다.";
+      }else if(res.data.mi == "unspecified"){
+        _result.status = "noReturn";
+        console.error("mi == unspecified, 불특정");
       }else{
         // log("완료?"+res.data.br, "warning", true);
         // await delay(50);
