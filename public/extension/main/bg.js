@@ -451,8 +451,9 @@ function bgJS(){
       // console.error("@@@ setInitMessage: reLogin");
       // setData("setBet365InitMessage", {com:"reLogin"});
       // await sendData("localhostProcess", null, PN_B365);
-      sendData("foundLocalhost", null, PN_MAIN, true);
-      
+
+      // sendData("foundLocalhost", null, PN_MAIN, true);
+
       console.error("@@@ refreshBet365");
       refreshBet365();
       // await delay(2000);

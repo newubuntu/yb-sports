@@ -961,6 +961,7 @@ function bet365JS(){
       break;
 
       case "bet365LoginComplete":
+        isCheckingMatch = false;
         sessionActivityProcess();
       break;
 
