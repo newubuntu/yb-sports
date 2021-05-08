@@ -315,9 +315,9 @@ function bgJS(){
   }
 
   chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab)=>{
-    if(tabInfos[PN_B365].id == tabId){
-      console.error("@@@@@@@", changeInfo, tab);
-    }
+    // if(tabInfos[PN_B365].id == tabId){
+    //   console.error("@@@@@@@", changeInfo, tab);
+    // }
 		if(tabInfos[PN_B365].id == tabId && tab.status == "complete"){
       if(tab.url.indexOf("bet365.com") > -1){
         console.error("%%% update");
@@ -326,10 +326,12 @@ function bgJS(){
         loadedBetslip[tabInfos.bet365.id] = false;
   			// clearTimeout(bet365UpdatedItv);
   			// bet365UpdatedItv = setTimeout(runBet365Code, 200);
-      }else if(tab.url.indexOf("localhost") > -1){
-        console.error("!!! localhost cache 제거");
-        await removeCache();
       }
+      //// 감지안됨.
+      // else if(tab.url.indexOf("localhost") > -1){
+      //   console.error("!!! localhost cache 제거");
+      //   await removeCache();
+      // }
 		}
 	})
 
@@ -420,7 +422,15 @@ function bgJS(){
   }, ["responseHeaders"]);
 
 
-
+  chrome.webRequest.onBeforeRequest.addListener(function (details) {
+    if(tabInfos.bet365.id != details.tabId){
+      return;
+    }
+		console.error("$$$check", details.url, details);    
+	}, {
+		"urls": ["https://www.bet365.com/BetsWebAPI/*"],
+		"types": ["xmlhttprequest"]
+	}, ["extraHeaders", "requestBody"]);
 
 
   chrome.webRequest.onBeforeRequest.addListener(function (details) {
