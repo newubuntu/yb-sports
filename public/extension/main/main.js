@@ -1772,12 +1772,23 @@ async function getBetmax(data, delayT=0){
   if(delayT){
     await delay(delayT);
   }
+  let res = await api.loadAccountInfo(account.id);
+  if(res.status == "success"){
+    accountInfo = res.data.account;
+    if(!accountInfo){
+      log(`계정정보 로딩 실패`, "danger", true);
+      // stopMatch(true);
+      if(cancelGetBetmaxFlag){
+        return Promise.reject(0);
+      }
+    }
+  }
   if(cancelGetBetmaxFlag){
     return Promise.reject(0);
   }
   activeBet365();
   log(`betmax 확인시작`, null, true);
-  return sendData("getBetmax", {betType:data.bet365.betType}, PN_B365).then(async d=>{
+  return sendData("getBetmax", {betType:data.bet365.betType, accountInfo}, PN_B365).then(async d=>{
     // betmaxInfo = d;
     activeMain();
     return d;
