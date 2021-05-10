@@ -1348,17 +1348,17 @@ async function userYbProcess(data){
     }
 
     //
-    sendDataToServer("gamefinish", currentGameData.betId);
 
     if(lakeMoney){
       stopMatch(true);
       sendDataToSite("sound", {name:"lakeBet365Money"});
-      return;
     }
   }else{
     log(`배팅취소`, 'danger', true);
-    return;
   }
+
+
+  sendDataToServer("gamefinish", currentGameData.betId);
 }
 
 
@@ -2169,6 +2169,7 @@ async function checkBetmaxProcess(data){
     }
 
     if(betmaxCheck){
+      console.error("!!데이터 전송", data);
       log(`
         <div class="text-info">------ 데이터 전송 ------</div>
         <div class="text-warning">피나클: $${data.pinnacle.stake} (${data.pinnacle.odds})</div>
@@ -2602,7 +2603,9 @@ async function init(){
   })
 
   socket.on("gamefinish", betId=>{
+    console.log("gamefinish", betId);
     if(isWaiting == betId){
+      console.log("gamefinish match!");
       isWaiting = false;
     }
   })

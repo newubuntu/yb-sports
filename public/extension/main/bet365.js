@@ -1104,7 +1104,7 @@ function bet365JS(){
 
 
         // 0414 &&
-        if(betOption.action !== "checkBetmax"){
+        if(0 && betOption.action !== "checkBetmax"){
           let info = await getBetslipInfoForAPI(undefined, data.data.handicap?data.data.handicap:undefined);
           console.error("@@@betslipinfo", info);
 
