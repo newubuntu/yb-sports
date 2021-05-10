@@ -261,7 +261,7 @@ function bet365JS(){
     //   money = await getMoney();
     // }
 
-    console.error("handi", $(".bss-NormalBetItem_Handicap, .qbs-NormalBetItem_Handicap").text());
+    // console.error("handi", $(".bss-NormalBetItem_Handicap, .qbs-NormalBetItem_Handicap").text());
 
     let handicap = $(".bss-NormalBetItem_Handicap, .qbs-NormalBetItem_Handicap").text();
     let handicap2;
@@ -340,7 +340,7 @@ function bet365JS(){
 
     money = await getMoney();
 
-    console.error("handi2", $(".bss-NormalBetItem_Handicap, .qbs-NormalBetItem_Handicap").text());
+    // console.error("handi2", $(".bss-NormalBetItem_Handicap, .qbs-NormalBetItem_Handicap").text());
     // console.error("handi2", $(".bss-NormalBetItem_Handicap").text());
     //
     // console.error("title", $(".bss-NormalBetItem_Title").html());
@@ -1142,8 +1142,8 @@ function bet365JS(){
           timestamp("QuickBetslip 찾음?");
           console.error("$betslip", $betslip);
 
-          // let info = await getBetslipInfoForAPI(undefined, data.data.handicap?data.data.handicap:undefined);
-          let info = await getBetslipInfo();
+          let info = await getBetslipInfoForAPI(undefined, data.data.handicap?data.data.handicap:undefined);
+          // let info = await getBetslipInfo();
           console.error("@@@betslipinfo", info);
 
           localStorage.removeItem("setUrl");
@@ -1366,7 +1366,8 @@ function bet365JS(){
                 // await sendData("afterAccept", info);
                 resolveData = {
                   status: "acceptChange",
-                  info: await getBetslipInfo()
+                  // info: await getBetslipInfo()
+                  info: await getBetslipInfoForAPI(undefined, data.data.handicap?data.data.handicap:undefined)
                 }
                 break;
               }
@@ -1382,7 +1383,8 @@ function bet365JS(){
               // stake = money;
               resolveData = {
                 status: "lakeMoney",
-                info: await getBetslipInfo(),
+                // info: await getBetslipInfo(),
+                info: await getBetslipInfoForAPI(undefined, data.data.handicap?data.data.handicap:undefined),
                 money,
                 stake
               }
@@ -1395,7 +1397,8 @@ function bet365JS(){
               console.log("bet complete");
               // await delay(1000);
               // let money = await getMoney();
-              let info = await getBetslipInfo();
+              // let info = await getBetslipInfo();
+              let info = await getBetslipInfoForAPI(undefined, data.data.handicap?data.data.handicap:undefined);
               if(info.market == ""){
                 resolveData = {
                   status: "fail",
@@ -1437,7 +1440,8 @@ function bet365JS(){
               await setStake(exStake);
               // await delay(1000);
 
-              let info = await getBetslipInfo();
+              // let info = await getBetslipInfo();
+              let info = await getBetslipInfoForAPI(undefined, data.data.handicap?data.data.handicap:undefined);
               if(prevInfo.handicap != info.handicap){
                 resolveData = {
                   status: "fail",
@@ -1504,7 +1508,8 @@ function bet365JS(){
                 resolveData = {
                   status: "foundBetmax",
                   betmax: betmax,
-                  info: await getBetslipInfo()
+                  info: await getBetslipInfoForAPI(undefined, data.data.handicap?data.data.handicap:undefined)
+                  // info: await getBetslipInfo()
                 }
                 break;
               }else{
@@ -1526,7 +1531,8 @@ function bet365JS(){
                   // let money = await getMoney();
                   resolveData = {
                     status: "success",
-                    info: await getBetslipInfo(),
+                    // info: await getBetslipInfo(),
+                    info: await getBetslipInfoForAPI(undefined, data.data.handicap?data.data.handicap:undefined),
                     money,
                     stake
                   }

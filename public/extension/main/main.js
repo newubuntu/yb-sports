@@ -1132,7 +1132,7 @@ async function bet365PlacebetProcess(data, bet365Info, isDirect=true){
       if(isDirect){
         result = await sendData("placeBetDirect", {stake, odds:data.bet365.odds, betData, od, account:accountInfo}, PN_B365);
       }else{
-        result = await sendData("placeBet", {fixedBetmax, stake:data.bet365.stake, prevInfo:bet365Info}, PN_B365);
+        result = await sendData("placeBet", {fixedBetmax, data:data.bet365, stake:data.bet365.stake, prevInfo:bet365Info}, PN_B365);
       }
 
       console.log("result", result);
