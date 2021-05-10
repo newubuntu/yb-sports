@@ -2541,6 +2541,8 @@ async function init(){
   // })
 
   socket.on("gamedata", async (data)=>{
+    console.log("receive gamedata", data);
+
     if(isWaiting && data && data.eventName == "gamefinish"){
       console.log("gamefinish", data.betId);
       if(isWaiting == data.betId){
@@ -2550,7 +2552,6 @@ async function init(){
       return;
     }
 
-    console.log("receive gamedata", data);
     // if(!flag.bet365LoginComplete) return;
     // if(!flag.isMatching) return;
     if(flag.bet365LoginComplete && flag.isMatching && !isWaiting){

@@ -83,7 +83,8 @@ function bet365JS(){
   var MESSAGE = {
     RESTRICTIONS: "Certain restrictions may be applied to your account. If you have an account balance you can request to withdraw these funds now by going to the Withdrawal page in Members",
     NEED_VERIFY: "In accordance with licensing conditions we are required to verify your age and identity. Certain restrictions may be applied to your account until we are able to verify your details. Please go to the Know Your Customer page in Members and provide the requested information.",
-    MINIMUM_STAKE: "Please note that the minimum unit stake is"
+    MINIMUM_STAKE: "Please note that the minimum unit stake is",
+    BETFAIL_AFTER: "Please check My Bets for confirmation that your bet has been successfully placed."
   }
 
   function compareMessage(str, msg){
@@ -1376,6 +1377,23 @@ function bet365JS(){
             let money = await getMoney();
             console.log("bg money", money);
 
+            message = betslipMessage();
+            console.error("message:", message);
+            if(compareMessage(message, MESSAGE.RESTRICTIONS)){
+              resolveData = {
+                status: "restriction",
+                message: "폐쇄된 계정"
+              }
+              break;
+            }
+
+            if(compareMessage(message, MESSAGE.NEED_VERIFY)){
+              resolveData = {
+                status: "needVerify",
+                message: "추가인증 필요"
+              }
+              break;
+            }
 
 
             lakeMoney = money < stake;
@@ -1451,25 +1469,18 @@ function bet365JS(){
               }
 
               $placeBetBtn.click();
-              await waitLoading();
-              // await delay(1000);
-              message = betslipMessage();
-              console.error("placebet message:", message);
-              if(compareMessage(message, MESSAGE.RESTRICTIONS)){
-                resolveData = {
-                  status: "restriction",
-                  message: "폐쇄된 계정"
-                }
+              // await waitLoading();
+              await delay(1000);
+
+              let placedMessage = $(".bs-PlaceBetErrorMessage_Contents").text().trim();
+              if(compareMessage(placedMessage, MESSAGE.NEED_VERIFY)){
+                resolveData = null;
                 break;
               }
 
-              if(compareMessage(message, MESSAGE.NEED_VERIFY)){
-                resolveData = {
-                  status: "needVerify",
-                  message: "추가인증 필요"
-                }
-                break;
-              }
+
+
+              //   if(placedMessage == placedCompareMessage){
 
 
               // if(compareMessage(message, MESSAGE.NOT_ENOUGH_FUNDS)){
@@ -1523,6 +1534,7 @@ function bet365JS(){
               console.error("accept message:", message);
             }else{
               let title = $(".bss-NormalBetItem_Title").text();
+              console.error("title after bet:", title);
               if(!title){
                 console.error("placeBet, acceptBtn, placed  못찾음", count);
                 count++;
