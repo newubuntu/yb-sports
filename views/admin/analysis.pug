@@ -97,7 +97,7 @@ block view
                   label 유저
                   #select-user            
           .card-body.table-responsive
-    .row
+    //- .row
       .col-md
         ul.nav.nav-tabs
           li.nav-item
@@ -117,7 +117,7 @@ block view
                   .btn-group.btn-group-toggle.mx-3(data-toggle="buttons")
                     label.btn.btn-outline-secondary.active(@click="reload({period:'day'})")
                       input(id="option1" type="radio" name="options" autocomplete="off" checked="")
-                      |Day          
+                      |Day
                     label.btn.btn-outline-secondary(@click="reload({period:'week'})")
                       input(id="option2" type="radio" name="options" autocomplete="off")
                       |Week

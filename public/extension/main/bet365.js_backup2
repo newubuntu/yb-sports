@@ -255,11 +255,11 @@ function bet365JS(){
 
   async function getBetslipInfo(opt){
     let money;
-    // if(opt && opt.withMoney){
-    //   // money = await getMoneyInBetslip();
-    //   // // money = await getMoneyInBetslip();
-    //   money = await getMoney();
-    // }
+    if(opt && opt.withMoney){
+      // money = await getMoneyInBetslip();
+      // // money = await getMoneyInBetslip();
+      money = await getMoney();
+    }
 
 
     let handicap = $(".bss-NormalBetItem_Handicap, .qbs-NormalBetItem_Handicap").text();
@@ -337,7 +337,7 @@ function bet365JS(){
       }
     }
 
-    money = await readMoney();
+    let m = await readMoney();
 
     return {
       title: $(".bss-NormalBetItem_Title, .qbs-NormalBetItem_Title").text(),
@@ -347,7 +347,7 @@ function bet365JS(){
       desc: $(".bss-NormalBetItem_FixtureDescription, .qbs-NormalBetItem_FixtureDescription").text(),
       handicap2,
       money,
-      logged: !isNaN(money)
+      logged: !isNaN(m)
     }
   }
 
@@ -981,14 +981,12 @@ function bet365JS(){
         // sendData("updatedUrl", null, PN_BG, true);
         betOption = data.betOption;
 
-        //#210511
-        window.location.href = data.url;
-
-        // console.error("timecheck");
-        // if(await isTimekeyOver()){
-        //   console.error("set href");
-        //   refreshTimekey();
-        // }
+        console.error("timecheck");
+        if(await isTimekeyOver()){
+          console.error("set href");
+          refreshTimekey();
+          // window.location.href = data.url;
+        }
 
         /// test
         // if(betOption.betType == "0414"){
@@ -1078,21 +1076,14 @@ function bet365JS(){
           //   break;
           // }
           ///
-
-          //#210511
-          // if(betOption.action == "checkBetmax"){
-          //   window.location.href = data.data.betLink;
-          //   resolveData = {passResolve:true};
-          //   break;
-          // }else if(await isTimekeyOver()){
-          //   await refreshTimekey();
-          //   // await delay(1000);
-          // }
-
-          //#210511
-          window.location.href = data.data.betLink;
-          resolveData = {passResolve:true};
-          break;
+          if(betOption.action == "checkBetmax"){
+            window.location.href = data.data.betLink;
+            resolveData = {passResolve:true};
+            break;
+          }else if(await isTimekeyOver()){
+            await refreshTimekey();
+            // await delay(1000);
+          }
         }
 
 
@@ -1135,8 +1126,7 @@ function bet365JS(){
           timestamp("QuickBetslip 찾음?");
           console.error("$betslip", $betslip);
 
-          // let info = await getBetslipInfoForAPI(undefined, data.data.handicap?data.data.handicap:undefined);
-          let info = await getBetslipInfo();
+          let info = await getBetslipInfoForAPI(undefined, data.data.handicap?data.data.handicap:undefined);
           console.error("@@@betslipinfo", info);
 
           localStorage.removeItem("setUrl");
@@ -1726,7 +1716,7 @@ function bet365JS(){
                     console.error("##", {od, odds:info.odds, ns:betslipData.data.ns});
                   }
                   ///
-                  // betmax = calcBetmax(betType, info.odds);
+                  betmax = calcBetmax(betType, info.odds);
                   ///
                   resolveData = {
                     balance, betmax, info, betData, betslipData
