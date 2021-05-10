@@ -2541,6 +2541,15 @@ async function init(){
   // })
 
   socket.on("gamedata", async (data)=>{
+    if(isWaiting && data && data.eventName == "gamefinish"){
+      console.log("gamefinish", data.betId);
+      if(isWaiting == data.betId){
+        console.log("gamefinish match!");
+        isWaiting = false;
+      }
+      return;
+    }
+
     console.log("receive gamedata", data);
     // if(!flag.bet365LoginComplete) return;
     // if(!flag.isMatching) return;
@@ -2608,13 +2617,13 @@ async function init(){
     }
   })
 
-  socket.on("gamefinish", betId=>{
-    console.log("gamefinish", betId);
-    if(isWaiting == betId){
-      console.log("gamefinish match!");
-      isWaiting = false;
-    }
-  })
+  // socket.on("gamefinish", betId=>{
+  //   console.log("gamefinish", betId);
+  //   if(isWaiting == betId){
+  //     console.log("gamefinish match!");
+  //     isWaiting = false;
+  //   }
+  // })
 }
 
 init();

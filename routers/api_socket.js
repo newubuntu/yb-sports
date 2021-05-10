@@ -389,7 +389,8 @@ module.exports = MD=>{
         })
 
         socket.on("gamefinish", (betId, bid)=>{
-          emitToPrograms("gamefinish", betId, bid);
+          // console.log("##### gamefinish", betId);
+          emitToPrograms("gamedata", {eventName:"gamefinish", betId}, bid);
         })
 
         socket.on("unlockEvent", async (data, bid)=>{

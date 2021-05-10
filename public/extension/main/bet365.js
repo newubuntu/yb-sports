@@ -1522,8 +1522,13 @@ function bet365JS(){
               message = betslipMessage();
               console.error("accept message:", message);
             }else{
-              console.error("placeBet, acceptBtn, placed  못찾음", count);
-              count++;
+              let title = $(".bss-NormalBetItem_Title").text();
+              if(!title){
+                console.error("placeBet, acceptBtn, placed  못찾음", count);
+                count++;
+              }else{
+                console.error("배팅완료 대기중");
+              }
 
               // let title = $(".bss-NormalBetItem_Title").text();
               // if(!title){
