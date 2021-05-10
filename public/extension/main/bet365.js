@@ -342,6 +342,8 @@ function bet365JS(){
 
     console.error("handi2", $(".bss-NormalBetItem_Handicap").text());
 
+    console.error("title", $(".bss-NormalBetItem_Title").html())
+
     return {
       title: $(".bss-NormalBetItem_Title, .qbs-NormalBetItem_Title").text(),
       handicap,
