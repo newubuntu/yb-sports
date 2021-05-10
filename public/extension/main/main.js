@@ -2169,11 +2169,16 @@ async function checkBetmaxProcess(data){
     }
 
     if(betmaxCheck){
-      console.error("!!데이터 전송", data);
+      // console.error("!!데이터 전송", data);
+      // log(`
+      //   <div class="text-info">------ 데이터 전송 ------</div>
+      //   <div class="text-warning">피나클: $${data.pinnacle.stake} (${data.pinnacle.odds})</div>
+      //   <div class="text-success">벳365: $${data.bet365.stake} (${data.bet365.odds})</div>
+      // `, null, true);
       log(`
         <div class="text-info">------ 데이터 전송 ------</div>
-        <div class="text-warning">피나클: $${data.pinnacle.stake} (${data.pinnacle.odds})</div>
-        <div class="text-success">벳365: $${data.bet365.stake} (${data.bet365.odds})</div>
+        <div class="text-warning">피나클: ${data.pinnacle.odds}</div>
+        <div class="text-success">벳365: ${data.bet365.odds}</div>
       `, null, true);
 
       let bdata = betResult.data;
