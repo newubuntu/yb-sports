@@ -2212,6 +2212,7 @@ async function startMatch(sync){
   }
   log("-------- 매칭켜짐 --------", "info", true);
   flag.isMatching = true;
+  isWaiting = false;
   updateMatchButtonState();
   if(sync){
     sendDataToSite("receiveMatchFlag", flag.isMatching);
