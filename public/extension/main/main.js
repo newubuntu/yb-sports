@@ -2143,7 +2143,7 @@ async function checkBetmaxProcess(data){
 
     console.error("##", line);
 
-    // let betmaxCheck;
+    let betmaxCheck;
     // if(rejectNum === undefined){
     //   // log("start betmaxCheckProcess", "danger", true);
     //   betmaxCheck = await betmaxCheckProcess(betmaxInfo, data);
