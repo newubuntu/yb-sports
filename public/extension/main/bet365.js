@@ -261,7 +261,7 @@ function bet365JS(){
     //   money = await getMoney();
     // }
 
-    console.error("handi", $(".bss-NormalBetItem_Handicap").text());
+    console.error("handi", $(".bss-NormalBetItem_Handicap, .qbs-NormalBetItem_Handicap").text());
 
     let handicap = $(".bss-NormalBetItem_Handicap, .qbs-NormalBetItem_Handicap").text();
     let handicap2;
@@ -340,10 +340,11 @@ function bet365JS(){
 
     money = await getMoney();
 
-    console.error("handi2", $(".bss-NormalBetItem_Handicap").text());
-
-    console.error("title", $(".bss-NormalBetItem_Title").html());
-    console.error("title2", $(".qbs-NormalBetItem_Title").html());
+    console.error("handi2", $(".bss-NormalBetItem_Handicap, .qbs-NormalBetItem_Handicap").text());
+    // console.error("handi2", $(".bss-NormalBetItem_Handicap").text());
+    //
+    // console.error("title", $(".bss-NormalBetItem_Title").html());
+    // console.error("title2", $(".qbs-NormalBetItem_Title").html());
 
     return {
       title: $(".bss-NormalBetItem_Title, .qbs-NormalBetItem_Title").text(),
