@@ -1357,7 +1357,7 @@ async function userYbProcess(data){
     log(`배팅취소`, 'danger', true);
   }
 
-
+  console.log("send gamefinish", currentGameData.betId);
   sendDataToServer("gamefinish", currentGameData.betId);
 }
 

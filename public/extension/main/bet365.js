@@ -1522,28 +1522,31 @@ function bet365JS(){
               message = betslipMessage();
               console.error("accept message:", message);
             }else{
-              let title = $(".bss-NormalBetItem_Title").text();
-              if(!title){
-                let placedMessage = $(".bs-PlaceBetErrorMessage_Contents").text().trim();
-                if(placedMessage == placedCompareMessage){
-                  console.log("bet complete");
-                  // await delay(1000);
-                  // let money = await getMoney();
-                  resolveData = {
-                    status: "success",
-                    // info: await getBetslipInfo(),
-                    info: await getBetslipInfoForAPI(undefined, data.data.handicap?data.data.handicap:undefined),
-                    money,
-                    stake
-                  }
-                  break;
-                }else{
-                  console.error("placeBet, acceptBtn, placed  못찾음", count);
-                  count++;
-                }
-              }else{
-                console.error("배팅완료 대기중");
-              }
+              console.error("placeBet, acceptBtn, placed  못찾음", count);
+              count++;
+
+              // let title = $(".bss-NormalBetItem_Title").text();
+              // if(!title){
+              //   let placedMessage = $(".bs-PlaceBetErrorMessage_Contents").text().trim();
+              //   if(placedMessage == placedCompareMessage){
+              //     console.log("bet complete2");
+              //     // await delay(1000);
+              //     // let money = await getMoney();
+              //     resolveData = {
+              //       status: "success",
+              //       // info: await getBetslipInfo(),
+              //       info: await getBetslipInfoForAPI(undefined, data.data.handicap?data.data.handicap:undefined),
+              //       money,
+              //       stake
+              //     }
+              //     break;
+              //   }else{
+              //     console.error("placeBet, acceptBtn, placed  못찾음", count);
+              //     count++;
+              //   }
+              // }else{
+              //   console.error("배팅완료 대기중");
+              // }
             }
 
             if(count>=2){
