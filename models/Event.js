@@ -18,6 +18,9 @@ const eventSchema = new mongoose.Schema({
   // //bet365 betburger event id
   // beId: {type: String}
 
+  // checker browser id
+  bid: {type: String},
+
   betId: {type: Number},//1234563
 
   // "ACCEPTED" "CANCELLED" "LOSE" "PENDING_ACCEPTANCE" "REFUNDED" "NOT_ACCEPTED" "WON"

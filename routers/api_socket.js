@@ -384,18 +384,14 @@ module.exports = MD=>{
         socket.on("pullGameData", async (opt, bid)=>{
           // console.log("pullGameData1", bid);
           let r = await pullGameData(opt);
+
           // console.log("pullGameData2", !!r);
           emitToPrograms("gamedata", r, bid);
         })
 
-        socket.on("gamefinish", (betId, bid)=>{
-          console.log("###########################");
-          console.log("###########################");
-          console.log("###########################");
-          console.log("###########################");
-          console.log("###########################");
-          console.log("##### gamefinish", betId);
-          emitToPrograms("gamedata", {eventName:"gamefinish", betId}, bid);
+        socket.on("gamefinish", ({betId, checkerBid}, bid)=>{
+          // console.log("gamefinish", betId);
+          emitToPrograms("gamedata", {eventName:"gamefinish", betId}, checkerBid);
         })
 
         socket.on("unlockEvent", async (data, bid)=>{

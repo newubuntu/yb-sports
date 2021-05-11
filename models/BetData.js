@@ -12,6 +12,8 @@ const betDataSchema = new mongoose.Schema({
   // uniqueRequestId
   event: {type: String, ref: 'Event'},
 
+  
+
   betId: {type: Number},
   betType: {type: String},
   sportName: {type: String},

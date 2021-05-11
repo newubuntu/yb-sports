@@ -1358,7 +1358,7 @@ async function userYbProcess(data){
   }
 
   console.log("send gamefinish", currentGameData.betId);
-  sendDataToServer("gamefinish", currentGameData.betId);
+  sendDataToServer("gamefinish", {betId:currentGameData.betId, checkerBid:currentGameData.bid});
 }
 
 
@@ -2182,6 +2182,7 @@ async function checkBetmaxProcess(data){
       `, null, true);
 
       let bdata = betResult.data;
+      bdata.bid = BID;
       bdata.pncLine = line.lineData;
       bdata.betburger = data;
       bdata._id = betResult.data.uniqueRequestId;
@@ -2540,6 +2541,8 @@ async function init(){
   //   }
   // })
 
+
+
   socket.on("gamedata", async (data)=>{
     console.log("receive gamedata", data);
 
@@ -2550,17 +2553,17 @@ async function init(){
         isWaiting = false;
       }
       return;
-    }
+    }else{
+      // if(!flag.bet365LoginComplete) return;
+      // if(!flag.isMatching) return;
+      if(flag.bet365LoginComplete && flag.isMatching && !isWaiting){
+        await findMatch(data);
+      }
 
-    // if(!flag.bet365LoginComplete) return;
-    // if(!flag.isMatching) return;
-    if(flag.bet365LoginComplete && flag.isMatching && !isWaiting){
-      await findMatch(data);
-    }
-
-    // await delay(3000);
-    if(data && data.bet365){
-      sendDataToServer("unlockEvent", {dataType:betOption.dataType, betburgerEventId:data.bet365.betburgerEventId});
+      // await delay(3000);
+      if(data && data.bet365){
+        sendDataToServer("unlockEvent", {dataType:betOption.dataType, betburgerEventId:data.bet365.betburgerEventId});
+      }
     }
   })
 
