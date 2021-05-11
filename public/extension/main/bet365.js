@@ -1357,6 +1357,14 @@ function bet365JS(){
             let $placeBetBtn = btns[1];
             let $placed = btns[2];
 
+            let $betSlip = $(".bss-DefaultContent");
+            if($betSlip.length == 0){
+              resolveData = {
+                message: "벳슬립 안잡힘"
+              };
+              break;
+            }
+
             // let info = await getBetslipInfo();
             let message;
 
@@ -1439,7 +1447,7 @@ function bet365JS(){
                 if(status.afterPlaceBetCount == undefined) status.afterPlaceBetCount = 0;
                 status.afterPlaceBetCount++;
                 console.error("placebet", status.afterPlaceBetCount);
-                if(status.afterPlaceBetCount > 10){
+                if(status.afterPlaceBetCount > 2){
                   console.error("placebet 반복실패");
                   resolveData = {
                     status: "fail",

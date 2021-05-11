@@ -389,6 +389,11 @@ module.exports = MD=>{
         })
 
         socket.on("gamefinish", (betId, bid)=>{
+          console.log("###########################");
+          console.log("###########################");
+          console.log("###########################");
+          console.log("###########################");
+          console.log("###########################");
           console.log("##### gamefinish", betId);
           emitToPrograms("gamedata", {eventName:"gamefinish", betId}, bid);
         })
