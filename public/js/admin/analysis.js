@@ -121,6 +121,16 @@ let Vapp;
       legend: {
         display: true
       },
+      plugins: {
+        tooltip: {
+          mode: 'index',
+          intersect: false
+        }
+      },
+      interaction: {
+        mode: 'index',
+        intersect: false
+      },
       scales: {
         y:{
           suggestedMin: -5000,
@@ -163,10 +173,23 @@ let Vapp;
     }
   }
 
+  let mainChartCfg = cloneObj(lineChartCfg);
+  mainChartCfg.options.plugins.tooltip.callbacks = {
+    footer: function(tooltipItems){
+      let profitP = round(tooltipItems[1].parsed.y / tooltipItems[0].parsed.y * 100, 2);
+      if(isNaN(profitP)){
+        profitP = 0;
+      }
+      return '수익률: ' + profitP + '%';
+    }
+  }
+
   let chartsCfgs = {
-    mainChart: cloneObj(lineChartCfg),
+    mainChart: mainChartCfg,
+    profitFlowChart: cloneObj(lineChartCfg),
     sportsChart: cloneObj(lineChartCfg),
     betTypeChart: cloneObj(lineChartCfg),
+    oddsChart: cloneObj(lineChartCfg),
     // oddsChart: null,
     // stakeChart: null
     /// radar
@@ -176,8 +199,10 @@ let Vapp;
   let charts = {
     /// line
     mainChart: null,
+    profitFlowChart: null,
     sportsChart: null,
     betTypeChart: null,
+    oddsChart: null,
     // oddsChart: null,
     // stakeChart: null
     /// radar
@@ -206,6 +231,7 @@ let Vapp;
     }
 
     if(data.length){
+      let lineTension = 0.3;
       let datasets, labels;
       let max = -9999999, min = 9999999;
       if(graphType == "line"){
@@ -225,29 +251,83 @@ let Vapp;
         if(name == "mainChart"){
           let datas = [[],[]];
           data.forEach(d=>{
-            datas[0].push(round(d.siteProfit,2));
-            datas[1].push(round(d.bookmakerProfit,2));
-            max = Math.max(max, Math.max(d.siteProfit, d.bookmakerProfit));
-            min = Math.min(min, Math.min(d.siteProfit, d.bookmakerProfit));
+            datas[0].push(round(d.bookmakerStake));
+            datas[1].push(round(d.bookmakerProfit));
+            max = Math.max(max, Math.max(d.bookmakerStake, d.bookmakerProfit));
+            min = Math.min(min, Math.min(d.bookmakerStake, d.bookmakerProfit));
+            // max = Math.max(max, d.bookmakerProfit);
+            // min = Math.min(min, d.bookmakerProfit);
+            // return round(d.bookmakerProfit,2);
           })
 
-          datasets = [{
-            label: '피나클',
-            backgroundColor: getRgba("primary", 10),
-            borderColor: getColor("primary"),
+          datasets = [
+            {
+              label: '투자금',
+              backgroundColor: getRgba("danger", 10),
+              borderColor: getColor("danger"),
+              pointHoverBackgroundColor: '#fff',
+              borderWidth: 2,
+              lineTension,
+              fill: true,
+              data: datas[0]
+            },
+            {
+              label: '수익',
+              backgroundColor: getRgba("success", 10),
+              borderColor: getColor("success"),
+              pointHoverBackgroundColor: '#fff',
+              borderWidth: 2,
+              lineTension,
+              fill: true,
+              data: datas[1]
+            }
+          ]
+
+          // charts[name].options.plugins.tooltip.callback = {
+          //   footer: function(tooltipItems){
+          //     console.log(tooltipItems);
+          //     let sum = 0;
+          //     tooltipItems.forEach(function(tooltipItem) {
+          //       sum += tooltipItem.parsed.y;
+          //     });
+          //     return 'Sum: ' + sum;
+          //   }
+          // }
+
+          charts[name].options.scales.y = {
+            suggestedMin: min,
+            suggestedMax: max,
+            title: {
+              display: true,
+              text: '$'
+            }
+          }
+        }else if(name == "profitFlowChart"){
+          data = data.map(d=>{
+            max = Math.max(max, d.bookmakerProfitP);
+            min = Math.min(min, d.bookmakerProfitP);
+            return round(d.bookmakerProfitP,2);
+          })
+          datasets= [{
+            label: '수익률',
+            backgroundColor: getRgba("info", 10),
+            borderColor: getColor("info"),
             pointHoverBackgroundColor: '#fff',
             borderWidth: 2,
-            // lineTension: 0.5,
-            data: datas[0]
-          },{
-            label: '벳365',
-            backgroundColor: getRgba("success", 10),
-            borderColor: getColor("success"),
-            pointHoverBackgroundColor: '#fff',
-            borderWidth: 2,
-            // lineTension: 0.5,
-            data: datas[1]
+            lineTension,
+            fill: true,
+            data: data
           }]
+
+
+          charts[name].options.scales.y = {
+            suggestedMin: min,
+            suggestedMax: max,
+            title: {
+              display: true,
+              text: '%'
+            }
+          }
         }else{
           // let datas;// = {};
           let list = [];
@@ -276,15 +356,28 @@ let Vapp;
               backgroundColor: hexToRgbA(color, 0.1),
               borderColor: color,
               pointHoverBackgroundColor: '#fff',
+              lineTension,
+              fill: true,
               borderWidth: 2
             }
           })
+
+          charts[name].options.scales.y = {
+            suggestedMin: min,
+            suggestedMax: max,
+            title: {
+              display: true,
+              text: '$'
+            }
+          }
         }
 
-        charts[name].options.scales.y = {
-          suggestedMin: min,
-          suggestedMax: max
-        }
+        datasets.push({
+          label: '기준선',
+          borderDash: [5, 5],
+          borderColor: getColor("warning"),
+          data: Array(datasets[0].data.length).fill(0)
+        })
       }else if(graphType == "radar"){
         console.error(data);
         // return;
