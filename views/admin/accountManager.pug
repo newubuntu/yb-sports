@@ -75,6 +75,8 @@ block view
             a.nav-link(href="#3" v-on:click="loadRequestList(0)" :class="tab==3?'active':''") 입/출금요청
           li.nav-item
             a.nav-link(href="#4" v-on:click="loadTrashList(0)" :class="tab==4?'active':''") 휴지통
+          li.nav-item(v-if="user.master")
+            a.nav-link(href="#5" v-on:click="loadRemoveList(0)" :class="tab==5?'active':''") 제거목록
         .card
           .card-header
             div
@@ -90,7 +92,7 @@ block view
                       .input-group-prepend
                         .input-group-text ID
                       input.form-control.search-id(type="text" :value="searchId?searchId:''" v-on:change="changeSearchId")
-                  .form-group
+                  .form-group(v-if="tab!==5")
                     .input-group
                       .input-group-prepend
                         .input-group-text 유저
@@ -102,7 +104,17 @@ block view
           .card-body.table-responsive
             table.table.table-sm.table-responsive-sm.table-striped.table-hover.table-bordered
               thead
-                tr
+                tr(v-if="tab==5&&user.master")
+                  th #
+                  th 등록번호
+                  th 국가
+                  th 아이디
+                  th 비밀번호
+                  th 계정등록일
+                  th 상태
+                  th 배팅
+                  th 살리기
+                tr(v-else)
                   th #
                   th 등록번호
                   th 국가
@@ -122,7 +134,30 @@ block view
                   th(v-if="tab==2") 휴지통
                   th(v-if="tab!=3") 제거
                   th(v-if="tab==4") 복구
-              tbody
+              tbody(v-if="tab==5&&user.master")
+                tr(v-for="account, i in accounts")
+                  td {{i+1}}
+                  td {{account.number}}
+                  td 
+                    svg.icon-svg(style="margin-top: -2px; width: 30px;height: 17px; margin-right:4px;")
+                      use(:xlink:href="'/vendors/@coreui/icons/sprites/flag.svg#cif-'+account.country.toLowerCase()")
+                    | {{countryName(account.country)}}
+                  td
+                    span(:class="account.limited?'text-warning':account.died?'text-danger':'text-success'") {{account.id}}
+                  td {{account.pw}}
+                  td {{(new Date(account.createdAt)).toLocaleDateString()}}
+                  //- 상태
+                  td
+                    span.badge.badge-danger(v-if="account.die") 졸업
+                    span.badge.badge-warning(v-else-if="account.limited") 짤짤이
+                    span.badge.badge-success(v-else) 완통                  
+                  //- 배팅
+                  td
+                    span.badge.badge-pill.badge-secondary {{account.betCount||0}}
+                  td
+                    button.btn.btn-sm.btn-danger(v-on:click="resurrectionAccount(account._id)")
+                      |살리기
+              tbody(v-else)
                 tr(v-for="account, i in accounts")
                   td {{i+1}}
                   td {{account.number}}

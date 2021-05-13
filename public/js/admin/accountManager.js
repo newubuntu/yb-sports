@@ -146,7 +146,14 @@ let Vapp;
           case 0: await this.loadList(); break;
           case 1: await this.loadList(0, 1); break;
           case 2: await this.loadList(0, 2); break;
-          case 3: await this.loadList(0, 3); break;
+          case 4: await this.loadList(0, 4); break;
+          case 5:
+            if(user.master){
+              await this.loadList(0, 4);
+            }else{
+              await this.loadList();
+            }
+          break;
 
           default:
             await this.loadList();
@@ -302,6 +309,11 @@ let Vapp;
             query.trash = true;
             query.curPage = curPage;
           break;
+
+          case 5: // 휴지통 리스트
+            query.removed = true;
+            query.curPage = curPage;
+          break;
         }
 
         // if(email){
@@ -387,6 +399,10 @@ let Vapp;
       loadTrashList(curPage=0){
         // trash list
         this.loadList(curPage, 4, this.getCurrentSearchInfo());
+      },
+
+      loadRemoveList(curPage=0){
+        this.loadList(curPage, 5, this.getCurrentSearchInfo());
       },
 
       getAccountForm(){
@@ -633,6 +649,24 @@ let Vapp;
           modal("알림", `계정 '${account.id}' 을 제거했습니다`);
         }else{
           modal("알림", `계정제거 실패.<br>${res.message}`);
+        }
+      },
+
+      async resurrectionAccount(id){
+        let account = this.getAccountObj(id);
+        if(!account){
+          modal("알림", `${id} 계정을 찾을 수 없습니다.`);
+          return;
+        }
+        if(!(await modal("계정부활", `계정 '${account.id}'을 복구하시겠습니까?`, {buttons:["취소", "복구"]}))) return;
+
+        let res = await api.resurrectionAccount(id);
+        if(res.status == "success"){
+          // this.pullAccountObj(id);
+          await this.loadList(this.curPage, this.tab);
+          modal("알림", `계정 '${account.id}' 을 복구했습니다`);
+        }else{
+          modal("알림", `계정부활 실패.<br>${res.message}`);
         }
       },
 

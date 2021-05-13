@@ -202,9 +202,20 @@ module.exports = MD=>{
     // console.log(req.body);
     let {
       ids, used, trash, firstCharged, withSkrill, searchId,
-      offset, limit, curPage, email, requestedDeposit
+      offset, limit, curPage, email, requestedDeposit, removed
     } = req.body;
 
+    if(removed){
+      if(!req.user.master){
+        res.json({
+          status: "fail",
+          message: "권한이 없는 요청입니다."
+        })
+        return;
+      }
+    }else{
+      removed = false;
+    }
     // used == undefined -> all
     // used == true -> used account
     // used == false -> no used account
@@ -213,7 +224,7 @@ module.exports = MD=>{
     // limit
 
     let accounts;
-    let query = {removed:false};
+    let query = {removed};
     if(ids){
       query._id = ids;
     }
@@ -364,6 +375,26 @@ module.exports = MD=>{
       status: "success"
     })
   }))
+
+  router.get("/resurrection_account/:id", authMaster, task(async (req, res)=>{
+    let id = req.params.id;
+    let account = await Account.findOne({_id:id, removed:true});
+    if(!account){
+      res.json({
+        status: "fail",
+        message: "제거목록에서 계정을 찾을 수 없습니다."
+      })
+      return;
+    }
+
+    account.removed = false;
+    await account.save();
+
+    res.json({
+      status: "success"
+    })
+  }));
+
 
   // 관리자 계정관리에서 계정 제거시.
   router.get("/remove_account/:id", authAdmin, task(async (req, res)=>{

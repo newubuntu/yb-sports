@@ -288,6 +288,10 @@ let api = (()=>{
       return ax("/remove_account/" + id);
     },
 
+    resurrectionAccount(id){
+      return ax("/resurrection_account/" + id);
+    },
+
     removeAccountUser(id){
       return ax("/remove_account_user/" + id);
     },
