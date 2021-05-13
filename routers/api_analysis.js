@@ -63,10 +63,10 @@ module.exports = MD=>{
   } = MD;
 
   let groupMap = {
-    day: {$dateToString:{ format: "%Y-%m-%d", date: "$createdAt"}},
+    day: {$dateToString:{ format: "%Y-%m-%d", date: "$createdAt", timezone:'Asia/Seoul'}},
     week: {$week: "$createdAt"},
-    month: {$dateToString:{ format: "%Y-%m", date: "$createdAt"}},
-    year: {$dateToString:{ format: "%Y", date: "$createdAt"}}
+    month: {$dateToString:{ format: "%Y-%m", date: "$createdAt", timezone:'Asia/Seoul'}},
+    year: {$dateToString:{ format: "%Y", date: "$createdAt", timezone:'Asia/Seoul'}}
   }
 
   let bdhMap = {'<':'$lt', '<=':'$lte', '>':'$gt', '>=':'$gte', '==':'$eq', '!=':'$not'};
