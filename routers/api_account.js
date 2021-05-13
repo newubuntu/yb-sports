@@ -175,7 +175,7 @@ module.exports = MD=>{
     accounts = await Account.find({user:null, firstCharged:true, removed:false, trash:false})
     .select(["-skrillId", "-skrillPw", "-skrillCode"])
     // .select(["id", "money"])
-    .limit(config.ACCOUNT_LIST_COUNT_PER_PAGE)
+    // .limit(config.ACCOUNT_LIST_COUNT_PER_PAGE)
     .sort({createdAt:1});
 
     let setting = await getSetting();
