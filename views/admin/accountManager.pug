@@ -148,7 +148,7 @@ block view
                   td {{(new Date(account.createdAt)).toLocaleDateString()}}
                   //- 상태
                   td
-                    span.badge.badge-danger(v-if="account.die") 졸업
+                    span.badge.badge-danger(v-if="account.died") 졸업
                     span.badge.badge-warning(v-else-if="account.limited") 짤짤이
                     span.badge.badge-success(v-else) 완통                  
                   //- 배팅
@@ -182,7 +182,7 @@ block view
                   td(v-else) ${{comma(account.money)}}
                   //- 상태
                   td
-                    span.badge.badge-danger(v-if="account.die") 졸업
+                    span.badge.badge-danger(v-if="account.died") 졸업
                     span.badge.badge-warning(v-else-if="account.limited") 짤짤이
                     span.badge.badge-success(v-else) 완통                  
                   //- 배팅
