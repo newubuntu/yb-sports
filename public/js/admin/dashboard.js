@@ -899,11 +899,12 @@ let Vapp;
       },
 
       accountBtnHtml(account){
+        let colorClass = account.limited?'text-warning':account.died?'text-danger':'text-success';
         return `<button class="btn btn-square btn-secondary btn-account" type="button">
             <svg class="icon-svg" style="width: 30px;height: 17px;">
               <use xlink:href="/vendors/@coreui/icons/sprites/flag.svg#cif-${account.country.toLowerCase()}"></use>
             </svg>
-            [${account.number}] ${account.id}
+            <span class="${colorClass}">${account.id} ($${account.money})</span>
           </button>`
       },
 
