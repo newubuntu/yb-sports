@@ -253,7 +253,11 @@ let Vapp;
 
         if(name == "mainChart"){
           let datas = [[],[]];
+          let stakeSum = 0, profitSum = 0, count = 0;
           data.forEach(d=>{
+            count++;
+            stakeSum += d.bookmakerStake;
+            profitSum += d.bookmakerProfit;
             datas[0].push(round(d.bookmakerStake));
             datas[1].push(round(d.bookmakerProfit));
             max = Math.max(max, Math.max(d.bookmakerStake, d.bookmakerProfit));
@@ -285,6 +289,11 @@ let Vapp;
               data: datas[1]
             }
           ]
+
+          Vapp.totalRealStake = round(stakeSum);
+          Vapp.totalRealProfit = round(profitSum);
+          Vapp.totalRealProfitP = round(profitSum/stakeSum*100,2) + '%';
+          Vapp.totalRealProfitCount = count + Vapp.period;
 
           // charts[name].options.plugins.tooltip.callback = {
           //   footer: function(tooltipItems){
@@ -507,8 +516,12 @@ let Vapp;
       oddsCon2: null,
       graphType: "line",
       period: "day",
-      totalProfitFlowP: 0,
+      totalProfitFlowP: '0%',
       totalProfitFlowCount: 0,
+      totalRealStake: 0,
+      totalRealProfit: 0,
+      totalRealProfitP: '0%',
+      totalRealProfitCount: 0,
       result: {}
       // users: [],
       // user: user
