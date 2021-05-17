@@ -290,8 +290,8 @@ let Vapp;
             }
           ]
 
-          Vapp.totalRealStake = round(stakeSum);
-          Vapp.totalRealProfit = round(profitSum);
+          Vapp.totalRealStake = comma(round(stakeSum));
+          Vapp.totalRealProfit = comma(round(profitSum));
           Vapp.totalRealProfitP = round(profitSum/stakeSum*100,2) + '%';
           Vapp.totalRealProfitCount = count + Vapp.period;
 
