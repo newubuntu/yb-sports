@@ -307,9 +307,9 @@ let Vapp;
           }
         }else if(name == "profitFlowChart"){
           data = data.map(d=>{
-            max = Math.max(max, d.bookmakerProfitP);
-            min = Math.min(min, d.bookmakerProfitP);
-            return round(d.bookmakerProfitP,2);
+            max = Math.max(max, d.bookmakerAvgProfitP);
+            min = Math.min(min, d.bookmakerAvgProfitP);
+            return round(d.bookmakerAvgProfitP,2);
           })
           datasets= [{
             label: '수익률',

@@ -121,6 +121,16 @@ module.exports = MD=>{
           label: groupMap[period],
           account: "$account"
         },
+        betCount: {$sum: {
+          $cond: [
+            {$or:[
+              {$eq: ["$betStatus", "LOSE"]},
+              {$eq:["$betStatus", "WON"]}
+            ]},
+            1,
+            0
+          ]
+        }},
         bookmakerProfit: {$sum: {
           $cond: [
             {$eq: ["$betStatus", "LOSE"]},
@@ -137,11 +147,19 @@ module.exports = MD=>{
       })
       .group({
         _id: {label: "$_id.label"},
-        bookmakerAvgProfit: {$avg:"$bookmakerProfit"}
+        bookmakerAvgProfit: {$avg:{
+          $cond:[
+            {$gte:["$betCount", 10]},
+            "$bookmakerProfit",
+            0
+          ]
+        }}
+        // bookmakerAvgProfit: {$avg:"$bookmakerProfit"}
       })
       .project({
         // bookmakerProfitP: {$divide:["$bookmakerAvgProfit", 400]}
-        bookmakerProfitP: {$multiply:[{$divide:["$bookmakerAvgProfit", 400]},100]}
+        // bookmakerAvgProfit: 1,
+        bookmakerAvgProfitP: {$multiply:[{$divide:["$bookmakerAvgProfit", 400]},100]}
       })
       .sort({_id:1});
 
