@@ -139,6 +139,8 @@ block view
                       use(xlink:href="/vendors/@coreui/icons/svg/free.svg#cil-cloud-download")          
               .c-chart-wrapper(style="height:300px;margin-top:40px;")
                 canvas.chart(id="mainChart" height="300")
+        .card
+          .card-body
             div
               .d-flex.justify-content-between
                 div
@@ -146,6 +148,15 @@ block view
                   //- .small.text-mutedSeptember 2019                  
               .c-chart-wrapper(style="height:300px;margin-top:40px;")
                 canvas.chart(id="profitFlowChart" height="300")
+          .card-footer
+            .row.text-center
+              .col-sm-12.col-md.mb-sm-2.mb-0
+                .text-muted 총 수익률
+                strong {{totalProfitFlowP}} ({{totalProfitFlowCount}})
+                //- .progress.progress-xs.mt-2
+                  .progress-bar.bg-gradient-info(role="progressbar" :style="'width:'+totalProfitFlowP" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100")
+        .card
+          .card-body
             div
               .d-flex.justify-content-between
                 div
@@ -159,12 +170,16 @@ block view
                   //- .small.text-mutedSeptember 2019                  
               .c-chart-wrapper(style="height:300px;margin-top:40px;")
                 canvas.chart(id="stakeChart" height="300")
+        .card
+          .card-body
             div
               .d-flex.justify-content-between
                 div
                   h4.card-title.mb-0 종목별 수익 그래프
               .c-chart-wrapper(style="height:300px;margin-top:40px;")
                 canvas.chart(id="sportsChart" height="300")
+        .card
+          .card-body
             div
               .d-flex.justify-content-between
                 div

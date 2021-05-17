@@ -306,9 +306,12 @@ let Vapp;
             }
           }
         }else if(name == "profitFlowChart"){
+          let sum = 0, count = 0;
           data = data.map(d=>{
             max = Math.max(max, d.bookmakerAvgProfitP);
             min = Math.min(min, d.bookmakerAvgProfitP);
+            sum += d.bookmakerAvgProfitP;
+            count++;
             return round(d.bookmakerAvgProfitP,2);
           })
           datasets= [{
@@ -322,6 +325,8 @@ let Vapp;
             data: data
           }]
 
+          Vapp.totalProfitFlowP = round(sum,2) + '%';
+          Vapp.totalProfitFlowCount = count + Vapp.period;
 
           charts[name].options.scales.y = {
             suggestedMin: min,
@@ -502,6 +507,8 @@ let Vapp;
       oddsCon2: null,
       graphType: "line",
       period: "day",
+      totalProfitFlowP: 0,
+      totalProfitFlowCount: 0,
       result: {}
       // users: [],
       // user: user
