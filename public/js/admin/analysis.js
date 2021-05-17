@@ -224,10 +224,13 @@ let Vapp;
   function updateChart(name, data, graphType, period){
     console.log("updateChart", name, data, period);
 
-
     if(!charts[name]){
       console.log('setupChart for update', name);
       setupChart();
+    }
+
+    if(!charts[name]){
+      return;
     }
 
     if(data.length){
@@ -407,7 +410,6 @@ let Vapp;
       // console.log({labels, datasets})
 
 
-
       charts[name].data.labels = labels;
       charts[name].data.datasets = datasets;
       charts[name].update();
@@ -439,6 +441,7 @@ let Vapp;
   // }
 
   function setupChart() {
+    // return;
     for(let name in charts){
       if(!chartsCfgs[name]){
         console.error("not found chart cfg", name);
@@ -448,6 +451,7 @@ let Vapp;
         continue;
       }
       let el = document.getElementById(name);
+      // console.error(name, el)
       if(!el){
         console.error("not found chart element", name);
         continue;

@@ -1372,8 +1372,8 @@ function updateBet365Link(data){
 }
 
 function randomRatio(){
-  let start = 0.9;
-  let end = 0.95;
+  let start = 0.95;
+  let end = 1;
   // return Math.random()*0.05+0.95;
   // return Math.random()*0.45+0.5;
   return Math.random() * (end-start) + start;
@@ -1551,7 +1551,7 @@ async function reLogin(){
 }
 
 function setBet365RandomStake(data, stake){
-  return;
+  // return;
 
   let ratio = randomRatio();
   let nbm;

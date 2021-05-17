@@ -292,27 +292,27 @@ module.exports = MD=>{
     .match(query)
     .group({
       _id: 'null',
-      bookmakerStake: {$sum: {
-        $cond: [
-          {$or:[
-            {$eq: ["$betStatus", "LOSE"]},
-            {$eq: ["$betStatus", "WON"]}
-          ]},
-          "$bookmakerStake",
-          0
-        ]
-      }},
-      bookmakerProfit: {$sum: {
-        $cond: [
-          {$eq: ["$betStatus", "LOSE"]},
-          {$multiply: ["$bookmakerStake", {$subtract:["$bookmakerOdds",1]}]},
-          {$cond:[
-            {$eq:["$betStatus", "WON"]},
-            {$subtract:[0,"$bookmakerStake"]},
-            0
-          ]}
-        ]
-      }},
+      // bookmakerStake: {$sum: {
+      //   $cond: [
+      //     {$or:[
+      //       {$eq: ["$betStatus", "LOSE"]},
+      //       {$eq: ["$betStatus", "WON"]}
+      //     ]},
+      //     "$bookmakerStake",
+      //     0
+      //   ]
+      // }},
+      // bookmakerProfit: {$sum: {
+      //   $cond: [
+      //     {$eq: ["$betStatus", "LOSE"]},
+      //     {$multiply: ["$bookmakerStake", {$subtract:["$bookmakerOdds",1]}]},
+      //     {$cond:[
+      //       {$eq:["$betStatus", "WON"]},
+      //       {$subtract:[0,"$bookmakerStake"]},
+      //       0
+      //     ]}
+      //   ]
+      // }},
       result: {
         $accumulator: {
           init: function(){
@@ -361,8 +361,8 @@ module.exports = MD=>{
     if(resultObj[0]){
       result = resultObj[0].result;
 
-      result.bookmakerStake = resultObj[0].bookmakerStake;
-      result.bookmakerProfit = resultObj[0].bookmakerProfit;
+      // result.bookmakerStake = resultObj[0].bookmakerStake;
+      // result.bookmakerProfit = resultObj[0].bookmakerProfit;
 
     }else{
       result = {};
