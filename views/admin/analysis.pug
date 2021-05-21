@@ -186,7 +186,7 @@ block view
                 div
                   h4.card-title.mb-0 종목별 수익 그래프
               .c-chart-wrapper(style="height:300px;margin-top:40px;")
-                canvas.chart(id="sportsChart" height="300")
+                canvas.chart(id="sportsChart" height="300")          
         .card
           .card-body
             div
@@ -196,7 +196,12 @@ block view
               .c-chart-wrapper(style="height:300px;margin-top:40px;")
                 canvas.chart(id="betTypeChart" height="300")
           .card-footer
-            //- .row.text-center
+            .row.text-center
+              .col-sm-12.col-md.mb-sm-2.mb-0(v-for="betType in betTypeList")
+                .text-muted
+                strong {{betType}} ${{comma(betTypeSum[betType])}}({{betTypeCount[betType] + period}})
+          //- .card-footer
+            .row.text-center
               .col-sm-12.col-md.mb-sm-2.mb-0
                 .text-muted Visits
                 strong 29.703 Users (40%)

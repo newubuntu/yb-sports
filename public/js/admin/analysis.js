@@ -363,11 +363,24 @@ let Vapp;
             return r;
           }, {})
 
+          let keySum = {};
+          let keyCount = {};
+
           datasets = Object.keys(keys).map(key=>{
             let color = randomColor();
             return {
               label: key,
               data: list.map(d=>{
+                if(keySum[key] === undefined){
+                  keySum[key] = 0;
+                }
+                if(keyCount[key] === undefined){
+                  keyCount[key] = 0;
+                }
+                if(d[key]){
+                  keySum[key] += d[key];
+                  keyCount[key]++;
+                }
                 return d[key] === undefined ? NaN : d[key]
               }),
               backgroundColor: hexToRgbA(color, 0.1),
@@ -386,6 +399,13 @@ let Vapp;
               display: true,
               text: '$'
             }
+          }
+
+          if(name == "betTypeChart"){
+            let list = datasets.map(a=>a.label);
+            Vapp.betTypeList = list;
+            Vapp.betTypeSum = keySum;
+            Vapp.betTypeCount = keyCount;
           }
         }
 
@@ -522,6 +542,8 @@ let Vapp;
       totalRealProfit: 0,
       totalRealProfitP: '0%',
       totalRealProfitCount: 0,
+      betTypeList: [],
+      betTypeSum: {},
       result: {}
       // users: [],
       // user: user
