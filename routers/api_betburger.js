@@ -226,6 +226,7 @@ module.exports = MD=>{
       })
       .filter(a=>!!a)
       .filter(check)
+      .sort(sort)
       .map(bets=>{
         return bets.reduce((r,bet)=>{
           r[bet.bookmaker] = bet;
@@ -388,6 +389,13 @@ module.exports = MD=>{
     }
 
     return true;
+  }
+
+  // bets
+  function sort(a, b){
+    if(a[0].betType == "MONEYLINE") return 1;
+    if(b[0].betType == "MONEYLINE") return -1;
+    return b[0].profitP - a[0].profitP;
   }
 
   function makeBetsGroup(data){

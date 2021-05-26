@@ -13,6 +13,7 @@
   const cors = require('cors');
   const ios = require('express-socket.io-session');
   const {forceDomain} = require('forcedomain');
+  const multer = require('multer');
 
   // const FileStore = require('session-file-store')(session);
   // const MongoStore = require('connect-mongo')(session);
@@ -703,8 +704,20 @@
 
 
 
+  //////////////////////////////////////////////////////////
+  //// 업로드
+  //////////////////////////////////////////////////////////
 
+  const upload = multer({ dest: 'uploads/', limits: { fileSize: 5 * 1024 * 1024 } });
+  app.get('/event/regist', (req, res)=>{
+    res.render('eventRegister', {param:{email:req.query.email}});
+  })
+  app.post('/up', upload.array('img'), (req, res) => {
+    console.log(req.files);
+  });
 
+  //////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////
 
 
 
