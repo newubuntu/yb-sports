@@ -393,9 +393,13 @@ module.exports = MD=>{
 
   // bets
   function sort(a, b){
-    if(a[0].betType == "MONEYLINE") return 1;
-    if(b[0].betType == "MONEYLINE") return -1;
-    return b[0].profitP - a[0].profitP;
+    if(a[0].betType == b[0].betType){
+      return b[0].profitP - a[0].profitP;
+    }else{
+      if(a[0].betType == "MONEYLINE") return 1;
+      if(b[0].betType == "MONEYLINE") return -1;
+      return b[0].profitP - a[0].profitP;
+    }
   }
 
   function makeBetsGroup(data){
