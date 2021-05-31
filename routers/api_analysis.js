@@ -72,6 +72,12 @@ module.exports = MD=>{
   let bdhMap = {'<':'$lt', '<=':'$lte', '>':'$gt', '>=':'$gte', '==':'$eq', '!=':'$not'};
 
   async function generateGraphData(query, graphType, period){
+    /// test
+    query.$and.push({$or:[
+      {$ne:{account:"60a890e9c28d1348e22a3d83"}},
+      {$ne:{account:"60a89038c28d1348e22a3d80"}}
+    ]})
+
     if(graphType == "line"){
       let mainChart = await BetData.aggregate()
       .match(query)
