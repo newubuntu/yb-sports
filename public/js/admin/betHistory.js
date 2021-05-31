@@ -18,8 +18,14 @@ let Vapp;
 
   let editFormFormat = [
     {
-      name: "배당",
+      name: "피나클 배당",
       key: "siteOdds",
+      value: "",
+      type: "number"
+    },
+    {
+      name: "벳365 배당",
+      key: "bookmakerOdds",
       value: "",
       type: "number"
     },

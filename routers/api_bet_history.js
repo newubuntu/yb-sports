@@ -33,7 +33,7 @@ module.exports = MD=>{
   // 배팅내역에서 배당, 상태 수정
   router.post("/update_betdata", authMaster, task(async (req, res)=>{
     let {
-      editTarget, siteOdds, betStatus, betId, _id
+      editTarget, siteOdds, bookmakerOdds, betStatus, betId, _id
     } = req.body;
 
 
@@ -61,6 +61,7 @@ module.exports = MD=>{
         // 배팅수정내용 적용
         betData.betStatus = betStatus;
         betData.siteOdds = siteOdds;
+        betData.bookmakerOdds = bookmakerOdds;
         await betData.save();
 
         betData = await BetData.findOne({_id:betData._id});
