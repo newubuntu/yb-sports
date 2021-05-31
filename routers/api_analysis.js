@@ -114,6 +114,84 @@ module.exports = MD=>{
       })
       .sort({_id:1});
 
+      let t1 = await BetData.aggregate()
+      .match(query)
+      .group({
+        _id:{
+          label: groupMap[period],
+          account: "$account"
+        },
+        betCount: {$sum: {
+          $cond: [
+            {$or:[
+              {$eq: ["$betStatus", "LOSE"]},
+              {$eq:["$betStatus", "WON"]}
+            ]},
+            1,
+            0
+          ]
+        }},
+        bookmakerProfit: {$sum: {
+          $cond: [
+            {$eq: ["$betStatus", "LOSE"]},
+            {$multiply: ["$bookmakerStake", {$subtract:["$bookmakerOdds",1]}]},
+            {$cond:[
+              {$eq:["$betStatus", "WON"]},
+              {$subtract:[0,"$bookmakerStake"]},
+              0
+            ]}
+          ]
+        }}
+        // bookmakerMaxProfit: {$max:["$bookmakerProfit"]}
+        // bookmakerProfitP: {$divide: ["$bookmakerProfit", 400]}
+      })
+
+
+
+      let t2 = await BetData.aggregate()
+      .match(query)
+      .group({
+        _id:{
+          label: groupMap[period],
+          account: "$account"
+        },
+        betCount: {$sum: {
+          $cond: [
+            {$or:[
+              {$eq: ["$betStatus", "LOSE"]},
+              {$eq:["$betStatus", "WON"]}
+            ]},
+            1,
+            0
+          ]
+        }},
+        bookmakerProfit: {$sum: {
+          $cond: [
+            {$eq: ["$betStatus", "LOSE"]},
+            {$multiply: ["$bookmakerStake", {$subtract:["$bookmakerOdds",1]}]},
+            {$cond:[
+              {$eq:["$betStatus", "WON"]},
+              {$subtract:[0,"$bookmakerStake"]},
+              0
+            ]}
+          ]
+        }}
+        // bookmakerMaxProfit: {$max:["$bookmakerProfit"]}
+        // bookmakerProfitP: {$divide: ["$bookmakerProfit", 400]}
+      })
+      .group({
+        _id: {label: "$_id.label"},
+        bookmakerAvgProfit: {$avg:{
+          $cond:[
+            {$gte:["$betCount", 10]},
+            "$bookmakerProfit",
+            0
+          ]
+        }}
+        // bookmakerAvgProfit: {$avg:"$bookmakerProfit"}
+      })
+
+
       let profitFlowChart = await BetData.aggregate()
       .match(query)
       .group({
@@ -162,6 +240,8 @@ module.exports = MD=>{
         bookmakerAvgProfitP: {$multiply:[{$divide:["$bookmakerAvgProfit", 400]},100]}
       })
       .sort({_id:1});
+
+
 
       let sportsChart = await BetData.aggregate()
       .match(query)
@@ -226,6 +306,10 @@ module.exports = MD=>{
         }}
       })
       .sort({_id:1});
+
+      console.log("===t1", t1);
+      console.log("===t2", t2);
+      console.log("===t3", profitFlowChart);
 
       return {mainChart, sportsChart, betTypeChart, profitFlowChart, oddsChart};
     }else if(graphType == "radar"){
