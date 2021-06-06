@@ -316,6 +316,8 @@ let api = (()=>{
       return ax("/get_user", {email}, "POST");
     },
 
+
+
     // for admin
     getEmailList(){
       return ax("/get_user_email_list", null, "GET");
@@ -337,6 +339,17 @@ let api = (()=>{
       return ax("/get_users", opt, "POST");
     },
 
+    // admin
+    getEventUsers(opt){
+      opt = Object.assign({
+        ids: undefined,
+        offset: undefined,
+        limit: undefined,
+        curPage: undefined
+      }, opt||{})
+      return ax("/get_event_users", opt, "POST");
+    },
+
     updateMoney(id, data){
       return ax("/update_money/" + id, data, "POST");
     },
@@ -353,8 +366,32 @@ let api = (()=>{
       return ax("/update_user/" + id, user, "POST");
     },
 
+    updateEventUser(id, user){
+      return ax("/update_event_user/" + id, user, "POST");
+    },
+
     removeUser(id){
       return ax("/remove_user/" + id);
+    },
+
+    removeEventUser(id){
+      return ax("/remove_event_user/" + id);
+    },
+
+    payEventUser(id, code){
+      return ax("/pay_event_user/" + id + '/' + code);
+    },
+
+    payEventRecommender(id, code){
+      return ax("/pay_event_recomender/" + id + '/' + code);
+    },
+
+    approveEventUser(id){
+      return ax("/approve_event_user/" + id);
+    },
+
+    requestApproveEventUser(id, link){
+      return ax("/request_approve_event_user/" + id, {link}, "POST");
     },
 
     registOption(payload){

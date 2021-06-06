@@ -4,3 +4,4 @@ download
 backup_db
 *.log
 package-lock.json
+uploads

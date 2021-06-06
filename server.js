@@ -14,6 +14,10 @@
   const ios = require('express-socket.io-session');
   const {forceDomain} = require('forcedomain');
   const multer = require('multer');
+  const path = require('path');
+  // const sharp = require('sharp');
+  const fs = require('fs');
+  const {v4:uuidv4} = require('uuid');
 
   // const FileStore = require('session-file-store')(session);
   // const MongoStore = require('connect-mongo')(session);
@@ -41,6 +45,8 @@
   const Account = require('./models/Account');
   const Approval = require('./models/Approval');
 
+  const EventMember = require('./models/EventMember');
+
   const config = require('./config');
 
 
@@ -54,159 +60,6 @@
 
   io.adapter(IoRedis({ host: 'localhost', port: 6379 }));
 
-  // let socketMap = {
-  //   domain: function(root, key, value){
-  //     if(!key) return root;
-  //     let s,o,p = key.split('|');
-  //     key = p.pop();
-  //     o = root;
-  //     while(1){
-  //       s=p.shift();
-  //       if(!s) break;
-  //       if(!o[s]) o[s] = {};
-  //       o = o[s];
-  //     }
-  //     if(value !== undefined){
-  //       // console.error("!!", root, o, key, value);
-  //       o[key] = value;
-  //     }
-  //     return o[key];
-  //   },
-  //   _del: function(root, key){
-  //     let s,o,p = key.split('|');
-  //     key = p.pop();
-  //     o = root;
-  //     while(1){
-  //       s=p.shift();
-  //       if(!s) break;
-  //       if(!o[s]) o[s] = {};
-  //       o = o[s];
-  //     }
-  //     delete o[key];
-  //   },
-  //   getStore: function(){
-  //     return new Promise(resolve=>{
-  //       redisClient.get("smap", (err, store)=>{
-  //         if(store){
-  //           resolve(JSON.parse(store));
-  //         }else{
-  //           resolve({});
-  //         }
-  //       })
-  //     })
-  //   },
-  //   setStore: function(store){
-  //     redisClient.set("smap", JSON.stringify(store));
-  //   },
-  //   set: async function(key, value){
-  //     let store = await this.getStore();
-  //     this.domain(store, key, value);
-  //     this.setStore(store);
-  //   },
-  //   get: async function(key){
-  //     let store = await this.getStore();
-  //     // console.log("get", key, store);
-  //     return this.domain(store, key);
-  //   },
-  //   del: async function(key){
-  //     // let store = redisClient.get("smap") || {};
-  //     let store = await this.getStore();
-  //     this._del(store, key);
-  //     this.setStore(store);
-  //   },
-  //   join: async function(room, socket, reset){
-  //     if(room instanceof mongoose.Types.ObjectId){
-  //       room = room.toString();
-  //     }
-  //     if(reset){
-  //       await this.del(room);
-  //     }
-  //     // console.error("@@join", room, socket.id);
-  //     await this.set(`${room}|${socket.id}`, 1);
-  //   },
-  //   leave: function(room, socket){
-  //     if(room instanceof mongoose.Types.ObjectId){
-  //       room = room.toString();
-  //     }
-  //     return this.del([room, socket?socket.id:''].filter(a=>!!a).join('|'));
-  //   },
-  //   list: async function(room){
-  //     if(room instanceof mongoose.Types.ObjectId){
-  //       room = room.toString();
-  //     }
-  //     if(room){
-  //       let a = await this.get(room);
-  //       if(a){
-  //         return Object.keys(a);
-  //       }else{
-  //         return [];
-  //       }
-  //     }else{
-  //       return this.get();
-  //     }
-  //   },
-  //   emit: function(room, ...rest){
-  //     this.list(room).then(ids=>{
-  //       ids.forEach(id=>{
-  //         let ctx = io.to(id);
-  //         // ctx.emit.apply(ctx, rest);
-  //         // ctx.emit.apply(ctx, rest);
-  //         console.error("###@@@1", room, id);
-  //         if(ctx.sockets.sockets.get(id)){
-  //           console.error("###@@@2", room, id);
-  //           ctx.emit.apply(ctx, rest);
-  //         }
-  //         // else{
-  //         //   this.del(`${room}|${id}`);
-  //         // }
-  //       })
-  //     })
-  //   },
-  //   reset: function(){
-  //     this.setStore({});
-  //   },
-  //   setCount: function(key, c){
-  //     return this.set(key, c);
-  //   }
-  // }
-  //
-  // io.$ = socketMap;
-
-  // console.error("@@@@@", io.to("test"));
-  // io.$.reset();
-  // test
-  // (async ()=>{
-  //   // let s1 = {id:"s1"};
-  //   // let s2 = {id:"s2"};
-  //   // let s3 = {id:"s3"};
-  //
-  //   // socketMap.join("checker", s1);
-  //   // socketMap.join("checker", s2);
-  //   // socketMap.join("drumtj@gmail.com", s1);
-  //   // socketMap.join("__program__", s1);
-  //   // socketMap.join("program", s1);
-  //   // socketMap.join("program", s2);
-  //   // socketMap.join("program", s3);
-  //   console.error("---------------");
-  //   console.error("__program__", await socketMap.list("__program__"));
-  //   console.error("drumtj@gmail.com", await socketMap.list("drumtj@gmail.com"));
-  //   console.error("---------------");
-  // })()
-
-  // io.adapter(initRedisAdapter(6379, 'localhost'));
-  // function initRedisAdapter(port,host) {
-  //   var pub = redis.createClient(port,host,{detect_buffers: true});
-  //   pub.on('error',onRedisError);
-  //   var sub = redis.createClient(port,host,{detect_buffers: true});
-  //   sub.on('error',onRedisError);
-  //   var redisAdapter = IoRedis({ pubClient: pub, subClient: sub });
-  //   function onRedisError(err){
-  //     console.error("Redis error: ",err);
-  //   }
-  //   return redisAdapter;
-  // }
-
-  // io.adapter(socketRedis({ host: 'localhost', port: 6379 }));
 
   mongoose.set('useFindAndModify', false);
   mongoose.set('useCreateIndex', true);
@@ -465,6 +318,10 @@
       name: "분석",
       admin: true
     },{
+      link: "/admin/eventMemberManager",
+      name: "이벤트 회원관리",
+      admin: true
+    },{
       link: "/admin/dashboard",
       name: "[마스터] 원격 대시보드",
       admin: true,
@@ -522,7 +379,12 @@
       res.redirect(backURL);
       return;
     }
-    if(!req.session.user && req.url != '/login' && req.url != '/admin' && req.url.indexOf('/register') == -1){
+    if(
+      !req.session.user && req.url != '/login'
+      && req.url != '/admin'
+      && req.url.indexOf('/register') == -1
+      && req.url.indexOf('/event/member/regist') == -1
+    ){
       //console.log(req);
       res.redirect('/login');
       return;
@@ -708,13 +570,91 @@
   //// 업로드
   //////////////////////////////////////////////////////////
 
-  const upload = multer({ dest: 'uploads/', limits: { fileSize: 5 * 1024 * 1024 } });
-  app.get('/event/regist', (req, res)=>{
-    res.render('eventRegister', {param:{email:req.query.email}});
+  function task(cb){
+    return function(req, res){
+      try{
+        cb(req, res);
+      }catch(e){
+        console.error(e);
+        res.status(500).json({
+          status: "fail",
+          message: e.message
+        });
+      }
+    }
+  }
+
+  // const upload = multer({ dest: 'public/uploads/', limits: { fileSize: 10 * 1024 * 1024 } });
+  app.get('/event/member/regist', (req, res)=>{
+    res.render('eventMemberRegist');
   })
-  app.post('/up', upload.array('img'), (req, res) => {
-    console.log(req.files);
+
+  app.post('/event/member/regist/check', task(async (req, res) => {
+    let member = await EventMember.findOne({email:req.body.email});
+    res.json({
+      status: "success",
+      has: !!member
+    })
+  }))
+
+  const storage = multer.diskStorage({
+    destination: function(req, file, cb){
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = `${today.getMonth() + 1}`.padStart(2, "0");
+      const date = `${today.getDate()}`.padStart(2, "0");
+      const folder = `public/uploads/${year}/${month}/${date}/`;
+      fs.mkdir(folder, { recursive: true }, (err) => {
+        if (err) throw err;
+        // console.log("make folder");
+        cb(null, folder);
+      });
+    },
+    filename: function(req, file, cb){
+      // console.log(file);
+      cb(null, uuidv4() + path.extname(file.originalname));
+    }
   });
+  const upload = multer({ storage, limits: { fileSize: 10 * 1024 * 1024 } });
+  app.post('/event/member/regist/upload', upload.array('photos'), task(async (req, res) => {
+    // console.log(req.body);
+    // console.log(req.files);
+    let data = req.body;
+    data.files = req.files;
+    data.ip = req.clientIp.replace('::ffff:', '');
+
+    if(data.files){
+      const fileUrl = `${req.protocol}://${req.get(
+        "host"
+      )}`
+      data.files.forEach(file=>{
+        file.url = fileUrl + file.destination.replace('public', '') + file.filename;
+      })
+    }
+
+    let member = await EventMember.findOne({email:data.email});
+    if(member){
+      res.json({
+        status: "fail",
+        message: "이미 가입신청됐습니다."
+      })
+      return;
+    }
+
+    if(data.fromEmail){
+      let m = await EventMember.findOne({email:data.fromEmail});
+      if(m){
+        data.recommender = m._id;
+        // data.availableRecommender = true;
+      }
+    }
+
+    await EventMember.create(data);
+
+    res.json({
+      status: "success"
+    })
+  }));
 
   //////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////

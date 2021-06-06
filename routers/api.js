@@ -7,6 +7,9 @@ const {promisify} = require('util');
 const setRedis = promisify(redisClient.set).bind(redisClient);
 const getRedis = promisify(redisClient.get).bind(redisClient);
 
+const nodemailer = require('nodemailer');
+
+
 // const session = require("express-session");
 const mongoose = require("mongoose");
 const User = require('../models/User');
@@ -27,6 +30,7 @@ const BenEvent = require('../models/BenEvent');
 const Withdraw = require('../models/Withdraw');
 const AccountWithdraw = require('../models/AccountWithdraw');
 const Proxy = require('../models/Proxy');
+const EventMember = require('../models/EventMember');
 
 let argv = process.argv.slice(2);
 
@@ -789,6 +793,7 @@ module.exports = io=>{
     DepositLog,
     Data,
     BackupHistory,
+    EventMember,
     authAdmin,
     authMaster,
     task,
@@ -803,12 +808,14 @@ module.exports = io=>{
     getSetting,
     calc,
     MoneyManager,
-    uuidv4
+    uuidv4,
+    nodemailer
   }
 
   require('./api_socket')(MD);
   require('./api_option')(MD);
   require('./api_user')(MD);
+  require('./api_event')(MD);
   require('./api_account')(MD);
   require('./api_proxy')(MD);
   require('./api_program')(MD);
@@ -1581,6 +1588,8 @@ module.exports = io=>{
       date: bh?bh.createdAt:null
     })
   }))
+
+
 
   return router;
 }
