@@ -624,11 +624,11 @@
     data.ip = req.clientIp.replace('::ffff:', '');
 
     if(data.files){
-      const fileUrl = `${req.protocol}://${req.get(
-        "host"
-      )}`
+      // const fileUrl = `${req.protocol}://${req.get(
+      //   "host"
+      // )}`
       data.files.forEach(file=>{
-        file.url = fileUrl + file.destination.replace('public', '') + file.filename;
+        file.url = file.destination.replace('public', '') + file.filename;
       })
     }
 
