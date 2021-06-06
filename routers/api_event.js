@@ -110,7 +110,16 @@ module.exports = MD=>{
     return info
   }
 
-  // for master
+
+  router.get("/get_event_user/:id", authAdmin, task(async (req, res)=>{
+    let id = req.params.id;
+    let user = await EventMember.findOne({_id:id}).populate("recommender").lean();
+    res.json({
+      status: "success",
+      data: {user}
+    })
+  }))
+
   router.post("/get_event_users", authAdmin, task(async (req, res)=>{
     // if(!req.user.master){
     //   res.json({
@@ -298,7 +307,7 @@ module.exports = MD=>{
 
   router.get("/remove_event_user/:id", authAdmin, task(async (req, res)=>{
 
-    let id = req.params.id;    
+    let id = req.params.id;
     await EventMember.deleteOne({_id:id});
 
     res.json({

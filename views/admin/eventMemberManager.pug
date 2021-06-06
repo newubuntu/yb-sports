@@ -26,13 +26,41 @@ block append styles
 
 block view
   h1
-    |[마스터] 회원관리 
+    |[마스터] 이벤트 회원관리 
     |(
     a(href="/event/member/regist" target="_blank") 가입링크
     |)
     
   hr
   .fade-in.pre-hide#app
+    .card.user-form
+      .card-body
+        .form-group.row(v-for="form in forms")      
+          label.col-md-3.col-form-label(:for="form.key") {{form.name}}
+          .col-md-9(v-if="form.type=='text'")
+            input.form-control(v-on:change="update" :id="form.key" type="text" :name="form.key" :placeholder="form.placeholder?form.placeholder:''" :value="form.value")
+            span.help-block(v-if="form.help") {{form.help}}
+          .col-md-9(v-if="form.type=='number'")
+            .input-group
+              .input-group-prepend(v-if="form.prepend")
+                span.input-group-text(v-html="form.prepend")
+              input.form-control(v-on:change="update" :id="form.key" type="number" :name="form.key" :placeholder="form.placeholder?form.placeholder:''" :value="form.value")
+              .input-group-append(v-if="form.append")
+                span.input-group-text(v-html="form.append")
+            span.help-block(v-if="form.help") {{form.help}}
+          .col-md-9(v-else-if="form.type=='select'")
+            select.form-control(v-on:change="update" :id="form.key" :name="form.key")          
+              option(v-for="opt in form.list" :value="opt.value" :selected="opt.value == form.value" v-html="opt.name")
+            span.help-block(v-if="form.help") {{form.help}}
+          .col-md-9.col-form-label(v-else-if="form.type=='radio'")
+            .form-check(v-for="opt in form.list")
+              input.form-check-input(v-on:change="update" :id="form.key+'_'+opt.value" type="radio" :checked="opt.value == form.value" :value="opt.value" :name="form.key")
+              label.form-check-label(:for="form.key+'_'+opt.value") {{opt.name}}
+          .col-md-9.col-form-label(v-else-if="form.type=='checkbox'")
+            .form-check.checkbox(v-for="opt in form.list")
+              input.form-check-input(v-on:change="update" :id="form.key+'_'+opt.value" type="checkbox" :checked="form.value[opt.value]")
+              label.form-check-label(:for="form.key+'_'+opt.value") {{opt.name}}
+              
     .auth-form
       .form-group.row
         label.col-md-3.col-form-label 인증링크 입력
@@ -128,6 +156,7 @@ block view
                   template(v-if="tab!=1&&tab!=4")
                     th 지급
                     th 추천인 지급
+                  th 상세
                   th(v-if="tab!=4") 휴지통
                   th(v-else) 복구
                   th 삭제
@@ -178,6 +207,9 @@ block view
                           |지급취소
                     template(v-else)
                       td
+                  td
+                    button.btn.btn-sm.btn-warning(type="button" v-on:click="openUserModal(user._id)")
+                      |상세
                   td(v-if="tab!=4")
                     button.btn.btn-sm.btn-danger(v-on:click="trashUser(user._id)")
                       |휴지통

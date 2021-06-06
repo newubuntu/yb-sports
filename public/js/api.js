@@ -350,6 +350,10 @@ let api = (()=>{
       return ax("/get_event_users", opt, "POST");
     },
 
+    getEventUser(id){
+      return ax("/get_event_user/" + id);
+    },
+
     updateMoney(id, data){
       return ax("/update_money/" + id, data, "POST");
     },

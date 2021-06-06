@@ -11,6 +11,46 @@ let Vapp;
     // })
   }
 
+  let userRegistFormFormat = [
+    {
+      name: "이름",
+      key: "name",
+      value: "",
+      type: "text"
+    },
+    {
+      name: "전화번호",
+      key: "phone",
+      value: "",
+      type: "text"
+    },
+    {
+      name: "이메일",
+      key: "email",
+      value: "",
+      type: "text"
+    }
+  ]
+
+  // list가 문자열로 된 것들을 오브젝트형태로 통일하자.
+  userRegistFormFormat.forEach(obj=>{
+    if(Array.isArray(obj.list)){
+      obj.list.forEach((item, i, arr)=>{
+        if(typeof item !== "object"){
+          arr[i] = {
+            name: item,
+            value: item
+          }
+        }
+      })
+    }
+  })
+
+  let defaultData = userRegistFormFormat.reduce((r, form)=>{
+    r[form.key] = form.value;
+    return r;
+  }, {})
+
   Vapp = new Vue({
     el: "#app",
     data: {
@@ -35,7 +75,9 @@ let Vapp;
       payCode: "",
       payPrice: 0,
       $authForm: null,
-      authLink: ""
+      authLink: "",
+      forms: [],
+      userId: ""
     },
     async created(){
       console.log("wait socketReady");
@@ -72,8 +114,15 @@ let Vapp;
 
       this.$authForm = $(".auth-form").remove();
 
+      this.forms = JSON.parse(JSON.stringify(userRegistFormFormat));
+      this.formsMap = this.forms.reduce((r,form)=>{
+        r[form.key] = form;
+        return r;
+      }, {});
+
       this.$nextTick(function() {
         $(this.$el).removeClass("pre-hide");
+        this.$form = $(".user-form").remove();
         appMountedResolve();
       })
     },
@@ -135,6 +184,98 @@ let Vapp;
           buttons: ["취소", "전송"],
           lock: true
         })
+      },
+
+      setUserData(user){
+        user = JSON.parse(JSON.stringify(user));
+        this.userId = user._id;
+        for(let key in this.formsMap){
+          // console.log(key, this.formsMap[key], account[key]);
+          if(this.formsMap[key]){
+            if(this.formsMap[key].isBoolean){
+              this.formsMap[key].value = user[key] ? user[key].toString() : "false";
+            }else{
+              this.formsMap[key].value = user[key] || "";
+            }
+          }
+        }
+        // this.$forceUpdate();
+      },
+
+      getUserData(){
+        let opt = {};
+        for(let key in this.formsMap){
+          if(this.formsMap[key].isBoolean){
+            try{
+              opt[key] = JSON.parse(this.formsMap[key].value);
+            }catch(e){
+              opt[key] = false;
+            }
+          }else{
+            opt[key] = this.formsMap[key].value;
+          }
+        }
+        opt._id = this.userId;
+        return JSON.parse(JSON.stringify(opt));
+      },
+
+      async openUserModal(id){
+        let res = await api.getEventUser(id);
+        let user;
+        // console.error(id, res);
+        if(res.status == "success"){
+          user = res.data.user;
+          // console.error("open option", id, option);
+        }else{
+          modal("알림", `정보 로딩 실패<br>${res.message}`);
+          return;
+        }
+        this.setUserData(user);
+
+        let btns;
+        if(this.tab <= 2){
+          btns = ['닫기', '저장'];
+        }else{
+          btns = ['닫기'];
+        }
+        let result = await modal("수정", this.$form, {
+          buttons: btns,
+          lock: true,
+          size: 'lg',
+          // validation: this.optionNameValidation
+        });
+
+        if(result){
+          user = this.getUserData();
+          res = await api.updateEventUser(user._id, user);
+          if(res.status == "success"){
+            await this.reload();
+          }else{
+            modal("알림", `수정 실패<br>${res.message}`);
+          }
+        }
+      },
+
+      update(event){
+        let key = event.target.id.split('_');
+        let value = event.target.value;
+
+        // console.error(key, value, this.formsMap[key[0]]);
+
+        let form = this.formsMap[key[0]];
+        if(form){
+          if(form.type == 'checkbox'){
+            // console.log(event.target.checked);
+            form.value[key[1]] = event.target.checked;
+          }else if(form.type == 'radio'){
+            if(event.target.checked){
+              form.value = key[1];
+            }
+          }else{
+            form.value = value;
+          }
+        }
+        // console.log(key, value, this.formsMap, this.forms);
       },
 
       showImage(event, title, url){
