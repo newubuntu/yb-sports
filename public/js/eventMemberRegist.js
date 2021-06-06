@@ -178,6 +178,13 @@ console.log('event member regist.js');
       return;
     }
 
+    let today = new Date();
+    let birthday = new Date(date);
+    if(today.getFullYear() - birthday.getFullYear() < 18){
+      modal("알림", "가입이 불가능한 나이입니다.");
+      return;
+    }
+    
     // console.log(1, files)
     // console.log(2, $picture1.get(0).files);
 

@@ -404,18 +404,36 @@ let Vapp;
       async removeUser(id){
         let user = this.getUserObj(id);
         if(!user){
-          modal("알림", `${id} 멤버를 찾을 수 없습니다.`);
+          modal("알림", `${id} 를 찾을 수 없습니다.`);
           return;
         }
-        if(!(await modal("멤버제거", `멤버 '${user.email}'을 제거하시겠습니까?`, {buttons:["취소", "제거"]}))) return;
+        if(!(await modal("제거", ` '${user.name}(${user.email})'을 삭제하시겠습니까?`, {buttons:["취소", "제거"]}))) return;
 
         let res = await api.removeEventUser(id);
         if(res.status == "success"){
           // this.pullUserObj(id);
           await this.loadList(this.curPage, this.tab);
-          modal("알림", `멤버 '${user.email}' 을 제거했습니다`);
+          modal("알림", `'${user.name}(${user.email})'을 삭제했습니다`);
         }else{
-          modal("알림", `멤버제거 실패.<br>${res.message}`);
+          modal("알림", `제거 실패.<br>${res.message}`);
+        }
+      },
+
+      async trashUser(id){
+        let user = this.getUserObj(id);
+        if(!user){
+          modal("알림", `${id} 멤버를 찾을 수 없습니다.`);
+          return;
+        }
+        if(!(await modal("멤버제거", `멤버 '${user.email}'을 휴지통에 보내시겠습니까?`, {buttons:["취소", "제거"]}))) return;
+
+        let res = await api.trashEventUser(id);
+        if(res.status == "success"){
+          // this.pullUserObj(id);
+          await this.loadList(this.curPage, this.tab);
+          modal("알림", `멤버 '${user.email}' 을 휴지통으로 보냈습니다`);
+        }else{
+          modal("알림", `휴지통 보내기 실패.<br>${res.message}`);
         }
       },
 

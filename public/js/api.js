@@ -378,6 +378,10 @@ let api = (()=>{
       return ax("/remove_event_user/" + id);
     },
 
+    trashEventUser(id){
+      return ax("/trash_event_user/" + id);
+    },
+
     payEventUser(id, price, code){
       return ax("/pay_event_user/" + id + '/' + price + '/' + code);
     },

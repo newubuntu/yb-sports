@@ -128,13 +128,14 @@ block view
                   template(v-if="tab!=1&&tab!=4")
                     th 지급
                     th 추천인 지급
-                  th(v-if="tab!=4") 제거
+                  th(v-if="tab!=4") 휴지통
                   th(v-else) 복구
+                  th 삭제
               tbody
                 tr(v-for="user, i in users")
                   td {{i+1}}
                   td {{user.number}}
-                  td {{(new Date(user.createdAt)).toLocaleDateString()}}
+                  td {{(new Date(user.createdAt)).toLocaleString()}}
                   td {{user.ip}}
                   td {{user.name}}
                   td {{user.email}}
@@ -178,11 +179,14 @@ block view
                     template(v-else)
                       td
                   td(v-if="tab!=4")
-                    button.btn.btn-sm.btn-danger(v-on:click="removeUser(user._id)")
-                      |제거
+                    button.btn.btn-sm.btn-danger(v-on:click="trashUser(user._id)")
+                      |휴지통
                   td(v-else)
                     button.btn.btn-sm.btn-warning(v-on:click="restoreUser(user._id)")
                       |복구
+                  td
+                    button.btn.btn-sm.btn-danger(v-on:click="removeUser(user._id)")
+                      |삭제
                   //- td(v-if="tab!=4")
                     .input-group
                       .input-group-prepend

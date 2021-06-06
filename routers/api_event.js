@@ -297,14 +297,16 @@ module.exports = MD=>{
   }))
 
   router.get("/remove_event_user/:id", authAdmin, task(async (req, res)=>{
-    // console.error(req.body)
-    // if(!req.user.master){
-    //   res.json({
-    //     status: "fail",
-    //     message: "권한이 없는 요청입니다."
-    //   })
-    //   return;
-    // }
+
+    let id = req.params.id;    
+    await EventMember.deleteOne({_id:id});
+
+    res.json({
+      status: "success"
+    })
+  }))
+
+  router.get("/trash_event_user/:id", authAdmin, task(async (req, res)=>{
 
     let id = req.params.id;
     // await EventMember.deleteOne({_id:id});
