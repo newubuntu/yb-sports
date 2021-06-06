@@ -378,12 +378,12 @@ let api = (()=>{
       return ax("/remove_event_user/" + id);
     },
 
-    payEventUser(id, code){
-      return ax("/pay_event_user/" + id + '/' + code);
+    payEventUser(id, price, code){
+      return ax("/pay_event_user/" + id + '/' + price + '/' + code);
     },
 
-    payEventRecommender(id, code){
-      return ax("/pay_event_recomender/" + id + '/' + code);
+    payEventRecommender(id, price, code){
+      return ax("/pay_event_recomender/" + id + '/' + price + '/' + code);
     },
 
     approveEventUser(id){

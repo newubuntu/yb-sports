@@ -43,6 +43,11 @@ block view
             input.form-control(type="text" placeholder="https://" v-on:change="onUpdateAuthLink($event)" :value="authLink")
     .pay-form
       .form-group.row
+        label.col-md-3.col-form-label 문상금액 입력
+        .col-md-9
+          .input-group        
+            input.form-control(type="number" v-on:change="onUpdatePayPrice($event)" :value="payPrice")
+      .form-group.row
         label.col-md-3.col-form-label 문상코드 입력
         .col-md-9
           .input-group

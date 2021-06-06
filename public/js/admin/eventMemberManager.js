@@ -33,6 +33,7 @@ let Vapp;
       previewImage: null,
       $payForm: null,
       payCode: "",
+      payPrice: 0,
       $authForm: null,
       authLink: ""
     },
@@ -100,6 +101,11 @@ let Vapp;
       //   })
       // },
 
+
+      onUpdatePayPrice(event){
+        this.payPrice = event.target.value;
+      },
+
       onUpdatePayCode(event){
         this.payCode = event.target.value;
       },
@@ -109,9 +115,10 @@ let Vapp;
       },
 
       openPayModal(){
+        this.payPrice = "";
         this.payCode = "";
         delay(500).then(()=>{
-          this.$payForm.find("input").focus();
+          this.$payForm.find("input").eq(0).focus();
         })
         return modal(`문상지급`, this.$payForm, {
           buttons: ["취소", "지급"],
@@ -318,13 +325,17 @@ let Vapp;
         }
         let r = await this.openPayModal();
         if(r){
+          if(!this.payPrice){
+            modal("오류", "금액이 입력되지 않았습니다.");
+            return;
+          }
           if(!this.payCode){
             modal("오류", "코드가 입력되지 않았습니다.");
             return;
           }
           // console.log(this.payCode);
           // return;
-          let res = await api.payEventUser(id, this.payCode);
+          let res = await api.payEventUser(id, comma(this.payPrice), this.payCode);
           if(res.status == "success"){
             await this.loadList(this.curPage, this.tab);
             // modal("알림", `멤버 ${user.email} 가입승인 완료`);
@@ -342,11 +353,15 @@ let Vapp;
         }
         let r = await this.openPayModal();
         if(r){
+          if(!this.payPrice){
+            modal("오류", "금액이 입력되지 않았습니다.");
+            return;
+          }
           if(!this.payCode){
             modal("오류", "코드가 입력되지 않았습니다.");
             return;
           }
-          let res = await api.payEventRecommender(id, this.payCode);
+          let res = await api.payEventRecommender(id, comma(this.payPrice), this.payCode);
           if(res.status == "success"){
             await this.loadList(this.curPage, this.tab);
             // modal("알림", `멤버 ${user.email} 가입승인 완료`);

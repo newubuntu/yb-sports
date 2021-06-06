@@ -4,6 +4,19 @@ let Vapp;
 (async ()=>{
   let settingFormFormat = [
     {
+      name: "이벤트 메일 계정",
+      key: "emailUser",
+      value: "",
+      type: "text"
+    },
+    {
+      name: "이벤트 메일 비번",
+      key: "emailPass",
+      value: "",
+      type: "text",
+      help: "16자리 코드"
+    },
+    {
       name: "피나클 계정",
       key: "pinnacleId",
       prepend: `<svg class="c-icon">

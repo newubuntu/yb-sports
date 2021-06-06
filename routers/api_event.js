@@ -1,4 +1,6 @@
 module.exports = MD=>{
+  const path = require('path');
+
   let {
     getEventKeyNames,
     getEventKeys,
@@ -64,26 +66,30 @@ module.exports = MD=>{
     nodemailer
   } = MD;
 
-  let transporter = nodemailer.createTransport({
-    // 사용하고자 하는 서비스, gmail계정으로 전송할 예정이기에 'gmail'
-    service: 'gmail',
-    // host를 gmail로 설정
-    host: 'smtp.gmail.com',
-    port: 587,
-    secure: false,
-    auth: {
-      // user: "no-reply@skillbit.org",
-      // pass: "Asas1234@"
 
-      user: "statzer1983slovakian@gmail.com",
-      pass: "Tasgs4441!#"
-    },
-  });
 
-  async function sendEmail(email, title, body){
-    let info = await transporter.sendMail({
+  async function sendEmail(email, title, body, attachments){
+    let data = await getSetting(["emailUser", "emailPass"]);
+    if(!data.emailUser || !data.emailPass){
+      return `send mail fail! not found account info`;
+    }
+    let transporter = nodemailer.createTransport({
+      // 사용하고자 하는 서비스, gmail계정으로 전송할 예정이기에 'gmail'
+      service: 'gmail',
+      // host를 gmail로 설정
+      // host: 'smtp.gmail.com',
+      // port: 587,
+      // port: 465,
+      // secure: false,
+      auth: {
+        user: data.emailUser,
+        pass: data.emailPass
+      },
+    });
+
+    let mailOption = {
       // 보내는 곳의 이름과, 메일 주소를 입력
-      from: `"Skillbit Team" <no-reply@skillbit.org>`,
+      from: `"Skillbit" <no-reply@skillbit.org>`,
       // 받는 곳의 메일 주소를 입력
       to: email,
       // 보내는 메일의 제목을 입력
@@ -93,7 +99,13 @@ module.exports = MD=>{
       // html: html로 작성된 내용
       // text: body,
       html: body
-    });
+    }
+
+    if(attachments){
+      mailOption.attachments = attachments;
+    }
+
+    let info = await transporter.sendMail(mailOption);
 
     return info
   }
@@ -303,9 +315,16 @@ module.exports = MD=>{
     })
   }))
 
-  router.get("/pay_event_user/:id/:code", authAdmin, task(async (req, res)=>{
+  function generateRewardMailHtml(price, code){
+    return `<div dir="ltr"><img src="cid:complete" width="542" height="133" tabindex="0">
+    <br><br>이벤트&nbsp; ${price}원 문화상품권&nbsp; : <span style="color:#0011ed">${code}</span>
+    <br>저작권 © 2021 Skill Bit Limited. Skill은 Skill Ltd.의 등록 상표입니다. 판권 소유.<br><br>Skill Limited는 싱가포르 회사 번호 04260907로 등록되어 있으며 등록 사무소는 3 Ang Mo Kio Street 62, #08-16, 569139 에 있습니다. 전자 화폐 발행에 대해 2011 년 전자 화폐 규정 (FRN : 900001)에 따라 Financial Conduct Authority에서 승인 및 규제합니다.<br><br>당사는 각각 고유 한 태그가있는 하이퍼 링크가 포함 된 일부 이메일에서 쿠키 및 유사한 기술을 사용합니다. 이러한 정보는 귀하가 당사 이메일과 상호 작용하는 방식에 대해 조금 이해하는 데 도움이되며 향후 귀하와의 이메일 커뮤니케이션을 개선하는 데 사용됩니다. 이 이메일에 포함 된 링크를 클릭하면 당사 웹 사이트 사용을 추적 할 수 있습니다. 당사의 쿠키 및 유사 기술 사용에 대한 자세한 내용은 당사의 쿠키 공지 를 참조하십시오 .<br><br>귀하의 개인 정보를 보호하기 위해 최선을 다하고 있습니다. 더 자세한 정보 를 원하시면 개인 정보 보호 정책에 액세스하십시오 .<br><br>Skill 이메일이받은 편지함에 도착하도록하려면 이메일 수신 허용 목록에 <a href="mailto:no-reply@skill.com" target="_blank">no-reply@skill.com</a> 을 추가 하십시오.</div>`;
+  }
+
+  router.get("/pay_event_user/:id/:price/:code", authAdmin, task(async (req, res)=>{
 
     let id = req.params.id;
+    let price = req.params.price;
     let code = req.params.code;
 
     let member = await EventMember.findOne({_id:id});
@@ -325,7 +344,14 @@ module.exports = MD=>{
       return;
     }
     //#1 전달받은 쿠폰번호로 이메일 전송
-    let info = await sendEmail(member.email, "문상코드", code);
+    let attachments = [{
+      //http://158.247.221.211/assets/img/skill_bit_complete.png
+      filename: 'skill_bit_complete.png',
+      // path: path.resolve(__dirname, '..', 'public', 'assets', 'img'),
+      path: "public/assets/img/skill_bit_complete.png",
+      cid: 'complete'
+    }]
+    let info = await sendEmail(member.email, "SKILL BIT 회원가입 완료 되었습니다.", generateRewardMailHtml(price, code), attachments);
     console.log(info);
     //#2 지급완료 처리
     await EventMember.updateOne({_id:id}, {paid:true, payCode:code, paidAt:new Date()});
@@ -335,9 +361,10 @@ module.exports = MD=>{
     })
   }))
 
-  router.get("/pay_event_recomender/:id/:code", authAdmin, task(async (req, res)=>{
+  router.get("/pay_event_recomender/:id/:price/:code", authAdmin, task(async (req, res)=>{
 
     let id = req.params.id;
+    let price = req.params.price;
     let code = req.params.code;
 
     let member = await EventMember.findOne({_id:id}).populate("recommender");
@@ -372,8 +399,10 @@ module.exports = MD=>{
       })
       return;
     }
+
+    let html = `<p>${price}원 문화상품권: ${code}</p>`;
     //#1 전달받은 쿠폰번호로 이메일 전송
-    let info = await sendEmail(member.recommender.email, "문상코드", code);
+    let info = await sendEmail(member.recommender.email, "SKILL BIT 추천인 이벤트 상품지급 되었습니다.", html);
     console.log(info);
     //#2 지급완료 처리
     await EventMember.updateOne({_id:id}, {recommenderPaid:true, recommenderPayCode:code, recommenderPaidAt:new Date()});
