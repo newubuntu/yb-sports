@@ -590,7 +590,14 @@
   })
 
   app.post('/event/member/regist/check', task(async (req, res) => {
-    let member = await EventMember.findOne({email:req.body.email});
+    let {email, name, birthday} = req.body;
+    let member = await EventMember.findOne({$or:[
+      {email},
+      {$and:[
+        {name},
+        {birthday}
+      ]}
+    ]});
     res.json({
       status: "success",
       has: !!member
@@ -616,6 +623,48 @@
     }
   });
   const upload = multer({ storage, limits: { fileSize: 10 * 1024 * 1024 } });
+  app.post('/event/member/modify/upload', upload.fields([{
+           name: 'photo-1', maxCount: 1
+         }, {
+           name: 'photo-2', maxCount: 1
+         }, {
+           name: 'photo-3', maxCount: 1
+         }]), task(async (req, res) => {
+
+    let data = req.body;
+    let files = req.files;
+    let _id = data._id;
+
+    let member = await EventMember.findOne({_id});
+    if(!member){
+      res.json({
+        status: "fail",
+        message: "유저 정보를 찾을 수 없습니다."
+      })
+      return;
+    }
+
+    // console.log(files);
+
+    if(files){
+      [0,1,2].forEach(i=>{
+        if(files["photo-"+(i+1)]){
+          let file = files["photo-"+(i+1)][0];
+          file.url = file.destination.replace('public', '') + file.filename;
+          // console.log(file.url);
+          member.files[i] = file;
+        }
+      })
+
+      member.markModified("files");
+      await member.save();
+    }
+
+    res.json({
+      status: "success"
+    })
+  }))
+
   app.post('/event/member/regist/upload', upload.array('photos'), task(async (req, res) => {
     // console.log(req.body);
     // console.log(req.files);

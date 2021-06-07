@@ -77,7 +77,8 @@ let Vapp;
       $authForm: null,
       authLink: "",
       forms: [],
-      userId: ""
+      userId: "",
+      userFiles: []
     },
     async created(){
       console.log("wait socketReady");
@@ -187,6 +188,10 @@ let Vapp;
       },
 
       setUserData(user){
+        [1,2,3].forEach(i=>{
+          $("#form-picture"+i).val('');
+        })
+
         user = JSON.parse(JSON.stringify(user));
         this.userId = user._id;
         for(let key in this.formsMap){
@@ -199,6 +204,7 @@ let Vapp;
             }
           }
         }
+        this.userFiles = user.files || [];
         // this.$forceUpdate();
       },
 
@@ -216,6 +222,8 @@ let Vapp;
           }
         }
         opt._id = this.userId;
+        // let files = [$("#form-picture1").get(0).files[0], $("#form-picture2").get(0).files[0], $("#form-picture3").get(0).files[0]];
+        // opt.files = files;
         return JSON.parse(JSON.stringify(opt));
       },
 
@@ -247,6 +255,25 @@ let Vapp;
 
         if(result){
           user = this.getUserData();
+          let files = [$("#form-picture1").get(0).files[0], $("#form-picture2").get(0).files[0], $("#form-picture3").get(0).files[0]];
+          let formData = new FormData();
+          for(let i=0; i<files.length; i++){
+            formData.append("photo-"+(i+1), files[i]);
+          }
+          formData.append("_id", user._id);
+          res = await axios({
+            method: "post",
+            url: '/event/member/modify/upload',
+            data: formData,
+            headers: { "Content-Type": "multipart/form-data" }
+          })
+
+          if(res.data.status == "fail"){
+            modal("알림", `수정 실패<br>${res.data.message}`);
+            await this.reload();
+            return;
+          }
+
           res = await api.updateEventUser(user._id, user);
           if(res.status == "success"){
             await this.reload();
@@ -278,10 +305,19 @@ let Vapp;
         // console.log(key, value, this.formsMap, this.forms);
       },
 
+      onFileChange(event, file, i){
+        // console.error("???", event);
+        file.tempUrl = URL.createObjectURL(event.target.files[0]);
+        $("#form-picture-label"+(i+1)).val(event.target.files[0].name);
+        // event.target.value = '';
+      },
+
       showImage(event, title, url){
-        this.previewImage.src = url;
-        this.$previewCon.removeClass("hide");
-        this.$previewCon.find(".preview-title").html(title);
+        if(url){
+          this.previewImage.src = url;
+          this.$previewCon.removeClass("hide");
+          this.$previewCon.find(".preview-title").html(title);
+        }
       },
 
       hideImage(event){

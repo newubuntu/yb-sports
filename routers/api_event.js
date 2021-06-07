@@ -299,6 +299,12 @@ module.exports = MD=>{
     let user = req.body;
     delete user._id;
 
+    // if(user.files){
+    //   let member = await EventMember.findOne({_id:id}).lean();
+    //   let files = member.files;
+    //   user.files
+    // }
+
     await EventMember.updateOne({_id:id}, user);
     res.json({
       status: "success"

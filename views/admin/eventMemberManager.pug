@@ -23,6 +23,30 @@ block append styles
       z-index: 9999;
       max-width: 600px;
     }
+    .filebox input[type='file'] {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip:rect(0,0,0,0);
+      border: 0;
+    }
+    .filebox {display:inline-block; margin-right: 10px;}
+    .filebox label {
+      display: inline-block;
+      padding: .4em .75em;
+      color: #000;
+      font-size: inherit;
+      line-height: normal;
+      vertical-align: middle;
+      background-color: #fdfdfd;
+      cursor: pointer;
+      border: 1px solid #ebebeb;
+      border-bottom-color: #e2e2e2;
+      border-radius: .25em;
+    }
 
 block view
   h1
@@ -60,6 +84,49 @@ block view
             .form-check.checkbox(v-for="opt in form.list")
               input.form-check-input(v-on:change="update" :id="form.key+'_'+opt.value" type="checkbox" :checked="form.value[opt.value]")
               label.form-check-label(:for="form.key+'_'+opt.value") {{opt.name}}
+        .form-group.row(v-for="i in [0,1,2]")
+          label.col-md-3.col-form-label {{filename[i]}}
+          .col-md-9
+            .input-group
+              input.form-control(:id="'form-picture-label'+(i+1)" type="text" readOnly :value="userFiles[i]?userFiles[i].originalname:''" v-on:mouseover="showImage($event, filename[i], userFiles[i]?userFiles[i].tempUrl||userFiles[i].url:'')" v-on:mouseleave="hideImage($event)")
+              .input-group-append
+                .filebox
+                  label(:for="'form-picture'+(i+1)") 파일선택
+                  input.form-control(:id="'form-picture'+(i+1)" type="file" accept="image/*" v-on:change="onFileChange($event, userFiles[i], i)")
+          //- .col-md-9
+            .filebox
+              label(for="form-picture1") 파일선택
+              input.form-control#form-picture1(type="file" accept="image/*")
+              
+        //- .form-group.row
+        //-   label.col-md-3.col-form-label 신분증 뒤
+        //-   .col-md-9
+        //-     .filebox
+        //-       label(for="form-picture2") 파일선택
+        //-       input.form-control#form-picture2(type="file" accept="image/*")
+        //- .form-group.row
+        //-   label.col-md-3.col-form-label 신분증들고 본인사진 (얼굴, 신분증 명확하게)
+        //-   .col-md-9
+        //-     .filebox
+        //-       label(for="form-picture3") 파일선택
+        //-       input.form-control#form-picture3(type="file" accept="image/*")        
+          //- .input-group.mb-4
+          //-   .input-group-prepend
+          //-     span.input-group-text
+          //-       |신분증 앞
+          //-   input.form-control#form-picture1(type="file" accept="image/*")
+          //- .input-group.mb-4
+          //-   .input-group-prepend
+          //-     span.input-group-text
+          //-       |신분증 뒤
+          //-   input.form-control#form-picture2(type="file" accept="image/*")
+          //- .input-group.mb-4
+          //-   .input-group-prepend
+          //-     span.input-group-text
+          //-       |신분증들고 본인사진 (얼굴, 신분증 명확하게)
+          //-   input.form-control#form-picture3(type="file" accept="image/*")
+          //- .col-md-9
+          //-   #image-container
               
     .auth-form
       .form-group.row
@@ -175,7 +242,7 @@ block view
                     a(v-if="user.recommender" :href="'#'+tab" style="cursor:pointer" v-on:click="reload(0, tab, {email:user.recommender.email})")
                       |{{user.recommender.email}}
                   td(v-for="file,i in user.files")
-                    a(:download="'['+user.name+']'+filename[i]+'.'+file.url.split('.').pop()" :href="file.url" v-on:mouseover="showImage($event, '['+user.name+']'+filename[i], file.url)" v-on:mouseleave="hideImage($event)")
+                    a(v-if="file" :download="'['+user.name+']'+filename[i]+'.'+file.url.split('.').pop()" :href="file.url" v-on:mouseover="showImage($event, '['+user.name+']'+filename[i], file.url)" v-on:mouseleave="hideImage($event)")
                       svg.c-icon.c-icon-lg(style="pointer-events:none;")
                         use(xlink:href="/vendors/@coreui/icons/sprites/duotone.svg#cid-cloud-download")
                   td(v-if="tab<2")

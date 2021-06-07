@@ -184,7 +184,7 @@ console.log('event member regist.js');
       modal("알림", "가입이 불가능한 나이입니다.");
       return;
     }
-    
+
     // console.log(1, files)
     // console.log(2, $picture1.get(0).files);
 
@@ -228,11 +228,11 @@ console.log('event member regist.js');
     res = await axios({
       method: "post",
       url: '/event/member/regist/check',
-      data: {email}
+      data: {email, name, birthday}
     })
     if(res.data.status == "success"){
       if(res.data.has == true){
-        modal("알림", "이미 가입신청된 이메일입니다.");
+        modal("알림", "이미 가입신청된 정보입니다.");
         spinner.stop();
         return;
       }
